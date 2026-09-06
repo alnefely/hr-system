@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Rubik:ital,wght@0,300..900;1,300..900&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
+
+html, body,h1, h2, h3, h4, h5, h6, p,span, div, a, ul, li, ol, input, textarea{
+  font-family: 'Rubik', sans-serif !important;
+
+}
+.menu-inner .menu-item i {
+  margin-inline-end: 0.5rem;
+  text-align: center;
+  width: 1.25em;
+}
+
+.btn-custom {
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+}
+
+#loading {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 99999999999999;
+    background: var(--bs-body-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+div.dt-container div.dt-paging ul.pagination {
+    justify-content: end;
+}
