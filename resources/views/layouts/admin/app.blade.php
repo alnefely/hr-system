@@ -14,6 +14,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', setting('site_name'))</title>
 
     <meta name="description" content="" />
@@ -54,6 +55,7 @@
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
 
     <script src="/admin/js/config.js"></script>
+    <link rel="stylesheet" href="/admin/vendor/libs/select2/select2.css" />
     <link rel="stylesheet" href="{{ asset('admin/custom.css') }}" />
     @stack('css')
   </head>
@@ -181,7 +183,162 @@
           }
       });
     </script>
+    <script src="/admin/vendor/libs/select2/select2.js"></script>
+    <script>
+      // Global Select2 Initializer for all select inputs & modals
+      window.initSelect2 = function (context) {
+          let $ctx = context ? $(context) : $(document);
+          $ctx.find('select.select2, select.form-select:not(.no-select2):not(.dt-select2)').each(function () {
+              let $el = $(this);
+              if ($el.hasClass('select2-hidden-accessible')) {
+                  return;
+              }
+              let $modal = $el.closest('.modal');
+              let placeholderText = $el.data('placeholder') || $el.find('option[value=""]').first().text() || 'اختر...';
+
+              let config = {
+                  dir: $('html').attr('dir') === 'rtl' ? 'rtl' : 'ltr',
+                  width: '100%',
+                  placeholder: placeholderText,
+                  allowClear: !$el.prop('required')
+              };
+
+              if ($modal.length) {
+                  config.dropdownParent = $modal;
+              }
+
+              $el.select2(config);
+          });
+      };
+
+      $(document).ready(function () {
+          window.initSelect2();
+      });
+
+      // Automatically re-initialize on modal open
+      $(document).on('shown.bs.modal', function (e) {
+          window.initSelect2(e.target);
+      });
+
+      // تفعيل الـ Popovers.
+      // ثيم Vuexy بيفعّل الـ Tooltips بس في main.js، فالـ popover
+      // مكانش بيشتغل خالص. بنفعّله هنا بدل ما نعدّل ملف الثيم.
+      document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function (el) {
+              new bootstrap.Popover(el, {
+                  container: 'body',
+                  sanitize: false,   // بنسمح بالـ HTML جوّه المحتوى
+              });
+          });
+      });
+    </script>
     @include('layouts.alert')
+
+    {{-- الإشعارات: تحميل القائمة + التحديث اللحظي عبر Pusher --}}
+    @if (admin_can('notification_show'))
+      @php
+          $pusherEnabled = config('broadcasting.default') === 'pusher' && config('broadcasting.connections.pusher.key');
+      @endphp
+
+      @if ($pusherEnabled)
+        <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+      @endif
+
+      <script>
+      (function () {
+          const bell    = document.getElementById('notificationsBell');
+          if (!bell) return;
+
+          const listEl  = document.getElementById('notificationsList');
+          const countEl = document.getElementById('notificationsCount');
+          const csrf    = document.querySelector('meta[name="csrf-token"]')?.content;
+
+          const T = {
+              empty:     @json(__('notification.empty')),
+              emptyHint: @json(__('notification.empty_hint')),
+          };
+
+          const esc = (v) => String(v ?? '')
+              .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+          function setCount(n) {
+              if (!countEl) return;
+              countEl.textContent = n;
+              countEl.classList.toggle('d-none', !n);
+          }
+
+          function render(items) {
+              if (!items || items.length === 0) {
+                  listEl.innerHTML = '<div class="text-center text-muted py-4 px-3">'
+                      + '<i class="fa-solid fa-bell-slash mb-2" style="font-size:1.8rem;opacity:.3"></i>'
+                      + '<div class="small fw-semibold">' + esc(T.empty) + '</div>'
+                      + '<div class="small">' + esc(T.emptyHint) + '</div></div>';
+                  return;
+              }
+
+              listEl.innerHTML = items.map(function (n) {
+                  const unread = n.is_read ? '' : 'style="background: rgba(115,103,240,0.06);"';
+                  return '<a href="' + esc(n.url || '#') + '" data-id="' + n.id + '"'
+                      + ' class="d-flex align-items-start gap-2 px-3 py-2 border-bottom text-body notification-item" ' + unread + '>'
+                      + '<span class="badge bg-label-' + esc(n.level) + ' rounded p-2 flex-shrink-0">'
+                      + '<i class="' + esc(n.icon) + '"></i></span>'
+                      + '<span class="flex-grow-1 small">'
+                      + '<span class="d-block fw-semibold">' + esc(n.title) + '</span>'
+                      + (n.body ? '<span class="d-block text-muted">' + esc(n.body) + '</span>' : '')
+                      + '<span class="d-block text-muted" style="font-size:.72rem">' + esc(n.human_time) + '</span>'
+                      + '</span></a>';
+              }).join('');
+          }
+
+          function load() {
+              fetch(@json(route('admin.notifications.latest')), {
+                  headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+              })
+              .then(r => r.ok ? r.json() : Promise.reject(r.status))
+              .then(d => { render(d.notifications); setCount(d.unread_count); })
+              .catch(() => { listEl.innerHTML = ''; });
+          }
+
+          // نحمّل أول ما القائمة تتفتح — مش مع كل تحميل صفحة
+          bell.addEventListener('shown.bs.dropdown', load);
+
+          // تعليم الكل كمقروء
+          document.getElementById('markAllNotificationsRead')?.addEventListener('click', function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              fetch(@json(route('admin.notifications.read-all')), {
+                  method: 'POST',
+                  headers: {
+                      'X-CSRF-TOKEN': csrf,
+                      'X-Requested-With': 'XMLHttpRequest',
+                      'Accept': 'application/json'
+                  }
+              }).then(() => { setCount(0); load(); });
+          });
+
+          @if ($pusherEnabled)
+          // التحديث اللحظي: القناة خاصة بالمشرف الحالي بس
+          try {
+              const pusher = new Pusher(@json(config('broadcasting.connections.pusher.key')), {
+                  cluster: @json(config('broadcasting.connections.pusher.options.cluster')),
+                  authEndpoint: @json(route('admin.broadcasting.auth')),
+                  auth: { headers: { 'X-CSRF-TOKEN': csrf } }
+              });
+
+              pusher.subscribe('private-admin.' + @json(admin()?->id))
+                    .bind('notification.created', function (data) {
+                        setCount(data.unread_count);
+                        if (bell.querySelector('.dropdown-menu.show')) load();
+                    });
+          } catch (e) {
+              // فشل الاتصال بـ Pusher مايكسرش الصفحة — الجرس يفضل شغال بالتحميل اليدوي
+              console.warn('Pusher unavailable:', e);
+          }
+          @endif
+      })();
+      </script>
+    @endif
 
     @stack('js')
   </body>

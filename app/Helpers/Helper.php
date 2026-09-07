@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 
 require_once __DIR__ . '/AdminRoles.php';
+require_once __DIR__ . '/ActivityHelper.php';
 
 // جلب قيمة setting معينة بالـ key
 if (!function_exists('setting')) {

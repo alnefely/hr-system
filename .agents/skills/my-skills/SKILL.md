@@ -425,136 +425,154 @@ class LfmConfigHandler
 - عدم كتابة أي Query يدوي (Raw SQL) بدون Binding Parameters (تفاديًا لـ SQL Injection).
 - التوثيق (Authentication) في الأدمن بانل بيتم دايمًا عبر Guard مخصص باسم `admin` (`auth('admin')`)، **مش** الـ Guard الافتراضي (`auth()`). أي كود جديد خاص بالأدمن بانل لازم يستخدم `auth('admin')` صراحة.
 - النظام مبني بحيث يسمح بإضافة Guards تانية مستقبلًا (زي guard خاص بالعملاء أو بواجهة تانية)؛ لو تم إضافة Guard جديد، يُتبع نفس نمط التسمية الصريحة (`auth('customer')` مثلاً) بدل الاعتماد على الـ Guard الافتراضي في أي مكان بالمشروع.
-- المشروع عنده نظام صلاحيات مخصص (Custom Permissions System) عبر `app/Helpers/AdminRoles.php`، ولازم يتم الاعتماد عليه حصريًا، **مش** Laravel Policies/Gates.
-- كل صلاحية جديدة تُضاف داخل دالة `Roles()` في نفس الملف، بنفس الشكل الموجود (name + roles array):
+- المشروع عنده نظام صلاحيات مخصص (Custom Bespoke RBAC) مركزي وسريع، ولازم يتم الاعتماد عليه حصريًا، **مش** Laravel Policies/Gates أو حزم خارجية مثل Spatie.
+
+### المصدر المركزي لتعريف الصلاحيات: `RoleService`
+
+المصدر الوحيد (Single Source of Truth) لتعريف كافة صلاحيات النظام هو كلاس:
+```
+app/Services/Role/RoleService.php
+```
+- **أي صلاحية جديدة تُضاف حصريًا داخل دالة `map()` في `RoleService`**، مقسمة حسب الموديول:
 
 ```php
-[
-    'name'  => 'trans.admin.title',
-    'roles' => [
-        'admin_show',
-        'admin_create',
-        'admin_update',
-        'admin_delete',
-    ],
-],
+public function map(): array
+{
+    return [
+        'dashboard' => [
+            'label' => 'dashboard.title',
+            'items' => ['dashboard_show'],
+        ],
+        'admin' => [
+            'label' => 'admin.title',
+            'items' => [
+                'admin_show',
+                'admin_create',
+                'admin_update',
+                'admin_delete',
+            ],
+        ],
+        // إضافة أي موديول جديد هنا...
+    ];
+}
 ```
 
-- تسمية الصلاحيات تتبع نمط `{module}_{action}` (مثال: `admin_show`, `admin_create`, `setting_clear_cache`) للحفاظ على الاتساق، ولتفعيل التعرف التلقائي على نوع العملية عبر `checkPermissionAction()`.
+- **تسمية الصلاحيات**: تتبع بدقة نمط `{module}_{action}` (مثال: `admin_show`, `admin_create`, `role_update`, `setting_clear_cache`) لتفعيل التعرف التلقائي على أسماء الإجراءات المترجمة في واجهة المستخدم عبر `RoleService::label()`.
+- ملف `app/Helpers/AdminRoles.php` **لا يحتوي على أي منطق**؛ هو مجرد اختصارات (Blade Helpers) تنادي كائن `RoleService` المسجل كـ Singleton:
+  - `admin()`: يعيد كائن المشرف الحالي المسجل (`auth('admin')->user()`).
+  - `admin_can('permission_name')`: فحص هل يملك المشرف الحالي الصلاحية (مكاشة ومحمية من التكرار).
+  - `admin_roles()`: يعيد مصفوفة صلاحيات المشرف الحالي.
+  - `all_roles()`: مصفوفة مسطحة بكافة الصلاحيات المعرفة بالنظام (تُستخدم في Validation).
+  - `grouped_roles()`: الصلاحيات مقسمة ومترجمة وجاهزة للعرض في شاشات إضافة وتعديل الأدوار.
+
+### جدول الأدوار (`roles`) وقواعد الأمان
+
+- الصلاحيات مخزنة في قاعدة البيانات في عمود `roles` من نوع **JSON** داخل جدول `roles` (وليس `permissions`).
+- الـ Cast في موديل `Role`:
+  ```php
+  protected $casts = [
+      'roles' => 'array',
+  ];
+  ```
+- **الأدوار المحمية**:
+  - الدور الرئيسي (`main = 1`): غير قابل للتعديل أو الحذف.
+  - الدور الاحتياطي (`id = 2`): غير قابل للحذف ولا يُغيَّر اسمه، وتُعدَّل صلاحياته فقط.
+- **حذف الأدوار الآمن (Safe Deletion)**: عند حذف أي دور، يتم أوتوماتيكياً نقل جميع المشرفين التابعين له إلى الدور الاحتياطي (`role_id = 2`) عبر معالج `deleting` في موديل [`Role`](file:///d:/Laravel-2026/sbbs/app/Models/Role.php):
+  ```php
+  static::deleting(function (Role $role) {
+      $role->admins()->update(['role_id' => 2]);
+  });
+  ```
+- **حساب المشرف الرئيسي**: في جدول `admins`، المشرف الذي يحمل `main = 1` محمي برمجياً من الحذف أو التعديل من قِبل أي مشرف آخر.
 
 ### الفرق بين `admin_can()` والـ Middleware — استخدام كل واحد في مكانه الصح
 
-النظام فيه **طبقتين** للتحقق من الصلاحية، ولازم يُستخدما في السياق الصحيح مش أي واحدة مكان التانية:
+النظام فيه **طبقتين** للتحقق من الصلاحية:
 
 | الطريقة | مكان الاستخدام | مثال |
 |---|---|---|
 | `admin_can('permission')` | جوه الكود (Blade، Controller، Service) للتحقق الشرطي أو إخفاء/إظهار عناصر | `@if(admin_can('admin_delete'))` |
-| `AdminPermission` Middleware | على مستوى الـ Route نفسه، لمنع الوصول للـ Endpoint بالكامل | `Route::middleware('permission:admin_show')` |
+| `AdminPermission` Middleware | على مستوى الـ Route نفسه، لمنع الوصول للـ Endpoint بالكامل | `Route::middleware('AdminPermission:admin_show')` |
 
 ```php
-// حماية Route كامل بصلاحية معينة
-Route::middleware(['auth:admin', 'permission:admin_show'])
-    ->get('/admins', [AdminController::class, 'index']);
+// حماية مسار عادي بصلاحية محددة
+Route::get('/settings', [SettingsController::class, 'index'])
+    ->name('settings')
+    ->middleware('AdminPermission:setting_show');
 
-// حالة خاصة: السماح لطلبات الـ ajax بدون فحص صلاحية معينة
-Route::middleware(['auth:admin', 'permission:ajax'])
-    ->get('/admins/datatable', [AdminController::class, 'index']);
+// حماية Resource Controller وتوزيع الصلاحيات على العمليات
+Route::resource('/admins', AdminController::class)
+    ->except(['show'])
+    ->names([
+        'index'   => 'admins',
+        'store'   => 'admins.store',
+        'update'  => 'admins.update',
+        'destroy' => 'admins.destroy',
+    ])->middleware([
+        'index'   => 'AdminPermission:admin_show',
+        'store'   => 'AdminPermission:admin_create',
+        'update'  => 'AdminPermission:admin_update',
+        'destroy' => 'AdminPermission:admin_delete',
+    ]);
 ```
 
-- أي Route جديد يتعامل مع بيانات محمية **لازم** يتحط عليه `AdminPermission` Middleware من الأول، مش الاعتماد على `admin_can()` جوه الكونترولر بس (لتفادي إمكانية الوصول للـ Endpoint حتى لو الواجهة مخفية).
-- الـ Middleware بيتحقق أولاً من تسجيل الدخول (`auth('admin')`)، فلو الأدمن مش مسجل بيتم تحويله لصفحة اللوجين تلقائيًا قبل حتى فحص الصلاحية.
-
-### مصدر الصلاحيات والكاش
-
-- الصلاحيات الفعلية الخاصة بكل Role مخزنة في قاعدة البيانات (`Role::permissions`)، وتُجلب عبر `AdminPermissions()` باستخدام نفس نمط الـ Static Caching (راجع قسم الكاش):
-
-```php
-function AdminPermissions(): array
-{
-    $roleId = Admin()->role_id;
-    return cache()->rememberForever("role-$roleId", function () use ($roleId) {
-        return Role::find($roleId)?->permissions ?? [];
-    });
-}
-```
-
-- **إلزامي**: أي تعديل على صلاحيات Role (إضافة/حذف) لازم يمسح الكاش الخاص بيه (`cache()->forget("role-{$roleId}")`) فورًا بعد الحفظ، بنفس مبدأ `booted()` المستخدم في Settings.
-- دالة `permissions()` بترجع كل الصلاحيات المتاحة في النظام (مجمّعة من `Roles()`) وتُستخدم عادة في شاشة إدارة الأدوار (Roles Management) لعرض كل الصلاحيات القابلة للتفعيل، وليس للتحقق الفعلي من صلاحية مستخدم.
-- ممنوع كتابة شروط صلاحيات يدوية (زي `if ($user->role === 'admin')`)؛ لازم يتم عمل صلاحية جديدة في `AdminRoles.php` واستخدام `admin_can()` أو الـ Middleware بدلها، حتى لو كانت الصلاحية بسيطة.
+- **وراثة الصلاحيات التلقائية في الـ Resource**: الـ Middleware يرث تلقائياً:
+  - الإجراء `create` يرث صلاحية `store`.
+  - الإجراء `edit` يرث صلاحية `update`.
+- **سلوك الـ Middleware عند الرفض**:
+  - لو المشرف غير مسجل دخول: يتم تحويله لصفحة تسجيل الدخول `admin.login`.
+  - لو المشرف مسجل لكن لا يملك الصلاحية: يتم تحويله لصفحة `admin.error_403`.
+  - لو الصلاحية الممررة هي `AdminPermission:ajax`: يتم السماح بالطلب إن كان Ajax.
+- **إلزامية التحقق**: أي Route جديد في لوحة التحكم **لازم** يربط بالـ Middleware المناسب من البداية، ولا يُكتفى فقط بإخفاء الروابط في السايدبار بـ `admin_can()`.
 
 ---
 
-## 13. الكاش (Caching)
+## 13. الكاش (Caching Architecture)
 
-الكاش أداة قوية لكن استخدامها الخاطئ بيسبب مشاكل (بيانات قديمة تتعرض للمستخدم). القواعد:
-
-- **يُكاش**: بيانات شبه ثابتة أو بطيئة التغيير (إعدادات النظام، قوائم التصنيفات، صلاحيات المستخدم، نتائج تقارير ثقيلة).
-- **لا يُكاش**: بيانات بتتغير باستمرار (أرقام لحظية، حالة الطلبات، إشعارات).
-- استخدام `Cache::remember()` بدل `Cache::get()` + `Cache::put()` منفصلين.
-- كل مفتاح Cache لازم يكون له اسم واضح ومنظم، ويُفضّل عمل دالة مركزية لتوليد أسماء المفاتيح لتفادي التعارض:
-
-```php
-// مثال: تكاش نتيجة استعلام تقيل لمدة ساعة
-public function getActiveCategories(): Collection
-{
-    return Cache::remember('categories.active', now()->addHour(), function () {
-        return Category::where('is_active', true)->get();
-    });
-}
+المشروع لا يعتمد على كاش متفرق ولا يتطلب Redis Tags، بل يمتلك طبقة كاش متقدمة مركزية عبر:
+```
+app/Services/Cache/CacheService.php
 ```
 
-- **إلزامي**: مسح الكاش (Cache::forget أو Cache Tags) فور أي تعديل/إضافة/حذف على البيانات المرتبطة به، عشان نتفادى عرض بيانات قديمة للمستخدم.
-- لو المشروع بيستخدم Redis، الأفضل استخدام Cache Tags لتسهيل مسح مجموعة كاملة من الكاش دفعة واحدة بدل مفاتيح متفرقة.
-- تفادي كاش أي بيانات خاصة بمستخدم معين تحت مفتاح عام (زي كاش سلة مشتريات بمفتاح ثابت)، لازم يكون المفتاح مرتبط بالـ user id.
-
-### نمط Static Model Caching (للبيانات شبه الثابتة زي Settings)
-
-للـ Models اللي بياناتها شبه ثابتة وبتتقرأ كتير جدًا (زي إعدادات النظام)، النمط المعتمد بالمشروع هو كاش على مستوى الـ Model نفسه عبر `static` methods، مش كاش متفرق في كل Controller:
-
-```php
-protected static function booted(): void
-{
-    // مسح الكاش تلقائيًا عند أي حفظ أو حذف
-    static::saved(function () {
-        static::clearCache();
-    });
-
-    static::deleted(function () {
-        static::clearCache();
-    });
-}
-
-public static function get(string $key, mixed $default = null): mixed
-{
-    return Cache::rememberForever("setting_{$key}", function () use ($key, $default) {
-        return static::where('key', $key)->first()?->value ?? $default;
-    });
-}
-
-public static function clearCache(): void
-{
-    // مسح كل المفاتيح المرتبطة، مش مسح كامل عشوائي
-    $keys = static::whereNotNull('key')->pluck('key');
-    foreach ($keys as $key) {
-        Cache::forget("setting_{$key}");
-    }
-}
+### فكرة الكاش المعتمدة: Key Versioning
+بدلاً من `Cache::tags()` (التي لا تعمل إلا على Redis)، تعتمد `CacheService` على وضع رقم إصدار لكل مجموعة كاش داخل المفتاح نفسه:
 ```
-
-نقاط أساسية في هذا النمط:
-- استخدام `booted()` مع أحداث `saved` و `deleted` لمسح الكاش تلقائيًا، بدل الاعتماد على مسحه يدويًا من كل مكان بيعدل البيانات.
-- استخدام `Cache::rememberForever()` للبيانات الثابتة فعليًا (زي الإعدادات) بدل مدة زمنية محدودة، طالما المسح بيحصل تلقائيًا عند التعديل.
-- عند تخزين Eloquent Collection في الكاش، يُفضّل تحويلها لـ `->toArray()` قبل التخزين وإعادة بنائها بـ `forceFill()` بعد الاسترجاع، لتفادي مشاكل تسلسل (serialization) الـ Model الكامل.
-- عمل Helper function عامة (زي `setting()`) بترجع للـ static method، عشان الاستخدام في أي مكان يبقى بسيط وقصير بدل استدعاء الـ Model كامل كل مرة:
-
-```php
-if (!function_exists('setting')) {
-    function setting(string $key, mixed $default = null): mixed
-    {
-        return Settings::get($key, $default);
-    }
-}
+roles.v1756022400:role.1
+settings.v1756022400:grouped
 ```
+عند استدعاء `invalidate($group)`، يتغير رقم إصدار المجموعة فقط في الكاش، فتصبح المفاتيح القديمة غير مرئية فوراً وتنتهي صلاحيتها تلقائياً مع انتهاء الـ TTL (الافتراضي 3600 ثانية). هذا يجعل الكاش فائق السرعة ويعمل بكفاءة على أي Driver (Database, File, Redis, Memcached).
+
+### مجموعات الكاش (`Keys/`)
+كل مجموعة كاش لها كلاس مخصص يرث من `_CacheKeys` داخل `app/Services/Cache/Keys/`:
+- [`RoleCache`](file:///d:/Laravel-2026/sbbs/app/Services/Cache/Keys/RoleCache.php): لإدارة مفاتيح الأدوار (`RoleCache::role($roleId)`).
+- [`SettingsCache`](file:///d:/Laravel-2026/sbbs/app/Services/Cache/Keys/SettingsCache.php): لإدارة مفاتيح الإعدادات (`SettingsCache::GROUPED`, `SettingsCache::value($key)`).
+
+### قواعد استخدام الكاش:
+1. **الصلاحيات**:
+   - صلاحيات المشرف الحالي تُحفظ لكل دور على حدة (`RoleCache::role($roleId)`).
+   - يتم كاشتها في الذاكرة المؤقتة داخل نفس دورة الطلب (Request-level memoization عبر `$this->roles`)، حتى لو استُدعيت `admin_can()` عشرات المرات في نفس الصفحة، لا يتم الاستعلام من الكاش أو قاعدة البيانات إلا مرة واحدة.
+   - عند حفظ أو تعديل أو حذف أي دور، يتم إبطال كاش الأدوار فوراً عبر:
+     ```php
+     Role::ClearCache(); // أو static::cache()->invalidate(RoleCache::class);
+     ```
+
+2. **الإعدادات (Settings Model Caching)**:
+   - موديل [`Settings`](file:///d:/Laravel-2026/sbbs/app/Models/Settings.php) يمسح كاش الإعدادات أوتوماتيكياً في `booted()` عند أحداث `saved` و `deleted`:
+     ```php
+     public static function clearCache(): void
+     {
+         static::cache()->invalidate(SettingsCache::class);
+     }
+     ```
+   - دالة `Settings::get($key, $default)` تستخدم `CacheService`، وتقوم بتخزين علامة خاصة `Settings::NOT_SET` عند عدم وجود القيمة في الداتابيز لتفادي ضرب قاعدة البيانات باستمرار عند قراءة إعدادات فارغة (null caching protection).
+   - توجد دالة مساعدة عامة `setting('key', $default)` ودالة `setting_set('key', $value)` للتسهيل.
+   - عند تحديث الإعدادات في لوحة التحكم، يتم تحديث قيم ملف `.env` المتطابقة تلقائياً (اسم الموقع، إعدادات SMTP، التوقيت، إلخ) عبر `setEnvVal()`.
+
+3. **الكاش العام والموديلات الجديدة**:
+   - عند الحاجة لكاش موديول جديد، يتم إنشاء ملف مفاتيح جديد في `app/Services/Cache/Keys/` يرث `_CacheKeys`.
+   - استخدام `CacheService->remember()` بدلاً من دوال الكاش المباشرة.
+   - مسح الكاش تلقائياً في أحداث الموديل (`saved`, `deleted`) عبر `invalidate()`.
+   - منع كاش البيانات اللحظية متغيرة القيمة باستمرار.
 
 ---
 
@@ -718,7 +736,7 @@ return [
 
 - [ ] لا يوجد منطق عمل داخل الـ Controller (المنطق كله في Service)
 - [ ] تم استخدام `with()` لتفادي N+1
-- [ ] الصلاحيات عبر `admin_can()` أو `AdminPermission` Middleware، مش شروط يدوية
+- [ ] أي صلاحية جديدة تُعرّف في `RoleService::map()` وتُفحص عبر `admin_can()` أو `AdminPermission` Middleware، مش شروط يدوية
 - [ ] كل استجابات الـ API عبر `HelperClass::handleResponse()`
 - [ ] كل API Route جديد محمي بـ `VerifyApiKey` و Rate Limiter مناسب
 - [ ] `$fillable` محدد في كل Model، مع الحذر من الحقول الحساسة عند استخدام `$request->all()`
@@ -736,7 +754,7 @@ return [
 - [ ] ملفات كل أدمن (غير الرئيسي) مخزنة في مجلد مخصص `admins/{id}`، والملف القديم يتحذف عند التحديث
 - [ ] Migrations منظمة وواضحة
 - [ ] لا توجد نصوص مكتوبة مباشرة، كل النصوص عبر ملفات الترجمة (`__()`)
-- [ ] الكاش مُستخدم فقط في البيانات المناسبة، ويُمسح تلقائيًا عبر `booted()` عند التعديل
+- [ ] الكاش معتمد على `CacheService` ومفاتيح `Keys/`، ويُمسح تلقائيًا عبر `booted()` عند التعديل
 - [ ] تم فحص `resources/views/components` قبل كتابة أي HTML متكرر
 - [ ] الجداول تعتمد على نمط DataTable الموحّد مع Eager Loading
 - [ ] عناصر القالب (Vuexy) محوّلة لمكونات جوه `resources/views/components`

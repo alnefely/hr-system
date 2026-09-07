@@ -1,0 +1,83 @@
+<?php
+
+return [
+    'title'          => 'Customers Management',
+    'singular'       => 'Customer',
+    'create_title'   => 'Add New Customer',
+    'edit_title'     => 'Edit Customer Details',
+    'sales_count'    => 'Sales Orders',
+
+    'fields' => [
+        'code'             => 'Customer Code',
+        'name'             => 'Customer / Organization Name',
+        'company_name'     => 'Company Name',
+        'phone'            => 'Phone Number',
+        'email'            => 'Email Address',
+        'tax_number'       => 'Tax Number',
+        'address'          => 'Address',
+        'notes'            => 'Notes',
+        'is_active'        => 'Status',
+        'sales_count'      => 'Invoices & Sales Count',
+        'customer_type'    => 'Customer Type',
+        'source'           => 'Source',
+        'industry'         => 'Industry / Sector',
+        'contact_person'   => 'Primary Contact Person',
+        'contact_position' => 'Contact Position',
+        'secondary_phone'  => 'Secondary Phone',
+        'website'          => 'Website',
+        'credit_limit'     => 'Credit Limit',
+        'payment_terms'    => 'Payment Terms',
+    ],
+
+    'enums' => [
+        'active'       => 'Active',
+        'inactive'     => 'Inactive',
+        'individual'   => 'Individual',
+        'company'      => 'Company / Corporate',
+        'referral'     => 'Referral',
+        'website'      => 'Website',
+        'social_media' => 'Social Media',
+        'direct'       => 'Direct Outreach',
+        'exhibition'   => 'Exhibition / Conference',
+        'partner'      => 'Business Partner',
+        'net_30'       => 'Net 30 Days',
+        'net_60'       => 'Net 60 Days',
+        'prepaid'      => 'Prepaid',
+        'on_delivery'  => 'Cash on Delivery',
+    ],
+
+    'actions' => [
+        'add_new' => 'Add New Customer',
+    ],
+
+    'messages' => [
+        'created' => 'Customer added successfully',
+        'updated' => 'Customer updated successfully',
+        'deleted' => 'Customer moved to trash successfully',
+        'restored'=> 'Customer restored successfully',
+            'force_deleted' => 'Permanently deleted successfully',
+],
+    'trash' => 'Trash',
+    'back' => 'Back to list',
+
+    'hints' => [
+        'source'           => 'How this customer reached us. The list is managed from the Customer Sources screen',
+        'code'              => 'A unique customer code, generated automatically and used in search and reports. Must be unique',
+        'name'              => 'The name shown on invoices and reports',
+        'company_name'      => 'The official company name if it differs from the customer name - appears on the tax invoice',
+        'phone'             => 'Primary contact number. Pick the country first and the system will validate the number',
+        'secondary_phone'   => 'An alternative or WhatsApp number if the primary one is unavailable',
+        'email'             => 'Used to send invoices and account statements',
+        'tax_number'        => 'The registered tax number - required to issue a valid tax invoice',
+        'customer_type'     => 'Individual or company. Affects the data required on the invoice',
+        'industry'          => 'The customer business sector - useful for analysing sales by sector',
+        'contact_person'    => 'The person you actually deal with at this organisation',
+        'contact_position'  => 'Their role, so you know whether they are a decision maker',
+        'website'           => 'The customer website, if any',
+        'credit_limit'      => 'The maximum amount this customer may buy on credit before paying. Zero means no limit',
+        'payment_terms'     => 'The agreed period to settle after the invoice is issued, e.g. net 30 days',
+        'is_active'         => 'A disabled customer no longer appears in the customer picker when creating a new invoice',
+        'notes'             => 'Internal notes about the customer - never shown on the invoice',
+    ],
+
+];

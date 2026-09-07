@@ -16,6 +16,7 @@
     'previewHeight' => '100px',                // ارتفاع المعاينة للصور
     'class' => '',                             // كلاسات إضافية للحاوية
     'inputClass' => '',                        // كلاسات إضافية للحقل
+    'tooltip' => null,                         // نص المساعدة عند الهوفر
 ])
 
 @php
@@ -62,6 +63,9 @@
             {{ $label }}
             @if($required)
                 <span class="text-danger">*</span>
+            @endif
+            @if($tooltip)
+                <i class="fa-solid fa-circle-question text-muted ms-1 cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $tooltip }}"></i>
             @endif
         </label>
     @endif

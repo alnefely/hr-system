@@ -1,0 +1,171 @@
+<?php
+
+namespace App\Services\Notification;
+
+use App\Enums\NotificationType;
+use App\Events\AdminNotificationCreated;
+use App\Models\Admin;
+use App\Models\AdminNotification;
+use App\Services\Role\RoleService;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * إنشاء وبث الإشعارات.
+ *
+ * المسؤول الوحيد عن الإشعارات، فكل القواعد في مكان واحد:
+ *  - مين يستقبل إيه (حسب الصلاحية والفرع).
+ *  - عدم إشعار الشخص بفعل نفسه.
+ *  - البث مايوقعش العملية الأصلية لو Pusher وقع.
+ */
+class NotificationService
+{
+    public function __construct(
+        protected RoleService $roles,
+    ) {}
+
+    /**
+     * إشعار كل المشرفين المؤهّلين لنوع معيّن.
+     *
+     * المؤهّل = عنده صلاحية النوع ده، وتابع لنفس الفرع (أو مدير عام).
+     *
+     * @return int عدد الإشعارات اللي اتبعتت
+     */
+    public function notifyEligible(
+        NotificationType $type,
+        string $title,
+        ?string $body = null,
+        ?string $url = null,
+        ?int $branchId = null,
+        array $data = [],
+        ?int $excludeAdminId = null,
+    ): int {
+        $recipients = $this->eligibleRecipients($type, $branchId, $excludeAdminId);
+
+        foreach ($recipients as $admin) {
+            $this->send($admin->id, $type, $title, $body, $url, $branchId, $data);
+        }
+
+        return $recipients->count();
+    }
+
+    /** إشعار مشرف واحد بعينه. */
+    public function send(
+        int $adminId,
+        NotificationType $type,
+        string $title,
+        ?string $body = null,
+        ?string $url = null,
+        ?int $branchId = null,
+        array $data = [],
+    ): ?AdminNotification {
+        try {
+            $causer = auth('admin')->check() ? auth('admin')->user() : null;
+
+            $notification = AdminNotification::create([
+                'admin_id'    => $adminId,
+                'branch_id'   => $branchId,
+                'type'        => $type->value,
+                'title'       => $title,
+                'body'        => $body,
+                'url'         => $url,
+                'icon'        => $type->icon(),
+                'level'       => $type->level(),
+                'data'        => $data ?: null,
+                'causer_id'   => $causer?->id,
+                'causer_name' => $causer?->name,
+            ]);
+
+            $this->broadcast($notification);
+
+            return $notification;
+        } catch (\Throwable $e) {
+            // الإشعار مايوقعش العملية الأصلية — طلب الإجازة يتسجّل حتى لو
+            // الإشعار فشل.
+            Log::error('NotificationService failed: ' . $e->getMessage(), [
+                'admin_id' => $adminId,
+                'type'     => $type->value,
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * المشرفون المؤهّلون لاستقبال نوع معيّن.
+     *
+     * @return Collection<int, Admin>
+     */
+    public function eligibleRecipients(NotificationType $type, ?int $branchId = null, ?int $excludeAdminId = null): Collection
+    {
+        $permission = $type->requiredPermission();
+
+        return Admin::with('role')
+            ->when($excludeAdminId, fn ($q) => $q->where('id', '!=', $excludeAdminId))
+            ->get()
+            ->filter(function (Admin $admin) use ($permission, $branchId) {
+                if (!$this->hasPermission($admin, $permission)) {
+                    return false;
+                }
+
+                // المدير العام بيستقبل كل حاجة
+                if ($admin->main) {
+                    return true;
+                }
+
+                // مشرف الفرع بيستقبل إشعارات فرعه بس
+                if ($branchId === null) {
+                    return true;
+                }
+
+                return $this->adminBranchId($admin) === $branchId;
+            })
+            ->values();
+    }
+
+    /** هل المشرف عنده الصلاحية دي؟ (من غير ما نعتمد على المستخدم الحالي) */
+    protected function hasPermission(Admin $admin, string $permission): bool
+    {
+        $permissions = $admin->role?->roles ?? [];
+
+        if (is_string($permissions)) {
+            $permissions = json_decode($permissions, true) ?: [];
+        }
+
+        return in_array($permission, $permissions, true);
+    }
+
+    /** فرع المشرف عبر الموظف المرتبط بيه. */
+    protected function adminBranchId(Admin $admin): ?int
+    {
+        if (!$admin->employee_id) {
+            return null;
+        }
+
+        $branchId = \Illuminate\Support\Facades\DB::table('employees')
+            ->where('id', $admin->employee_id)
+            ->value('branch_id');
+
+        return $branchId ? (int) $branchId : null;
+    }
+
+    /** البث اللحظي — فشله مايأثرش على حفظ الإشعار. */
+    protected function broadcast(AdminNotification $notification): void
+    {
+        if (config('broadcasting.default') === 'null') {
+            return;
+        }
+
+        try {
+            AdminNotificationCreated::dispatch($notification);
+        } catch (\Throwable $e) {
+            Log::warning('Notification broadcast failed: ' . $e->getMessage());
+        }
+    }
+
+    /** عدّاد غير المقروء لمشرف. */
+    public function unreadCount(int $adminId): int
+    {
+        return AdminNotification::forAdmin($adminId)->unread()->count();
+    }
+}

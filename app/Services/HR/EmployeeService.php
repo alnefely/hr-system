@@ -1,0 +1,388 @@
+<?php
+
+namespace App\Services\HR;
+
+use App\Models\Admin;
+use App\Models\Branch;
+use App\Models\Employee;
+use App\Models\EmployeeAllowance;
+use App\Models\EmployeeDocument;
+use App\Models\EmployeeSalary;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+
+class EmployeeService
+{
+    /**
+     * استعلام الموظفين للقوائم والـ DataTables
+     */
+    public function query(): Builder
+    {
+        // select صريح: yajra بيعمل join تلقائي للترتيب بأعمدة
+        // العلاقات، و select * ساعتها بيخلي أعمدة الجدول المنضم
+        // تدهس أعمدة الموظف (id بالذات).
+        return Employee::visibleTo()->select('employees.*')->with([
+            'branch:id,name,code,currency',
+            'jobTitle:id,name',
+            'manager:id,name',
+            'currentSalary',
+            'admin:id,name,email,role_id',
+        ]);
+    }
+
+    /**
+     * استعلام سلة محذوفات الموظفين
+     */
+    public function trashQuery(): Builder
+    {
+        return Employee::onlyTrashed()->visibleTo()->with([
+            'branch:id,name,code',
+            'jobTitle:id,name',
+        ]);
+    }
+
+    /**
+     * عدد الموظفين في سلة المحذوفات
+     */
+    public function trashCount(): int
+    {
+        return Employee::onlyTrashed()->count();
+    }
+
+    /**
+     * قائمة المديرين المتاحين للاختيار
+     */
+    public function managersList(?int $excludeId = null)
+    {
+        return Employee::where('status', 'active')
+            ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
+            ->select('id', 'name', 'employee_code')
+            ->get();
+    }
+
+    /**
+     * توليد الكود الوظيفي التالي للعرض في شاشة الإضافة
+     */
+    public function getNextEmployeeCode(?int $branchId = null): string
+    {
+        $prefix = 'EMP';
+        if ($branchId) {
+            $branch = Branch::find($branchId);
+            if ($branch && $branch->code) {
+                $prefix = $branch->code;
+            }
+        }
+        $count = Employee::withTrashed()->count() + 1;
+        return sprintf('%s-%04d', $prefix, $count);
+    }
+
+    /**
+     * إضافة موظف جديد وحساب الدخول والبدلات والمستندات بـ Transaction واحد
+     */
+    public function create(array $data): Employee
+    {
+        return DB::transaction(function () use ($data) {
+            $branch = Branch::findOrFail($data['branch_id']);
+
+            // تحديد الرقم الوظيفي
+            $code = $data['code'] ?? $data['employee_code'] ?? null;
+            if (empty($code)) {
+                $code = $this->generateEmployeeCode($branch);
+            }
+            $data['employee_code'] = $code;
+
+            // توحيد مسميات الحقول
+            $data['hire_date'] = $data['hired_at'] ?? $data['hire_date'] ?? now()->toDateString();
+            $data['probation_end_date'] = $data['probation_end_at'] ?? $data['probation_end_date'] ?? null;
+            $data['contract_type'] = $data['employment_type'] ?? $data['contract_type'] ?? 'full_time';
+            $data['personal_email'] = $data['email'] ?? $data['personal_email'] ?? null;
+            $data['avatar'] = $data['img'] ?? $data['avatar'] ?? null;
+            $data['bank_account_number'] = $data['bank_account'] ?? $data['bank_account_number'] ?? null;
+            $data['basic_salary'] = $data['salary'] ?? $data['basic_salary'] ?? 0;
+
+            // استخراج البيانات الفرعية قبل إنشاء الموظف
+            $allowancesData = $data['allowances'] ?? [];
+            $documentsData = $data['documents'] ?? [];
+            $createAccount = !empty($data['create_account']) && $data['create_account'] == 1;
+            $accountEmail = $data['account_email'] ?? null;
+            $accountPassword = $data['account_password'] ?? null;
+            $roleId = $data['role_id'] ?? null;
+
+            unset(
+                $data['code'], $data['hired_at'], $data['probation_end_at'],
+                $data['employment_type'], $data['email'], $data['img'],
+                $data['bank_account'], $data['salary'], $data['allowances'],
+                $data['documents'], $data['create_account'], $data['account_email'],
+                $data['account_password'], $data['account_password_confirmation'], $data['role_id']
+            );
+
+            // إنشاء سجل الموظف
+            $employee = Employee::create($data);
+
+            // 1. إنشاء حساب الدخول للنظام (إذا تم طلبه)
+            if ($createAccount && !empty($accountEmail) && !empty($accountPassword)) {
+                $admin = Admin::create([
+                    'name'        => $employee->name,
+                    'email'       => $accountEmail,
+                    'password'    => Hash::make($accountPassword),
+                    'role_id'     => $roleId,
+                    'img'         => $employee->avatar,
+                    'employee_id' => $employee->id,
+                ]);
+
+                $employee->update(['admin_id' => $admin->id]);
+            }
+
+            // 2. حفظ البدلات الشهرية الثابتة
+            $totalAllowances = 0;
+            if (is_array($allowancesData)) {
+                foreach ($allowancesData as $allowance) {
+                    if (!empty($allowance['name']) && isset($allowance['amount']) && is_numeric($allowance['amount'])) {
+                        $amount = (float) $allowance['amount'];
+                        $employee->allowances()->create([
+                            'name'   => trim($allowance['name']),
+                            'amount' => $amount,
+                        ]);
+                        $totalAllowances += $amount;
+                    }
+                }
+            }
+
+            // 3. حفظ المستندات والوثائق الأولية
+            if (is_array($documentsData)) {
+                foreach ($documentsData as $doc) {
+                    if (!empty($doc['file_path'])) {
+                        $documentType = $doc['document_type'] ?? 'other';
+
+                        $employee->documents()->create([
+                            // النوع بيجي من القائمة زي شاشة البروفايل بالظبط.
+                            // كان ثابتاً بقيمة مالهاش ترجمة، فكانت بتظهر
+                            // كمفتاح خام في جدول مستندات الموظف.
+                            'document_type' => $documentType,
+                            // الاسم اختياري: لو سابه فاضي بنستخدم اسم النوع
+                            // بدل ما نجبره يكتب نفس المعنى مرتين.
+                            'title'         => !empty($doc['title'])
+                                ? trim($doc['title'])
+                                : __('document.types.' . $documentType),
+                            'file_path'     => trim($doc['file_path']),
+                            'issue_date'    => $doc['issue_date'] ?? null ?: null,
+                            'expiry_date'   => $doc['expiry_date'] ?? null ?: null,
+                            'is_verified'   => !empty($doc['is_verified']),
+                            'verified_by'   => !empty($doc['is_verified']) ? auth('admin')->id() : null,
+                            'verified_at'   => !empty($doc['is_verified']) ? now() : null,
+                        ]);
+                    }
+                }
+            }
+
+            // 4. تسجيل الراتب في جدول مسير الرواتب لربطه بالنظام المالي
+            if ($employee->basic_salary > 0 || $totalAllowances > 0) {
+                EmployeeSalary::create([
+                    'employee_id'    => $employee->id,
+                    'basic_salary'   => (float) $employee->basic_salary,
+                    'allowances'     => (float) $totalAllowances,
+                    'currency'       => $branch->currency ?? 'EGP',
+                    'effective_date' => $employee->hire_date,
+                    'change_reason'  => 'hiring',
+                    'approved_by'    => auth('admin')->id(),
+                    'notes'          => __('salary.reasons.hiring'),
+                ]);
+            }
+
+            return $employee;
+        });
+    }
+
+    /**
+     * تحديث بيانات الموظف والبدلات وحساب الدخول
+     */
+    public function update(Employee $employee, array $data): Employee
+    {
+        return DB::transaction(function () use ($employee, $data) {
+            // توحيد مسميات الحقول
+            if (isset($data['code'])) {
+                $data['employee_code'] = $data['code'];
+            }
+            if (isset($data['hired_at'])) {
+                $data['hire_date'] = $data['hired_at'];
+            }
+            if (isset($data['probation_end_at'])) {
+                $data['probation_end_date'] = $data['probation_end_at'];
+            }
+            if (isset($data['employment_type'])) {
+                $data['contract_type'] = $data['employment_type'];
+            }
+            if (isset($data['email'])) {
+                $data['personal_email'] = $data['email'];
+            }
+            if (isset($data['img'])) {
+                $data['avatar'] = $data['img'];
+            }
+            if (isset($data['bank_account'])) {
+                $data['bank_account_number'] = $data['bank_account'];
+            }
+            if (isset($data['salary'])) {
+                $data['basic_salary'] = $data['salary'];
+            }
+
+            // حماية البيانات الحساسة إذا لم يملك المستخدم الصلاحية
+            if (!admin_can('employee_bank_view')) {
+                unset($data['bank_name'], $data['bank_account_number'], $data['iban'], $data['insurance_number']);
+            }
+            if (!admin_can('employee_salary_view')) {
+                unset($data['basic_salary'], $data['salary'], $data['custom_hourly_rate']);
+            }
+
+            // استخراج البدلات والحساب
+            $allowancesData = $data['allowances'] ?? null;
+            $documentsData = $data['documents'] ?? null;
+            $createAccount = !empty($data['create_account']) && $data['create_account'] == 1;
+            $accountEmail = $data['account_email'] ?? null;
+            $accountPassword = $data['account_password'] ?? null;
+            $roleId = $data['role_id'] ?? null;
+
+            unset(
+                $data['code'], $data['hired_at'], $data['probation_end_at'],
+                $data['employment_type'], $data['email'], $data['img'],
+                $data['bank_account'], $data['salary'], $data['allowances'],
+                $data['documents'], $data['create_account'], $data['account_email'],
+                $data['account_password'], $data['account_password_confirmation'], $data['role_id']
+            );
+
+            // تحديث بيانات الموظف
+            $employee->update($data);
+
+            // 1. إدارة حساب الدخول للنظام
+            if ($createAccount && !empty($accountEmail)) {
+                if ($employee->admin_id && $employee->admin) {
+                    $updateAdmin = [
+                        'email'   => $accountEmail,
+                        'role_id' => $roleId,
+                    ];
+                    if (!empty($accountPassword)) {
+                        $updateAdmin['password'] = Hash::make($accountPassword);
+                    }
+                    $employee->admin->update($updateAdmin);
+                } else {
+                    $admin = Admin::create([
+                        'name'        => $employee->name,
+                        'email'       => $accountEmail,
+                        'password'    => Hash::make($accountPassword ?: '12345678'),
+                        'role_id'     => $roleId,
+                        'img'         => $employee->avatar,
+                        'employee_id' => $employee->id,
+                    ]);
+                    $employee->update(['admin_id' => $admin->id]);
+                }
+            }
+
+            // 2. تحديث البدلات الشهرية الثابتة إذا أُرسلت
+            if ($allowancesData !== null && is_array($allowancesData)) {
+                $employee->allowances()->delete();
+                foreach ($allowancesData as $allowance) {
+                    if (!empty($allowance['name']) && isset($allowance['amount']) && is_numeric($allowance['amount'])) {
+                        $employee->allowances()->create([
+                            'name'   => trim($allowance['name']),
+                            'amount' => (float) $allowance['amount'],
+                        ]);
+                    }
+                }
+            }
+
+            // 3. إضافة مستندات جديدة إذا أُرسلت
+            if ($documentsData !== null && is_array($documentsData)) {
+                foreach ($documentsData as $doc) {
+                    if (!empty($doc['file_path'])) {
+                        $documentType = $doc['document_type'] ?? 'other';
+
+                        $employee->documents()->create([
+                            // النوع بيجي من القائمة زي شاشة البروفايل بالظبط.
+                            // كان ثابتاً بقيمة مالهاش ترجمة، فكانت بتظهر
+                            // كمفتاح خام في جدول مستندات الموظف.
+                            'document_type' => $documentType,
+                            // الاسم اختياري: لو سابه فاضي بنستخدم اسم النوع
+                            // بدل ما نجبره يكتب نفس المعنى مرتين.
+                            'title'         => !empty($doc['title'])
+                                ? trim($doc['title'])
+                                : __('document.types.' . $documentType),
+                            'file_path'     => trim($doc['file_path']),
+                            'issue_date'    => $doc['issue_date'] ?? null ?: null,
+                            'expiry_date'   => $doc['expiry_date'] ?? null ?: null,
+                            'is_verified'   => !empty($doc['is_verified']),
+                            'verified_by'   => !empty($doc['is_verified']) ? auth('admin')->id() : null,
+                            'verified_at'   => !empty($doc['is_verified']) ? now() : null,
+                        ]);
+                    }
+                }
+            }
+
+            return $employee;
+        });
+    }
+
+    /**
+     * نقل ملف الموظف لسلة المحذوفات (Soft Delete)
+     */
+    public function delete(Employee $employee): bool
+    {
+        return (bool) $employee->delete();
+    }
+
+    /**
+     * استرجاع ملف الموظف من سلة المحذوفات
+     */
+    public function restore(int $id): bool
+    {
+        $employee = Employee::onlyTrashed()->findOrFail($id);
+
+        return (bool) $employee->restore();
+    }
+
+    /**
+     * الحذف النهائي لملف الموظف وكافة سجلاته الفرعية
+     */
+    public function forceDelete(int $id): bool
+    {
+        return DB::transaction(function () use ($id) {
+            $employee = Employee::onlyTrashed()->findOrFail($id);
+
+            // حذف الملحقات نهائياً
+            $employee->allowances()->withTrashed()->forceDelete();
+            $employee->salaries()->withTrashed()->forceDelete();
+            $employee->documents()->withTrashed()->forceDelete();
+            $employee->skills()->withTrashed()->forceDelete();
+
+            return (bool) $employee->forceDelete();
+        });
+    }
+
+    /**
+     * تجهيز بيانات الملف الشخصي الشامل للموظف
+     */
+    public function getProfileData(Employee $employee): Employee
+    {
+        return $employee->load([
+            'branch',
+            'jobTitle',
+            'manager',
+            'subordinates',
+            'allowances',
+            'salaries' => fn ($q) => $q->with('approver:id,name'),
+            'documents' => fn ($q) => $q->with('verifier:id,name'),
+            'skills',
+            'admin:id,name,email,role_id',
+        ]);
+    }
+
+    /**
+     * توليد الكود الوظيفي التلقائي
+     */
+    protected function generateEmployeeCode(Branch $branch): string
+    {
+        $branchCode = $branch->code ?: 'EMP';
+        $count = Employee::withTrashed()->where('branch_id', $branch->id)->count() + 1;
+
+        return sprintf('%s-%04d', $branchCode, $count);
+    }
+}

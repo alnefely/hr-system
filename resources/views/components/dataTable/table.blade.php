@@ -33,7 +33,7 @@
     // هل في عمود action؟
     $hasActions = !empty($actions);
     if ($hasActions) {
-        $jsColumns[] = ['data' => 'action', 'orderable' => false, 'searchable' => false];
+        $jsColumns[] = ['data' => 'action', 'defaultContent' => '', 'orderable' => false, 'searchable' => false];
     }
 
     // بناء action HTML
@@ -70,7 +70,7 @@
                 $dataAttrs .= " data-{$attr}=\"\${row.{$field}}\"";
             }
 
-            $actionItems .= "<li {$dataAttrs}><form action=\"{$baseUrl}/\${row.id}\" method=\"post\">{$csrf}{$method}<button onclick=\"return confirm('" . __('alert.confirm_delete') . "')\" class=\"dropdown-item btn-delete\"><i class=\"{$icon} fa-fw\"></i> {$label}</button></form></li>";
+            $actionItems .= "<li {$dataAttrs}><form action=\"{$baseUrl}/\${row.id}\" method=\"post\">{$csrf}{$method}<button type=\"button\" class=\"dropdown-item btn-delete\"><i class=\"{$icon} fa-fw\"></i> {$label}</button></form></li>";
         } elseif ($type === 'custom') {
             // custom: يتوقع 'render' => JS string تحتوي على ${row.id}
             $actionItems .= $action['html'] ?? '';
@@ -103,6 +103,7 @@
     @push('css')
         {{-- CSS --}}
         <link rel="stylesheet" href="/admin/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+        <link rel="stylesheet" href="/admin/vendor/libs/select2/select2.css" />
         <style>
 /* وضع الـ Light */
         [data-bs-theme="light"] table tr:nth-child(even) {
@@ -113,6 +114,20 @@
         [data-bs-theme="dark"] table tr:nth-child(even) {
             background-color: #3a405a !important;
         }
+
+        /* Select2 Dropdown Z-Index & Table Footer Fixes */
+        .select2-container--open,
+        .select2-dropdown {
+            z-index: 99999 !important;
+        }
+        table.dataTable tfoot th {
+            vertical-align: middle !important;
+            padding: 6px !important;
+        }
+        table.dataTable tfoot th .select2-container {
+            width: 100% !important;
+            min-width: 130px !important;
+        }
         </style>
     @endpush
 
@@ -120,6 +135,7 @@
     @push('js')
         <script src="/admin/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
         <script src="/admin/vendor/libs/datatables-bs5/dtHelpers.js"></script>
+        <script src="/admin/vendor/libs/select2/select2.js"></script>
     @endpush
 @endonce
 
@@ -162,6 +178,34 @@
 
     $(document).ready(function () {
 
+        @if($searchable)
+        var $tfootTr = $(tableId + ' tfoot tr');
+        $tfootTr.empty();
+        $(tableId + ' thead th').each(function (i, v) {
+            var title = $(this).text().trim();
+            var colOpts = columns[i] || {};
+            
+            if ($(this).hasClass('except') || colOpts.searchable === false) {
+                $tfootTr.append('<th></th>');
+            } else if (colOpts.searchType === 'select' && colOpts.searchOptions) {
+                var selectHtml = '<select class="form-select dt-select2" style="width: 100%;"><option value="">{{ __("global.all") }}</option>';
+                $.each(colOpts.searchOptions, function(val, text) {
+                    selectHtml += '<option value="' + val + '">' + text + '</option>';
+                });
+                selectHtml += '</select>';
+                $tfootTr.append('<th style="min-width: 130px;">' + selectHtml + '</th>');
+            } else if (colOpts.searchType === 'date') {
+                $tfootTr.append(
+                    '<th><input type="date" class="form-control" /></th>'
+                );
+            } else {
+                $tfootTr.append(
+                    '<th><input type="text" class="form-control" placeholder="{{ __("global.search") }}: ' + title + '" /></th>'
+                );
+            }
+        });
+        @endif
+
         var table = $(tableId).DataTable({
             processing: true,
             serverSide: {{ $serverSide ? 'true' : 'false' }},
@@ -180,43 +224,56 @@
 
             @if($searchable)
             initComplete: function () {
-                this.api().columns().every(function () {
+                var api = this.api();
+                api.columns().every(function () {
                     var that = this;
-                    $('input, select', this.footer()).on('input change', dtDebounce(function () {
+                    $('input:not(.select2-search__field), select', this.footer()).on('input change', dtDebounce(function () {
                         if (that.search() !== this.value) {
                             that.search(this.value).draw();
                         }
                     }, 400));
                 });
+
+                if ($.fn.select2) {
+                    $(tableId + ' tfoot select.dt-select2').select2({
+                        dir: $('html').attr('dir') || 'rtl',
+                        dropdownAutoWidth: false,
+                        width: '100%'
+                    }).on('change', function () {
+                        var colIdx = $(this).closest('th').index();
+                        var val = $(this).val();
+                        api.column(colIdx).search(val).draw();
+                    });
+                }
             },
             @endif
         });
 
-        @if($searchable)
-        $(tableId + ' thead th').each(function (i, v) {
-            var title = $(this).text().trim();
-            var colOpts = columns[i] || {};
-            
-            if ($(this).hasClass('except') || colOpts.searchable === false) {
-                $(tableId + ' tfoot tr').append('<th></th>');
-            } else if (colOpts.searchType === 'select' && colOpts.searchOptions) {
-                var selectHtml = '<select class="form-select form-control"><option value="">{{ __("global.all") }}</option>';
-                $.each(colOpts.searchOptions, function(val, text) {
-                    selectHtml += '<option value="' + val + '">' + text + '</option>';
-                });
-                selectHtml += '</select>';
-                $(tableId + ' tfoot tr').append('<th>' + selectHtml + '</th>');
-            } else if (colOpts.searchType === 'date') {
-                $(tableId + ' tfoot tr').append(
-                    '<th><input type="date" class="form-control" /></th>'
-                );
-            } else {
-                $(tableId + ' tfoot tr').append(
-                    '<th><input type="text" class="form-control form-control" placeholder="{{ __("global.search") }}: ' + title + '" /></th>'
-                );
-            }
+        // SweetAlert2 Confirmation for delete actions in table
+        $(document).on('click', tableId + ' .btn-delete', function (e) {
+            e.preventDefault();
+            var form = $(this).closest('form');
+
+            // SweetAlert متحمّلة دايماً من layouts/alert.blade.php، فمفيش
+            // خطة بديلة بـ confirm() المدمج — وجودها كان بيسبب تنبيهين.
+            Swal.fire({
+                    title: "{{ __('global.confirm_delete') ?? 'تأكيد الحذف' }}",
+                    text: "{{ __('alert.confirm_delete') ?? 'هل أنت متأكد من رغبتك في حذف هذا السجل؟' }}",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: "{{ __('global.yes_delete') ?? 'نعم، احذف' }}",
+                    cancelButtonText: "{{ __('global.cancel') ?? 'إلغاء' }}",
+                    customClass: {
+                        confirmButton: 'btn btn-danger me-2',
+                        cancelButton: 'btn btn-label-secondary'
+                    },
+                    buttonsStyling: false
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
         });
-        @endif
 
         return table;
     });

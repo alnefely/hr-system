@@ -13,9 +13,10 @@ return new class extends Migration
     public function up(): void
     {
         Artisan::call('optimize:clear');
-        Artisan::call('db:seed', ['--force' => true,'--class' => 'SettingsSeeder']);
-        Artisan::call('db:seed', ['--force' => true,'--class' => 'RoleSeeder']);
-        Artisan::call('db:seed', ['--force' => true,'--class' => 'AdminSeeder']);
+        Artisan::call('db:seed');
+        // Artisan::call('db:seed', ['--force' => true,'--class' => 'SettingsSeeder']);
+        // Artisan::call('db:seed', ['--force' => true,'--class' => 'RoleSeeder']);
+        // Artisan::call('db:seed', ['--force' => true,'--class' => 'AdminSeeder']);
     }
 
     /**

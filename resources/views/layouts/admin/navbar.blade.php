@@ -58,6 +58,54 @@
       </div>
 
       <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+
+        {{-- جرس الإشعارات --}}
+        @if (admin_can('notification_show'))
+          @php
+              $unreadNotifications = \App\Models\AdminNotification::forAdmin(admin()?->id)->unread()->count();
+          @endphp
+          <li class="nav-item dropdown me-2 me-xl-3" id="notificationsBell">
+            <a class="nav-link dropdown-toggle hide-arrow position-relative"
+               href="javascript:void(0);"
+               data-bs-toggle="dropdown"
+               data-bs-auto-close="outside"
+               title="{{ __('notification.title') }}">
+              <i class="fa-solid fa-bell fa-lg"></i>
+              <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle
+                           {{ $unreadNotifications ? '' : 'd-none' }}"
+                    id="notificationsCount">{{ $unreadNotifications }}</span>
+            </a>
+
+            <ul class="dropdown-menu dropdown-menu-end p-0" style="min-width: 340px; max-width: 400px;">
+              <li class="dropdown-header border-bottom d-flex justify-content-between align-items-center py-3 px-3">
+                <span class="fw-bold">{{ __('notification.title') }}</span>
+                <button type="button" class="btn btn-sm btn-label-primary py-0 px-2" id="markAllNotificationsRead">
+                  {{ __('notification.mark_all') }}
+                </button>
+              </li>
+
+              <li>
+                <div id="notificationsList" style="max-height: 340px; overflow-y: auto;">
+                  <div class="text-center text-muted py-4">
+                    <div class="spinner-border spinner-border-sm"></div>
+                  </div>
+                </div>
+              </li>
+
+              <li class="border-top text-center py-2">
+                <a href="{{ route('admin.notifications.index') }}" class="text-primary small fw-semibold">
+                  {{ __('notification.view_all') }}
+                </a>
+              </li>
+            </ul>
+          </li>
+        @endif
+
+        <li class="nav-item me-2 me-xl-3">
+          <a class="btn btn-sm btn-label-primary waves-effect" href="{{ route('admin.system-guide') }}" title="دليل استخدام النظام">
+            <i class="fa-solid fa-book-open me-1"></i> دليل النظام
+          </a>
+        </li>
         <!-- User -->
         <li class="nav-item navbar-dropdown dropdown-user dropdown">
           <a

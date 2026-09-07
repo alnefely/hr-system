@@ -100,7 +100,7 @@ class AdminPermission
         // التحقق من الصلاحية
         if ($permissionName && !in_array($permissionName, $permissions)) {
             // abort(403, __('error.403'));
-            return redirect()->route('admin.error_403')->with('error', __('auth.login_alert'));
+            return redirect()->route('admin.error_403')->with('error', __('alert.403_message'));
         }
 
         return $next($request);

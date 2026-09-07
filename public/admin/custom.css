@@ -31,3 +31,232 @@ html, body,h1, h2, h3, h4, h5, h6, p,span, div, a, ul, li, ol, input, textarea{
 div.dt-container div.dt-paging ul.pagination {
     justify-content: end;
 }
+
+/* ==========================================================================
+   Select2 - Vuexy / Bootstrap 5 Custom Styling & Z-Index Fixes
+   ========================================================================== */
+
+/* 1. Ensure Select2 Dropdown is ALWAYS above sidebar (aside), navbar, and tables */
+.select2-container {
+    box-sizing: border-box;
+    display: block;
+    width: 100% !important;
+}
+
+.select2-container--open {
+    z-index: 99999 !important;
+}
+
+.select2-dropdown {
+    z-index: 99999 !important;
+    border: 1px solid var(--bs-border-color) !important;
+    border-radius: var(--bs-border-radius, 0.375rem) !important;
+    background-color: var(--bs-card-bg, #ffffff) !important;
+    box-shadow: 0 0.25rem 1.25rem rgba(0, 0, 0, 0.18) !important;
+    overflow: hidden;
+}
+
+/* 2. Single Selection Box Styling (Matches Form Control / Form Select) */
+.select2-container--default .select2-selection--single {
+    height: 38px !important;
+    min-height: 38px !important;
+    border: 1px solid var(--bs-border-color) !important;
+    border-radius: var(--bs-border-radius, 0.375rem) !important;
+    background-color: var(--bs-body-bg, #ffffff) !important;
+    display: flex !important;
+    align-items: center !important;
+    position: relative !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: var(--bs-primary, #7367f0) !important;
+    box-shadow: 0 0 0 0.25rem rgba(115, 103, 240, 0.18) !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--bs-body-color, #5d596c) !important;
+    font-size: 0.9375rem !important;
+    line-height: 36px !important;
+    padding-inline-start: 0.875rem !important;
+    padding-inline-end: 2.25rem !important;
+    width: 100% !important;
+    display: block !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: var(--bs-secondary-color, #a5a3ae) !important;
+}
+
+/* Arrow position and styling */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px !important;
+    position: absolute !important;
+    top: 1px !important;
+    inset-inline-end: 8px !important;
+    inset-inline-start: auto !important;
+    width: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: var(--bs-secondary-color, #6f6b7d) transparent transparent transparent !important;
+    border-style: solid !important;
+    border-width: 5px 4px 0 4px !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    position: static !important;
+    transition: transform 0.2s ease !important;
+}
+
+.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+    border-color: transparent transparent var(--bs-secondary-color, #6f6b7d) transparent !important;
+    border-width: 0 4px 5px 4px !important;
+}
+
+/* Clear button */
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    color: var(--bs-secondary-color, #a5a3ae) !important;
+    cursor: pointer !important;
+    font-weight: bold !important;
+    margin-inline-end: 10px !important;
+}
+
+/* 3. Search input inside dropdown */
+.select2-search--dropdown {
+    padding: 0.5rem !important;
+    background-color: var(--bs-card-bg, #ffffff) !important;
+}
+
+.select2-search--dropdown .select2-search__field {
+    border: 1px solid var(--bs-border-color) !important;
+    border-radius: var(--bs-border-radius, 0.375rem) !important;
+    padding: 0.375rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    color: var(--bs-body-color) !important;
+    background-color: var(--bs-body-bg) !important;
+    outline: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.select2-search--dropdown .select2-search__field:focus {
+    border-color: var(--bs-primary, #7367f0) !important;
+}
+
+/* 4. Options List */
+.select2-results__options {
+    max-height: 250px !important;
+    overflow-y: auto !important;
+    padding: 0.25rem !important;
+}
+
+.select2-results__option {
+    padding: 0.5rem 0.875rem !important;
+    font-size: 0.9375rem !important;
+    color: var(--bs-body-color, #5d596c) !important;
+    border-radius: var(--bs-border-radius, 0.375rem) !important;
+    margin-bottom: 2px !important;
+    cursor: pointer !important;
+    transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: var(--bs-primary, #7367f0) !important;
+    color: #ffffff !important;
+}
+
+.select2-container--default .select2-results__option[aria-selected="true"] {
+    background-color: rgba(115, 103, 240, 0.12) !important;
+    color: var(--bs-primary, #7367f0) !important;
+    font-weight: 600 !important;
+}
+
+/* Multiple Selection Box Styling */
+.select2-container--default .select2-selection--multiple {
+    min-height: 38px !important;
+    border: 1px solid var(--bs-border-color) !important;
+    border-radius: var(--bs-border-radius, 0.375rem) !important;
+    background-color: var(--bs-body-bg, #ffffff) !important;
+    padding: 2px 6px !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: rgba(115, 103, 240, 0.15) !important;
+    border: 1px solid rgba(115, 103, 240, 0.3) !important;
+    color: var(--bs-primary, #7367f0) !important;
+    border-radius: 0.25rem !important;
+    padding: 2px 8px !important;
+    margin: 3px !important;
+    font-size: 0.85rem !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: var(--bs-primary, #7367f0) !important;
+    margin-inline-end: 5px !important;
+    border: none !important;
+}
+
+/* 5. DataTables Footer Specific adjustments */
+table.dataTable tfoot th {
+    vertical-align: middle !important;
+    padding: 0.5rem !important;
+}
+
+table.dataTable tfoot th .select2-container {
+    min-width: 120px !important;
+    width: 100% !important;
+}
+
+table.dataTable tfoot th input.form-control {
+    height: 38px !important;
+    min-width: 110px !important;
+    font-size: 0.875rem !important;
+    border: 1px solid var(--bs-border-color) !important;
+}
+
+
+
+/* ============================================================
+   نافذة شرح فلاتر المصروفات
+   الافتراضي في بوتستراب ضيّق (276px) والمحتوى هنا فيه قوائم
+   وفواصل، فمحتاج مساحة أوسع عشان يفضل مقروء.
+   ============================================================ */
+.expense-help-popover {
+    max-width: 420px;
+}
+
+.expense-help-popover .popover-body {
+    padding: 0.85rem 1rem;
+    line-height: 1.7;
+}
+
+.expense-help-popover .popover-header {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.expense-help-popover ul {
+    margin-bottom: 0;
+}
+
+.expense-help-popover hr {
+    opacity: 0.15;
+}
+
+/* أيقونات الشرح: تبان إنها قابلة للتفاعل */
+[data-bs-toggle="popover"] {
+    cursor: help;
+}
+
+label [data-bs-toggle="tooltip"] {
+    cursor: help;
+    font-size: 0.8rem;
+}

@@ -10,7 +10,13 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class AppMail extends Mailable
+/**
+ * كل رسائل النظام.
+ *
+ * ShouldQueue بيخلي الإرسال يتم في الخلفية بدل ما يوقف الـ request
+ * 2-5 ثواني في انتظار سيرفر البريد. محتاج queue:work شغال.
+ */
+class AppMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 

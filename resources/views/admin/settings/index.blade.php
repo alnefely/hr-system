@@ -30,7 +30,7 @@
                                     />
                             @elseif($setting->key == 'cart_status' || $setting->key == 'point_redemption_is_active')
                                 <label for="settings[{{ $setting->key }}]">{{ __('setting.' . $setting->key . '.label') }} <strong class="text-danger">{{ $setting->is_required ? '*' : '' }}</strong></label>
-                                <select name="settings[{{ $setting->key }}]" @if($setting->is_required) required @endif class="form-select">
+                                <select name="settings[{{ $setting->key }}]" @if($setting->is_required) required @endif class="form-select select2">
                                     <option value="1" {{ $setting->value == 1 ? 'selected' : '' }}>{{ __('setting.options.1') }}</option>
                                     <option value="0" {{ $setting->value == 0 ? 'selected' : '' }}>{{ __('setting.options.0') }}</option>
                                 </select>

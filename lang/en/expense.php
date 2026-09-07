@@ -1,0 +1,107 @@
+﻿<?php
+
+return [
+    'title'          => 'Petty Cash & Expenses',
+    'singular'       => 'Expense',
+    'create_title'   => 'Record New Expense',
+    'edit_title'     => 'Edit Expense',
+    'details_title'  => 'Expense Details',
+
+    'stats' => [
+        'total_month'            => 'Total Expenses This Month',
+        'total_month_hint'       => 'Total amount spent this month',
+        'allocated_balance'      => 'Custody Budget for :month',
+        'allocated_balance_hint' => 'Allocated + Carried over from last month',
+        'total_spent'            => 'Total Spent From Custody',
+        'total_spent_hint'       => 'Total invoices recorded from custody',
+        'remaining_balance'      => 'Actual Remaining Custody',
+        'remaining_balance_hint' => 'Available balance until month end',
+    ],
+
+    'filters' => [
+        'custody_cycle' => 'Custody Cycle (Month / Year)',
+        'all_categories' => 'All Categories',
+        'all_branches'   => 'All Branches',
+        'all_methods'    => 'All Payment Methods',
+        'date_from'      => 'Date From',
+        'date_to'        => 'Date To',
+    ],
+
+    'fields' => [
+        'title'                => 'Expense Title / Description',
+        'category'             => 'Expense Category',
+        'branch'               => 'Beneficiary Branch',
+        'all_branches'         => 'All Branches',
+        'employee'             => 'Responsible Employee',
+        'select_employee'      => 'Select Employee (Optional)',
+        'amount'               => 'Amount Spent',
+        'expense_date'         => 'Invoice / Expense Date',
+        'payment_method'       => 'Payment Method',
+        'invoice_number'       => 'Invoice / Receipt Number',
+        'attachment'           => 'Attachment',
+        'view_attachment'      => 'View Attachment',
+        'no_attachment'        => 'No Attachment',
+        'notes'                => 'Notes & Details',
+        'created_by'           => 'Recorded By',
+        'allocated_amount'     => 'Custody Budget for this Month',
+        'carried_over_amount'  => 'Carried Over From Previous Month',
+        'total_balance'        => 'Total Available Custody Balance',
+        'rollover_target_month'=> 'Rollover Remaining to Month',
+            'currency' => 'Currency',
+],
+
+    'enums' => [
+        'cash'          => 'Cash (Petty Cash)',
+        'bank_transfer' => 'Bank Transfer',
+        'card'          => 'Credit / Debit Card',
+    ],
+
+    'actions' => [
+        'add_new'         => 'Record New Expense',
+        'manage_balance'  => 'Set Custody Budget',
+        'rollover'        => 'Rollover Remaining to Next Month',
+        'back_to_list'    => 'Back to List',
+    ],
+
+    'messages' => [
+        'created'               => 'Expense recorded successfully',
+        'updated'               => 'Expense updated successfully',
+        'deleted'               => 'Expense deleted successfully',
+        'cant_backdate'         => 'You do not have permission to record or edit expenses for past months.',
+        'balance_updated'       => 'Custody budget for :month updated successfully.',
+        'rollover_success'      => 'Remaining custody balance (:amount EGP) rolled over to :next_month successfully.',
+        'no_remaining_rollover' => 'Notice: No remaining balance to rollover to next month.',
+            'restored' => 'Record restored successfully',
+        'force_deleted' => 'Permanently deleted successfully',
+],
+
+    'export' => [
+        'expense_date'   => 'Expense Date',
+        'invoice_number' => 'Invoice Number',
+        'category'       => 'Expense Category',
+        'branch'         => 'Beneficiary Branch',
+        'responsible'    => 'Responsible Employee',
+        'payment_method' => 'Payment Method',
+        'description'    => 'Description & Details',
+        'file_title'     => 'Petty Cash & Administrative Expenses Log',
+        'records_suffix' => 'expenses',
+        'exported_ok'    => 'Exported successfully',
+        'all_branches'   => 'All Branches',
+    ],
+    'trash' => 'Trash',
+    'back' => 'Back to list',
+
+    'hints' => [
+        'custody_cycle' => 'The petty cash financial cycle.<br>It drives the <b>allocated</b> and <b>remaining</b> cards above.<br><small>Ignored when a custom date range is set.</small>',
+        'title'         => 'A short clear description of the expense as it appears in reports',
+        'category'      => 'The expense category - the expense breakdown report is built on it',
+        'branch'        => 'The branch charged with this expense. Leave empty for a company-wide expense',
+        'employee'      => 'The employee who paid the amount from their custody',
+        'amount'        => 'The expense value in the invoice currency',
+        'expense_date'  => 'The actual spending date. The custody cycle and reports run on it',
+        'invoice_number'=> 'Supplier invoice or receipt number - useful for review and audit',
+        'payment_method'=> 'How the expense was paid',
+        'attachment'    => 'An image or PDF of the invoice. Required for approval and review',
+        'notes'         => 'Any extra detail about this expense',
+    ],
+];

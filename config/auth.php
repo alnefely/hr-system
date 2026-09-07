@@ -109,6 +109,14 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+
+        // بروكر منفصل للمشرفين بجدول توكنات خاص بيه.
+        'admins' => [
+            'provider' => 'admins',
+            'table' => 'admin_password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
     ],
 
     /*

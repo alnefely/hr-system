@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
             SettingsSeeder::class,
             RoleSeeder::class,
             AdminSeeder::class,
+            HrSeeder::class,
+            SampleEmployeesSeeder::class,
+            ComprehensiveDummySeeder::class,
         ]);
     }
 }

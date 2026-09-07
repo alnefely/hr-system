@@ -93,7 +93,7 @@
 
         @case('select')
             <select
-                class="form-select {{ $inputClass }} @error($name) is-invalid @enderror"
+                class="form-select select2 {{ $inputClass }} @error($name) is-invalid @enderror"
                 {{ $attributes->except(['class']) }}
                 @foreach($inputAttrs as $attr => $val) {{ $attr }}="{{ $val }}" @endforeach
             >

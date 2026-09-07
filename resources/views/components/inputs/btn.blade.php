@@ -38,12 +38,11 @@
     {!! $attrString !!}
 >{!! $text !!}</button>
 
-@push('js')
-    @if($confirmMessage)
-        <script>
-            $("#{{ $inputId }}").on('click', function () {
-                return confirm("{{ $confirmMessage }}");
-            });
-        </script>
-    @endif
-@endpush
+{{--
+    ملاحظة: data-confirm فوق كفاية لوحدها — المعترض العام في
+    layouts/alert.blade.php بيلتقطها ويعرض SweetAlert.
+
+    كان في هنا سكربت بينادي confirm() المدمج كمان، فالمستخدم كان
+    بيشوف تنبيه المتصفح الأول وبعده SweetAlert. اتشال عشان يفضل
+    تنبيه واحد بس.
+--}}
