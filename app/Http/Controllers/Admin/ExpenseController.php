@@ -23,8 +23,34 @@ class ExpenseController extends Controller
      */
     public function index(Request $request)
     {
-        $year = (int) $request->input('year', now()->year);
-        $month = (int) $request->input('month', now()->month);
+        // الفترة كلها من نطاق التواريخ. الافتراضي: الشهر الحالي
+        // كامل، فالشاشة بتفتح على نفس اللي كانت بتفتح عليه قبل
+        // ما نشيل حقل الشهر/السنة.
+        $dateFrom = $request->filled('date_from')
+            ? $request->date_from
+            : now()->startOfMonth()->toDateString();
+
+        $dateTo = $request->filled('date_to')
+            ? $request->date_to
+            : now()->endOfMonth()->toDateString();
+
+        // لو المستخدم عكس التواريخ بنصلّحها بدل نتيجة فاضية
+        if ($dateFrom > $dateTo) {
+            [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
+        }
+
+        // دورة العهدة شهرية، فبناخد شهرها من تاريخ البداية.
+        $periodStart = \Carbon\Carbon::parse($dateFrom);
+        $year  = (int) $periodStart->year;
+        $month = (int) $periodStart->month;
+
+        // بطاقات الرصيد بتخص شهر واحد. لو النطاق بيتخطى الشهر
+        // بنخفيها لأن مقارنة مخصص شهر بمنصرف فترة أطول مضلّلة.
+        $usingCustomRange = $dateFrom !== now()->startOfMonth()->toDateString()
+            || $dateTo !== now()->endOfMonth()->toDateString();
+
+        $spansMultipleMonths = $periodStart->format('Y-m')
+            !== \Carbon\Carbon::parse($dateTo)->format('Y-m');
         $branchId = $request->filled('branch_id') ? $request->branch_id : null;
 
         // ملاحظة: ترحيل رصيد العهدة من الشهر السابق كان بيتنفذ هنا، يعني
@@ -52,19 +78,7 @@ class ExpenseController extends Controller
             $query->where('payment_method', $request->payment_method);
         }
 
-        if ($request->filled('date_from')) {
-            $query->whereDate('expense_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('expense_date', '<=', $request->date_to);
-        }
-
-        if (!$request->filled('date_from') && !$request->filled('date_to')) {
-            // inMonth بيستخدم نطاق تواريخ عشان الفهرس يشتغل،
-            // بعكس whereYear/whereMonth اللي بتعمل full table scan.
-            $query->inMonth($year, $month);
-        }
+        $query->whereBetween('expense_date', [$dateFrom, $dateTo]);
 
         if ($request->ajax()) {
             return datatables($query)
@@ -162,9 +176,7 @@ class ExpenseController extends Controller
 
             $branchObj = $request->filled('branch_id') ? Branch::find($request->branch_id) : null;
             $meta = [
-                __('global.export.period') => ($request->filled('date_from') || $request->filled('date_to'))
-                    ? ($request->date_from . ' ' . __('global.export.to') . ' ' . $request->date_to)
-                    : ($month . ' / ' . $year),
+                __('global.export.period') => $dateFrom . ' ' . __('global.export.to') . ' ' . $dateTo,
                 __('global.export.branch')  => $branchObj ? $branchObj->name : __('expense.export.all_branches'),
             ];
 
@@ -209,17 +221,7 @@ class ExpenseController extends Controller
             $cashExpensesQuery->where('expense_category_id', $request->expense_category_id);
         }
 
-        if ($request->filled('date_from')) {
-            $cashExpensesQuery->whereDate('expense_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $cashExpensesQuery->whereDate('expense_date', '<=', $request->date_to);
-        }
-
-        if (!$request->filled('date_from') && !$request->filled('date_to')) {
-            $cashExpensesQuery->inMonth($year, $month);
-        }
+        $cashExpensesQuery->whereBetween('expense_date', [$dateFrom, $dateTo]);
 
         if ($request->filled('branch_id')) {
             $cashExpensesQuery->where('branch_id', $request->branch_id);
@@ -247,20 +249,14 @@ class ExpenseController extends Controller
             ? ($remainingByCurrency[$branchCurrency] ?? 0.00) 
             : ($allocatedBalance - $cashExpensesTotal);
 
-        if ($request->filled('date_from') && $request->filled('date_to')) {
-            $spentPeriodLabel = 'الفترة من ' . $request->date_from . ' إلى ' . $request->date_to;
-        } elseif ($request->filled('date_from')) {
-            $spentPeriodLabel = 'من تاريخ ' . $request->date_from;
-        } elseif ($request->filled('date_to')) {
-            $spentPeriodLabel = 'حتى تاريخ ' . $request->date_to;
-        } else {
-            $spentPeriodLabel = 'عن شهر ' . $month . '/' . $year;
-        }
+        $spentPeriodLabel = __('expense.filters.period_label', [
+            'from' => $dateFrom,
+            'to'   => $dateTo,
+        ]);
 
-        // لما المستخدم يحدد نطاق تواريخ، بطاقات العهدة (المخصص/المتبقي)
-        // بتبقى مضلّلة لأن العهدة دورتها شهرية بينما المنصرف بيتحسب على
-        // الفترة المختارة — فبنخفيهم ونعرض إجمالي الفترة بس.
-        $usingCustomRange = $request->filled('date_from') || $request->filled('date_to');
+        // بطاقات العهدة بتتخفي بس لما النطاق يتخطى الشهر — ساعتها
+        // مقارنة مخصص شهر واحد بمنصرف فترة أطول بتبقى مضلّلة.
+        $usingCustomRange = $spansMultipleMonths;
 
         $categories = ExpenseCategory::where('is_active', true)->get(['id', 'name']);
         $branches   = Branch::where('is_active', true)->get(['id', 'name', 'currency']);
@@ -278,6 +274,8 @@ class ExpenseController extends Controller
             'custodyBalance',
             'year',
             'month',
+            'dateFrom',
+            'dateTo',
             'spentPeriodLabel',
             'categories',
             'branches',

@@ -307,20 +307,12 @@
             @if($usingCustomRange)
                 <span class="badge bg-label-warning">
                     <i class="fa-solid fa-triangle-exclamation me-1"></i>
-                    نطاق تواريخ مخصص — بطاقات العهدة مخفية
+                    {{ __('expense.filters.multi_month_notice') }}
                 </span>
             @endif
         </div>
 
         <form action="{{ route('admin.expenses.index') }}" method="GET" class="row g-3 align-items-end">
-            <div class="col-md-2">
-                <x-inputs.month-year
-                    :month="$month"
-                    :year="$year"
-                    :label="__('expense.filters.custody_cycle')"
-                    :help="__('expense.hints.custody_cycle')" />
-            </div>
-
             <div class="col-md-2">
                 <label class="form-label text-muted small mb-1">{{ __('expense.fields.branch') }}</label>
                 <select name="branch_id" class="form-select select2">
@@ -353,17 +345,14 @@
                 </select>
             </div>
 
-            <div class="col-md-2">
+            <div class="col-md-4">
                 <label class="form-label text-muted small mb-1">
-                    نطاق تواريخ مخصص
-                    <i class="fa-solid fa-circle-info text-warning"
-                       data-bs-toggle="tooltip"
-                       data-bs-html="true"
-                       title="لعرض فترة محددة أو ممتدة على أكتر من شهر.<br><b>بيتغلّب على دورة العهدة</b>، وبطاقات الرصيد بتتخفي لأنها بتخص الشهر مش الفترة."></i>
+                    {{ __('expense.filters.period') }}
+                    <x-inputs.help :text="__('expense.hints.period')" />
                 </label>
                 <div class="input-group">
-                    <input type="date" name="date_from" class="form-control px-1" value="{{ request('date_from') }}" placeholder="من" />
-                    <input type="date" name="date_to" class="form-control px-1" value="{{ request('date_to') }}" placeholder="إلى" />
+                    <input type="date" name="date_from" class="form-control px-1" value="{{ $dateFrom }}" />
+                    <input type="date" name="date_to" class="form-control px-1" value="{{ $dateTo }}" />
                 </div>
             </div>
 

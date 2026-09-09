@@ -85,7 +85,9 @@
     <div class="card-body py-3">
         <form id="dashboardFilters" class="row g-2 align-items-end">
 
-            <div class="col-md-4">
+            {{-- الأعمدة بتتوزّع على 12 في الحالتين: بحقول الفترة
+                 المخصصة (3+4+4+1) ومن غيرها (5+6+1) --}}
+            <div class="col-md-{{ $filter['preset'] === 'custom' ? '3' : '5' }}" id="presetCol">
                 <label class="form-label small mb-1">
                     {{ __('dashboard.filters.period') }}
                     <x-inputs.help :text="__('dashboard.hints.period')" />
@@ -97,18 +99,20 @@
                 </select>
             </div>
 
-            <div class="col-md-3 {{ $filter['preset'] === 'custom' ? '' : 'd-none' }}" id="customRange">
+            <div class="col-md-4 {{ $filter['preset'] === 'custom' ? '' : 'd-none' }}" id="customRange">
                 <label class="form-label small mb-1">
                     {{ __('dashboard.filters.range_label') }}
                     <x-inputs.help :text="__('dashboard.hints.range')" />
                 </label>
-                <div class="input-group input-group-sm">
-                    <input type="date" name="date_from" class="form-control px-1" value="{{ $filter['date_from'] }}">
-                    <input type="date" name="date_to" class="form-control px-1" value="{{ $filter['date_to'] }}">
+                <div class="input-group">
+                    <input type="date" name="date_from" class="form-control px-2" style="height: 38px;"
+                           value="{{ $filter['date_from'] }}">
+                    <input type="date" name="date_to" class="form-control px-2" style="height: 38px;"
+                           value="{{ $filter['date_to'] }}">
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-{{ $filter['preset'] === 'custom' ? '4' : '6' }}" id="branchCol">
                 <label class="form-label small mb-1">
                     {{ __('dashboard.filters.branch') }}
                     <x-inputs.help :text="__('dashboard.hints.branch')" />
@@ -123,7 +127,8 @@
 
 
             <div class="col-md-1 d-grid">
-                <button type="button" id="resetDashboardFilters" class="btn btn-sm btn-label-secondary"
+                <button type="button" id="resetDashboardFilters" class="btn btn-label-secondary"
+                        style="height: 38px;"
                         data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}">
                     <i class="fa-solid fa-rotate-left"></i>
                 </button>
@@ -243,10 +248,94 @@
                     <i class="fa-solid fa-chart-area text-primary me-2"></i>
                     {{ __('dashboard.charts.trend') }}
                 </h6>
-                <span class="badge bg-label-secondary" data-bs-toggle="tooltip"
-                      title="{{ __('dashboard.hints.trend_currency') }}">
-                    {{ __('dashboard.all_currencies') }}
-                </span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-label-secondary" data-bs-toggle="tooltip"
+                          title="{{ __('dashboard.hints.trend_currency') }}">
+                        {{ __('dashboard.all_currencies') }}
+                    </span>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-label-secondary dropdown-toggle chart-type-btn"
+                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                            data-target="trend"
+                            aria-expanded="false"
+                            title="{{ __('dashboard.chart_types.change') }}">
+                        <i class="fa-solid fa-chart-simple"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li><h6 class="dropdown-header">{{ __('dashboard.chart_types.change') }}</h6></li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="trend" data-type="line">
+                                <i class="fa-solid fa-chart-line fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.line') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="trend" data-type="area">
+                                <i class="fa-solid fa-chart-area fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.area') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="trend" data-type="column">
+                                <i class="fa-solid fa-chart-column fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.column') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="trend" data-type="bar">
+                                <i class="fa-solid fa-chart-bar fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.bar') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="trend" data-type="donut">
+                                <i class="fa-solid fa-chart-pie fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.donut') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="trend" data-type="pie">
+                                <i class="fa-solid fa-circle-half-stroke fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.pie') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="trend" data-type="pieLabeled">
+                                <i class="fa-solid fa-share-nodes fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.pieLabeled') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="trend" data-type="radar">
+                                <i class="fa-solid fa-spider fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.radar') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="trend" data-type="treemap">
+                                <i class="fa-solid fa-table-cells-large fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.treemap') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="trend" data-type="polarArea">
+                                <i class="fa-solid fa-bullseye fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.polarArea') }}</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                </div>
             </div>
             <div class="card-body p-0">
                 <div id="chartTrend"></div>
@@ -263,7 +352,91 @@
                     {{ __('dashboard.charts.expense_split') }}
                     <x-inputs.help :text="__('dashboard.hints.expense_split')" />
                 </h6>
-                <span class="badge bg-label-warning" id="expenseCurrency">{{ __('dashboard.all_currencies') }}</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-label-warning" id="expenseCurrency">{{ __('dashboard.all_currencies') }}</span>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-label-warning dropdown-toggle chart-type-btn"
+                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                            data-target="expenses"
+                            aria-expanded="false"
+                            title="{{ __('dashboard.chart_types.change') }}">
+                        <i class="fa-solid fa-chart-simple"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li><h6 class="dropdown-header">{{ __('dashboard.chart_types.change') }}</h6></li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="expenses" data-type="line">
+                                <i class="fa-solid fa-chart-line fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.line') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="expenses" data-type="area">
+                                <i class="fa-solid fa-chart-area fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.area') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="expenses" data-type="column">
+                                <i class="fa-solid fa-chart-column fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.column') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="expenses" data-type="bar">
+                                <i class="fa-solid fa-chart-bar fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.bar') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="expenses" data-type="donut">
+                                <i class="fa-solid fa-chart-pie fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.donut') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="expenses" data-type="pie">
+                                <i class="fa-solid fa-circle-half-stroke fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.pie') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="expenses" data-type="pieLabeled">
+                                <i class="fa-solid fa-share-nodes fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.pieLabeled') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="expenses" data-type="radar">
+                                <i class="fa-solid fa-spider fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.radar') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="expenses" data-type="treemap">
+                                <i class="fa-solid fa-table-cells-large fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.treemap') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="expenses" data-type="polarArea">
+                                <i class="fa-solid fa-bullseye fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.polarArea') }}</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                </div>
             </div>
             <div class="card-body p-0">
                 <div id="chartExpenses"></div>
@@ -284,7 +457,91 @@
                     {{ __('dashboard.charts.sales_channels') }}
                     <x-inputs.help :text="__('dashboard.hints.sales_channels')" />
                 </h6>
-                <span class="badge bg-label-info" id="channelsCurrency">{{ __('dashboard.all_currencies') }}</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-label-info" id="channelsCurrency">{{ __('dashboard.all_currencies') }}</span>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-label-info dropdown-toggle chart-type-btn"
+                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                            data-target="channels"
+                            aria-expanded="false"
+                            title="{{ __('dashboard.chart_types.change') }}">
+                        <i class="fa-solid fa-chart-simple"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li><h6 class="dropdown-header">{{ __('dashboard.chart_types.change') }}</h6></li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="channels" data-type="line">
+                                <i class="fa-solid fa-chart-line fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.line') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="channels" data-type="area">
+                                <i class="fa-solid fa-chart-area fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.area') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="channels" data-type="column">
+                                <i class="fa-solid fa-chart-column fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.column') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="channels" data-type="bar">
+                                <i class="fa-solid fa-chart-bar fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.bar') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="channels" data-type="donut">
+                                <i class="fa-solid fa-chart-pie fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.donut') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="channels" data-type="pie">
+                                <i class="fa-solid fa-circle-half-stroke fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.pie') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="channels" data-type="pieLabeled">
+                                <i class="fa-solid fa-share-nodes fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.pieLabeled') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="channels" data-type="radar">
+                                <i class="fa-solid fa-spider fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.radar') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="channels" data-type="treemap">
+                                <i class="fa-solid fa-table-cells-large fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.treemap') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                    data-target="channels" data-type="polarArea">
+                                <i class="fa-solid fa-bullseye fa-fw"></i>
+                                <span>{{ __('dashboard.chart_types.polarArea') }}</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                </div>
             </div>
             <div class="card-body p-0">
                 <div id="chartChannels"></div>
@@ -399,11 +656,92 @@
 
 @if (count($hr['by_branch']) > 1)
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header border-bottom">
+        <div class="card-header border-bottom d-flex justify-content-between align-items-center">
             <h6 class="card-title mb-0 fw-bold">
                 <i class="fa-solid fa-building text-primary me-2"></i>
                 {{ __('dashboard.charts.employees_by_branch') }}
             </h6>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-label-primary dropdown-toggle chart-type-btn"
+                        type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                        data-target="branches" aria-expanded="false"
+                        title="{{ __('dashboard.chart_types.change') }}">
+                    <i class="fa-solid fa-chart-simple"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li><h6 class="dropdown-header">{{ __('dashboard.chart_types.change') }}</h6></li>
+                    <li>
+                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                data-target="branches" data-type="line">
+                            <i class="fa-solid fa-chart-line fa-fw"></i>
+                            <span>{{ __('dashboard.chart_types.line') }}</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                data-target="branches" data-type="area">
+                            <i class="fa-solid fa-chart-area fa-fw"></i>
+                            <span>{{ __('dashboard.chart_types.area') }}</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                data-target="branches" data-type="column">
+                            <i class="fa-solid fa-chart-column fa-fw"></i>
+                            <span>{{ __('dashboard.chart_types.column') }}</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                data-target="branches" data-type="bar">
+                            <i class="fa-solid fa-chart-bar fa-fw"></i>
+                            <span>{{ __('dashboard.chart_types.bar') }}</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                data-target="branches" data-type="donut">
+                            <i class="fa-solid fa-chart-pie fa-fw"></i>
+                            <span>{{ __('dashboard.chart_types.donut') }}</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                data-target="branches" data-type="pie">
+                            <i class="fa-solid fa-circle-half-stroke fa-fw"></i>
+                            <span>{{ __('dashboard.chart_types.pie') }}</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                data-target="branches" data-type="pieLabeled">
+                            <i class="fa-solid fa-share-nodes fa-fw"></i>
+                            <span>{{ __('dashboard.chart_types.pieLabeled') }}</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                data-target="branches" data-type="radar">
+                            <i class="fa-solid fa-spider fa-fw"></i>
+                            <span>{{ __('dashboard.chart_types.radar') }}</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                data-target="branches" data-type="treemap">
+                            <i class="fa-solid fa-table-cells-large fa-fw"></i>
+                            <span>{{ __('dashboard.chart_types.treemap') }}</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
+                                data-target="branches" data-type="polarArea">
+                            <i class="fa-solid fa-bullseye fa-fw"></i>
+                            <span>{{ __('dashboard.chart_types.polarArea') }}</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
         </div>
         <div class="card-body">
             <div id="chartBranches"></div>
@@ -459,17 +797,28 @@ document.addEventListener('DOMContentLoaded', function () {
      *
      * فبنعيد البناء لما العدد يتغيّر، ونحدّث بنداء واحد لما يفضل زيّه.
      */
-    function Chart(selector, build) {
-        this.el     = document.querySelector(selector);
-        this.build  = build;
-        this.api    = null;
-        this.length = -1;
+    function Chart(selector, build, name, defaultType, labelsOf) {
+        this.el          = document.querySelector(selector);
+        this.build       = build;
+        this.name        = name;
+        this.defaultType = defaultType;
+        this.labelsOf    = labelsOf || function () { return []; };
+        this.api         = null;
+        this.length      = -1;
+        this.lastData    = null;
     }
+
+    /** الشكل الحالي: اللي المستخدم اختاره أو الافتراضي. */
+    Chart.prototype.type = function () {
+        return chartTypes[this.name] || this.defaultType;
+    };
 
     Chart.prototype.render = function (data) {
         if (!this.el) return;
 
-        var options = this.build(data);
+        this.lastData = data;
+
+        var options = applyType(this.build(data), this.type(), this.labelsOf(data));
         var count   = (options.series || []).length;
 
         // مفيش بيانات — نفضي المكان بدل ما نرسم رسم فاضي
@@ -480,8 +829,10 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        if (this.api && this.length === count) {
-            // نفس عدد السلاسل — تحديث آمن بنداء واحد
+        var sameType = this.renderedType === this.type();
+
+        if (this.api && this.length === count && sameType) {
+            // نفس النوع ونفس عدد السلاسل — تحديث آمن بنداء واحد
             try {
                 this.api.updateOptions(options, false, false);
                 return;
@@ -494,7 +845,18 @@ document.addEventListener('DOMContentLoaded', function () {
         this.el.innerHTML = '';
         this.api = new ApexCharts(this.el, options);
         this.api.render();
-        this.length = count;
+        this.length       = count;
+        this.renderedType = this.type();
+    };
+
+    /** إعادة الرسم بشكل جديد على نفس البيانات. */
+    Chart.prototype.setType = function (type) {
+        chartTypes[this.name] = type;
+        saveType(this.name, type);
+
+        if (this.lastData) {
+            this.render(this.lastData);
+        }
     };
 
     Chart.prototype.destroy = function () {
@@ -579,6 +941,268 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ====================================================
+    //  تبديل شكل الرسم
+    // ====================================================
+
+    /** الشكل المختار لكل رسم، محفوظ في المتصفح. */
+    var CHART_TYPE_KEY = 'sbbs_chart_types';
+
+    function loadTypes() {
+        try {
+            return JSON.parse(localStorage.getItem(CHART_TYPE_KEY)) || {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function saveType(target, type) {
+        try {
+            var all = loadTypes();
+            all[target] = type;
+            localStorage.setItem(CHART_TYPE_KEY, JSON.stringify(all));
+        } catch (e) {
+            // التخزين ممكن يكون مقفول (وضع خاص) — الشكل يفضل للجلسة بس
+        }
+    }
+
+    var chartTypes = loadTypes();
+
+    /** الأشكال اللي بتاخد قيمة واحدة لكل تسمية بدل سلاسل. */
+    function isCircular(type) {
+        return ['pie', 'pieLabeled', 'donut', 'polarArea', 'radialBar'].indexOf(type) !== -1;
+    }
+
+    /**
+     * بيحوّل سلاسل متعددة لمجموع واحد لكل تسمية.
+     *
+     * الأشكال الدائرية بتعرض نسبة من كلّ، فجمع عملات مختلفة فيها
+     * مالوش معنى — بناخد أول عملة بس ونقول كده في العنوان.
+     */
+    function flattenSeries(series, labels) {
+        if (!series.length) return { values: [], labels: labels };
+
+        var first = series[0];
+
+        return {
+            values: (first.data || []).map(function (v) { return Math.abs(parseFloat(v) || 0); }),
+            labels: labels,
+        };
+    }
+
+    /** الخيارات اللي بتخص شكل معيّن ولازم تتشال قبل التبديل. */
+    var TYPE_SPECIFIC = [
+        'plotOptions', 'dataLabels', 'labels', 'stroke', 'fill',
+        'xaxis', 'yaxis', 'markers', 'grid', 'legend', 'colors',
+    ];
+
+    /**
+     * بيطبّق الشكل المختار على خيارات الرسم.
+     *
+     * Object.assign بينسخ سطحي، فخيارات الشكل القديم كانت بتفضل
+     * وتتعارض مع الجديد — الرادار مثلاً كان بياخد formatter بتاع
+     * الأعمدة و dashArray بطول مش مطابق لعدد سلاسله فيطلع بايظ.
+     * فبنبدأ من نسخة نضيفة وبنبني خيارات الشكل من الأول.
+     */
+    function applyType(options, type, labels) {
+        var out = {};
+
+        // ناخد كل حاجة مش خاصة بشكل معيّن (series, tooltip, ...)
+        Object.keys(options).forEach(function (key) {
+            if (TYPE_SPECIFIC.indexOf(key) === -1) {
+                out[key] = options[key];
+            }
+        });
+
+        out.chart  = Object.assign({}, options.chart, { type: type, stacked: false });
+        out.colors = PALETTE;
+        out.grid   = { borderColor: borderColor, strokeDashArray: 4 };
+        out.tooltip = { rtl: isRtl, y: { formatter: function (v) { return nf.format(v); } } };
+
+        // ---------- الأشكال الدائرية ----------
+        if (isCircular(type)) {
+            var flat = flattenSeries(options.series || [], labels || []);
+
+            out.series = flat.values;
+            out.labels = flat.labels;
+            out.legend = { show: true, position: 'bottom', labels: { colors: textMuted } };
+            out.dataLabels = { enabled: true };
+            out.plotOptions = {};
+
+            // الشكل ده بيطلّع خط من كل قسم والتسمية في نهايته
+            if (type === 'pieLabeled') {
+                out.chart.type = 'pie';
+                out.dataLabels = {
+                    enabled: true,
+                    style: { fontSize: '12px', colors: [textMuted] },
+                    dropShadow: { enabled: false },
+                    formatter: function (value, opt) {
+                        var name = opt.w.globals.labels[opt.seriesIndex] || '';
+                        return [name, value.toFixed(1) + '%'];
+                    },
+                };
+                out.plotOptions = {
+                    pie: {
+                        dataLabels: { offset: 28, minAngleToShowLabel: 8 },
+                        expandOnClick: true,
+                    },
+                };
+                out.legend = { show: false };
+                out.stroke = { width: 1, colors: ['transparent'] };
+
+                return out;
+            }
+
+            if (type === 'donut') {
+                out.plotOptions = {
+                    pie: { donut: { labels: { show: true, total: { show: true, label: L.total } } } },
+                };
+            }
+
+            return out;
+        }
+
+        // ---------- خريطة المساحات ----------
+        if (type === 'treemap') {
+            var flatT = flattenSeries(options.series || [], labels || []);
+
+            out.series = [{
+                data: flatT.labels.map(function (label, i) {
+                    return { x: label, y: flatT.values[i] || 0 };
+                }),
+            }];
+            out.plotOptions = { treemap: { distributed: true, enableShades: false } };
+            out.dataLabels  = { enabled: true, style: { fontSize: '12px' } };
+            out.legend = { show: false };
+
+            return out;
+        }
+
+        // ---------- الرادار ----------
+        if (type === 'radar') {
+            var radarSeries = options.series || [];
+
+            // السلاسل اللي كلها أصفار بتطلع خط في المركز — بنشيلها.
+            // ده بيحصل لما كل عملة يكون ليها تسميات مختلفة والباقي
+            // بيتبطّن بأصفار.
+            var meaningful = radarSeries.filter(function (serie) {
+                return (serie.data || []).some(function (v) { return parseFloat(v) > 0; });
+            });
+
+            // عملة واحدة بس: مقارنة عملات مختلفة على نفس المقياس
+            // بتدي شكل مضلّل (٢٧٠٠ جنيه جنب ٢٨٠ دولار).
+            out.series = meaningful.length ? [meaningful[0]] : radarSeries.slice(0, 1);
+
+            out.xaxis = {
+                categories: labels || [],
+                labels: { style: { colors: [textMuted], fontSize: '11px' } },
+            };
+
+            // المحور لازم يفضل شغّال — من غيره ApexCharts مابيعرفش
+            // يحسب نصف قطر الشبكة وكل النقط بتقع في المركز.
+            out.yaxis = { show: false, labels: { formatter: function (v) { return nf0.format(v); } } };
+
+            out.dataLabels = { enabled: false };
+            out.stroke  = { width: 2 };
+            out.fill    = { opacity: 0.25 };
+            out.markers = { size: 4, hover: { size: 6 } };
+
+            out.plotOptions = {
+                radar: {
+                    polygons: {
+                        strokeColors: borderColor,
+                        connectorColors: borderColor,
+                        fill: { colors: ['transparent'] },
+                    },
+                },
+            };
+
+            out.legend = {
+                show: true, position: 'top',
+                horizontalAlign: isRtl ? 'right' : 'left',
+                labels: { colors: textMuted },
+            };
+
+            return out;
+        }
+
+        // ---------- الخط والمساحة ----------
+        if (type === 'line' || type === 'area') {
+            out.series = options.series || [];
+            out.stroke = { curve: 'smooth', width: 2 };
+            out.dataLabels = { enabled: false };
+            out.plotOptions = {};
+            out.markers = { size: 0, hover: { size: 5 } };
+
+            if (type === 'area') {
+                out.fill = { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.05 } };
+            }
+
+            out.xaxis = {
+                categories: labels || [],
+                labels: { style: { colors: textMuted } },
+                axisBorder: { show: false },
+            };
+            out.yaxis = {
+                opposite: isRtl,
+                labels: { style: { colors: textMuted }, formatter: function (v) { return nf0.format(v); } },
+            };
+            out.legend = {
+                show: true, position: 'top',
+                horizontalAlign: isRtl ? 'right' : 'left',
+                labels: { colors: textMuted },
+            };
+
+            return out;
+        }
+
+        // ---------- الأعمدة ----------
+        // bar = أفقية، column = رأسية — الاتنين نوعهم bar في
+        // ApexCharts والفرق في horizontal.
+        var horizontal = type === 'bar';
+
+        out.chart.type = 'bar';
+        out.series = options.series || [];
+        out.plotOptions = {
+            bar: { horizontal: horizontal, borderRadius: 4, barHeight: '70%', columnWidth: '55%' },
+        };
+
+        if (horizontal) {
+            // الأفقي: الاسم والقيمة جوه العمود عشان ياخد العرض كله
+            out.plotOptions.bar.dataLabels = { position: 'center' };
+            out.dataLabels = {
+                enabled: true,
+                textAnchor: 'middle',
+                style: { fontSize: '12px', colors: ['#fff'] },
+                formatter: function (value, opt) {
+                    if (!value) return '';
+                    var name = (labels || [])[opt.dataPointIndex] || '';
+                    return name + ' — ' + nf0.format(value);
+                },
+                dropShadow: { enabled: true, blur: 2, opacity: 0.4 },
+            };
+            out.yaxis = { labels: { show: false } };
+        } else {
+            out.dataLabels = { enabled: false };
+            out.yaxis = {
+                opposite: isRtl,
+                labels: { style: { colors: textMuted }, formatter: function (v) { return nf0.format(v); } },
+            };
+        }
+
+        out.xaxis = {
+            categories: labels || [],
+            labels: { style: { colors: textMuted }, formatter: function (v) { return v; } },
+        };
+        out.legend = {
+            show: true, position: 'top',
+            horizontalAlign: isRtl ? 'right' : 'left',
+            labels: { colors: textMuted },
+        };
+
+        return out;
+    }
+
+    // ====================================================
     //  اتجاه الإيرادات والمصروفات — كل العملات
     // ====================================================
 
@@ -628,33 +1252,59 @@ document.addEventListener('DOMContentLoaded', function () {
     // ====================================================
     //  بناء الرسوم
     // ====================================================
-    var trendChart    = new Chart('#chartTrend',    trendOptions);
-    var expenseChart  = new Chart('#chartExpenses', function (d) { return insideBarOptions(byCurrency(d)); });
-    var channelChart  = new Chart('#chartChannels', function (d) { return insideBarOptions(byCurrency(d)); });
+    var trendChart = new Chart(
+        '#chartTrend', trendOptions, 'trend', 'line',
+        function (d) { return (d && d.labels) || []; }
+    );
+
+    var expenseChart = new Chart(
+        '#chartExpenses',
+        function (d) { return insideBarOptions(byCurrency(d)); },
+        'expenses', 'bar',
+        function (d) { return byCurrency(d).labels; }
+    );
+
+    var channelChart = new Chart(
+        '#chartChannels',
+        function (d) { return insideBarOptions(byCurrency(d)); },
+        'channels', 'bar',
+        function (d) { return byCurrency(d).labels; }
+    );
 
     trendChart.render(@json($trend));
     expenseChart.render(@json($expenseSplit));
     channelChart.render(@json($salesChannels));
 
     // الموظفون حسب الفرع — ثابت، مش متأثر بالفلتر
-    var branchesEl = document.querySelector('#chartBranches');
-    if (branchesEl) {
-        new ApexCharts(branchesEl, Object.assign({}, baseOptions, {
+    var branchData = {
+        labels: @json(array_column($hr['by_branch'], 'label')),
+        series: [
+            { name: @json(__('dashboard.hr.active')),   data: @json(array_map('intval', array_column($hr['by_branch'], 'active'))) },
+            { name: @json(__('dashboard.hr.on_leave')), data: @json(array_map('intval', array_column($hr['by_branch'], 'on_leave'))) },
+        ],
+    };
+
+    function branchOptions(d) {
+        return Object.assign({}, baseOptions, {
             chart:  Object.assign({}, baseOptions.chart, { type: 'bar', height: 260, stacked: true }),
             colors: ['#7367f0', '#ff9f43'],
             plotOptions: { bar: { borderRadius: 6, columnWidth: '45%' } },
             legend: { show: true, position: 'top', horizontalAlign: isRtl ? 'right' : 'left', labels: { colors: textMuted } },
-            series: [
-                { name: @json(__('dashboard.hr.active')),   data: @json(array_map('intval', array_column($hr['by_branch'], 'active'))) },
-                { name: @json(__('dashboard.hr.on_leave')), data: @json(array_map('intval', array_column($hr['by_branch'], 'on_leave'))) },
-            ],
+            series: d.series,
             xaxis: {
-                categories: @json(array_column($hr['by_branch'], 'label')),
+                categories: d.labels,
                 labels: { style: { colors: textMuted } },
             },
             yaxis: { opposite: isRtl, labels: { style: { colors: textMuted } } },
-        })).render();
+        });
     }
+
+    var branchChart = new Chart(
+        '#chartBranches', branchOptions, 'branches', 'column',
+        function (d) { return d.labels; }
+    );
+
+    branchChart.render(branchData);
 
     // ====================================================
     //  الفلاتر — تحديث AJAX
@@ -664,10 +1314,39 @@ document.addEventListener('DOMContentLoaded', function () {
     var preset  = document.querySelector('#filterPreset');
     var range   = document.querySelector('#customRange');
 
+    var presetCol = document.querySelector('#presetCol');
+    var branchCol = document.querySelector('#branchCol');
+
+    function toggleCustomRange() {
+        if (!preset || !range) return;
+
+        var custom = preset.value === 'custom';
+
+        range.classList.toggle('d-none', !custom);
+
+        // مجموع الأعمدة يفضل 12 في الحالتين عشان الشريط
+        // مايلفّش لسطر تاني
+        if (presetCol) {
+            presetCol.classList.toggle('col-md-3', custom);
+            presetCol.classList.toggle('col-md-5', !custom);
+        }
+
+        if (branchCol) {
+            branchCol.classList.toggle('col-md-4', custom);
+            branchCol.classList.toggle('col-md-6', !custom);
+        }
+    }
+
     if (preset && range) {
-        preset.addEventListener('change', function () {
-            range.classList.toggle('d-none', this.value !== 'custom');
-        });
+        // select2 بيرفع الحدث عن طريق jQuery، والمستمع الأصلي مش
+        // بيشوفه — فحقول الفترة المخصصة مكانتش بتظهر عند اختيارها.
+        if (window.jQuery) {
+            jQuery(preset).on('change', toggleCustomRange);
+        } else {
+            preset.addEventListener('change', toggleCustomRange);
+        }
+
+        toggleCustomRange();
     }
 
     function cell(label, value, cls) {
@@ -765,6 +1444,41 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // ====================================================
+    //  مبدّل شكل الرسم
+    // ====================================================
+    var chartsByName = {
+        trend:    trendChart,
+        expenses: expenseChart,
+        channels: channelChart,
+        branches: branchChart,
+    };
+
+    /** بيعلّم الشكل الشغّال في القائمة. */
+    function markActiveType(target) {
+        var chart = chartsByName[target];
+        if (!chart) return;
+
+        document.querySelectorAll('.chart-type-option[data-target="' + target + '"]')
+            .forEach(function (item) {
+                item.classList.toggle('active', item.dataset.type === chart.type());
+            });
+    }
+
+    Object.keys(chartsByName).forEach(markActiveType);
+
+    document.querySelectorAll('.chart-type-option').forEach(function (option) {
+        option.addEventListener('click', function () {
+            var target = this.dataset.target;
+            var chart  = chartsByName[target];
+
+            if (!chart) return;
+
+            chart.setType(this.dataset.type);
+            markActiveType(target);
+        });
+    });
+
     var resetBtn = document.querySelector('#resetDashboardFilters');
     if (resetBtn && form) {
         resetBtn.addEventListener('click', function () {
@@ -783,7 +1497,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 jQuery(branch).val('').trigger('change.select2');
             }
 
-            if (range) range.classList.add('d-none');
+            toggleCustomRange();
 
             refresh();
         });

@@ -20,6 +20,7 @@
     </div>
     <div class="card-body pt-4">
         <form action="{{ route('admin.reports.salary-audit') }}" method="GET" class="row g-3 align-items-end">
+            {{-- مجموع الأعمدة 12 بالظبط عشان الفلتر يفضل على سطر واحد --}}
             <div class="col-md-5">
                 <label class="form-label fw-bold">{{ __('reward.fields.employee') }} <span class="text-danger">*</span></label>
                 <select name="employee_id" class="form-select select2" required>
@@ -31,29 +32,28 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
-                <label class="form-label fw-bold">الشهر</label>
-                <select name="month" class="form-select select2">
-                    @for($m = 1; $m <= 12; $m++)
-                        @php $mVal = str_pad($m, 2, '0', STR_PAD_LEFT); @endphp
-                        <option value="{{ $mVal }}" {{ $month == $mVal ? 'selected' : '' }}>
-                            {{ __('global.months.' . $mVal) }}
-                        </option>
-                    @endfor
-                </select>
+
+            <div class="col-md-4">
+                <label class="form-label fw-bold">
+                    {{ __('payroll.filters.period_range') }}
+                    <x-inputs.help :text="__('payroll.hints.period_range')" />
+                </label>
+                <div class="input-group">
+                    <input type="date" name="from_date" class="form-control px-1" value="{{ $startDate }}" style="height: 38px;">
+                    <input type="date" name="to_date" class="form-control px-1" value="{{ $endDate }}" style="height: 38px;">
+                </div>
             </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold">السنة</label>
-                <select name="year" class="form-select select2">
-                    @for($y = date('Y') - 3; $y <= date('Y') + 1; $y++)
-                        <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
-                    @endfor
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" style="height: 38px;">
-                    <i class="fa-solid fa-magnifying-glass me-1"></i> عرض التقرير
+
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1 d-flex align-items-center justify-content-center" style="height: 38px;">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i> {{ __('payroll.actions.show_report') }}
                 </button>
+                <a href="{{ route('admin.reports.salary-audit') }}"
+                   class="btn btn-label-secondary d-flex align-items-center justify-content-center"
+                   style="height: 38px;"
+                   data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </a>
             </div>
         </form>
     </div>
@@ -222,7 +222,7 @@
                 </tbody>
                 <tfoot class="border-top-2">
                     <tr class="fw-bold">
-                        <td colspan="4" class="text-end fs-6">صافي الراتب المستحق للصرف لشهر {{ $month }}/{{ $year }}:</td>
+                        <td colspan="4" class="text-end fs-6">صافي الراتب المستحق للصرف عن الفترة {{ $startDate }} — {{ $endDate }}:</td>
                         <td class="text-center"><span class="badge bg-label-primary fs-6">الصافي</span></td>
                         <td class="text-end fs-5 text-primary">
                             <span dir="ltr">{{ number_format($auditData['net_estimated_pay'], 2) }}</span> {{ $auditData['currency'] }}

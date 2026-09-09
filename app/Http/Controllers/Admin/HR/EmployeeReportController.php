@@ -136,12 +136,21 @@ class EmployeeReportController extends Controller
         $selectedEmployee   = null;
         $auditData          = null;
 
-        $month = $request->get('month', date('m'));
-        $year  = $request->get('year', date('Y'));
+        // نطاق تواريخ زي تقرير كشف حساب الموظف. الافتراضي الشهر
+        // الحالي كامل، فالشاشة بتفتح على نفس اللي كانت بتفتح عليه.
+        $startDate = $request->from_date ?: now()->startOfMonth()->format('Y-m-d');
+        $endDate   = $request->to_date ?: now()->endOfMonth()->format('Y-m-d');
 
-        // Target date range
-        $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth()->format('Y-m-d');
-        $endDate   = Carbon::createFromDate($year, $month, 1)->endOfMonth()->format('Y-m-d');
+        // لو المستخدم عكس التواريخ بنصلّحها بدل نتيجة فاضية
+        if ($startDate > $endDate) {
+            [$startDate, $endDate] = [$endDate, $startDate];
+        }
+
+        // بند الراتب الأساسي بيتحسب على شهر واحد، فبناخد شهر
+        // البداية للعرض وللحسابات الشهرية.
+        $periodStart = Carbon::parse($startDate);
+        $month = (int) $periodStart->month;
+        $year  = (int) $periodStart->year;
 
         if ($selectedEmployeeId) {
             $selectedEmployee = Employee::with(['branch', 'jobTitle', 'allowances'])->find($selectedEmployeeId);

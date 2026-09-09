@@ -18,9 +18,12 @@ return [
     ],
 
     'filters' => [
+        'from_date' => 'From date',
+        'to_date' => 'To date',
+        'period_range' => 'Payroll period (from / to)',
         'all_years'    => 'All Years',
         'all_months'   => 'All Months',
-        'all_branches' => 'All Branches',
+        'all_branches' => 'All branches (a separate sheet per branch)',
         'all_statuses' => 'All Statuses',
     ],
 
@@ -87,6 +90,7 @@ return [
     ],
 
     'actions' => [
+        'show_report' => 'Show report',
         'generate'           => 'Generate Monthly Payroll',
         'approve'            => 'Approve Payroll Sheet',
         'reject'             => 'Reject Sheet',
@@ -107,6 +111,10 @@ return [
     ],
 
     'messages' => [
+        'created_for_branches' => ':count payrolls issued - one per branch',
+        'skipped_branches' => 'These branches already have a payroll: :branches',
+        'all_branches_exist' => 'Every branch already has a payroll for this month',
+        'no_branches_to_generate' => 'No branch has active employees to generate a payroll for',
         'created'              => 'Monthly payroll generated successfully with employee entitlements',
         'updated'              => 'Payroll amounts updated successfully',
         'approved'             => 'Payroll sheet officially approved for disbursal',
@@ -176,6 +184,8 @@ return [
     ],
 
     'hints' => [
+        'period_range' => 'Filters on the month and year the payroll covers, not its creation date',
+        'branch_filter' => 'Show payrolls for a single branch, or leave empty to see all',
         'period' => 'The month this payroll covers. The system collects all entitlements and deductions for it automatically.',
     ],
 ];

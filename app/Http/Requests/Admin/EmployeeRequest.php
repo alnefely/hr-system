@@ -126,8 +126,20 @@ class EmployeeRequest extends FormRequest
 
             // المستندات والوثائق
             'documents'                       => ['nullable', 'array'],
+            // الـ id لازم يبقى مستند تابع لنفس الموظف — من غير الشرط
+            // ده حد يقدر يبعت id بتاع موظف تاني ويعدّل مستنداته.
+            'documents.*.id'                  => [
+                'nullable', 'integer',
+                Rule::exists('employee_documents', 'id')->where(
+                    fn ($q) => $q->where('employee_id', $this->route('employee')?->id)
+                ),
+            ],
+            'documents.*.document_type'       => ['nullable', 'string', 'max:50'],
             'documents.*.title'               => ['nullable', 'string', 'max:150'],
             'documents.*.file_path'           => ['nullable', 'string', 'max:255'],
+            'documents.*.issue_date'          => ['nullable', 'date'],
+            'documents.*.expiry_date'         => ['nullable', 'date', 'after_or_equal:documents.*.issue_date'],
+            'documents.*.is_verified'         => ['nullable', 'boolean'],
         ];
     }
 }

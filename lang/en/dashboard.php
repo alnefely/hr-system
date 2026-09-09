@@ -99,4 +99,18 @@ return [
         'sales_channels' => 'Top 6 sales channels by value in the period',
     ],
 
+    'chart_types' => [
+        'pieLabeled' => 'Pie with outside labels',
+        'change' => 'Change chart type',
+        'line' => 'Line',
+        'area' => 'Area',
+        'bar' => 'Horizontal bars',
+        'column' => 'Vertical bars',
+        'donut' => 'Donut',
+        'pie' => 'Pie',
+        'radar' => 'Radar',
+        'treemap' => 'Treemap',
+        'polarArea' => 'Polar area',
+    ],
+
 ];

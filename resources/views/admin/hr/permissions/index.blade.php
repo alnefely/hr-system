@@ -21,7 +21,7 @@
                 <label class="form-label fw-bold mb-1">الشهر</label>
                 <select name="month" class="form-select select2" onchange="this.form.submit()">
                     @for($m = 1; $m <= 12; $m++)
-                        <option value="{{ $m }}" {{ $selectedMonth == $m ? 'selected' : '' }}>شهر {{ $m }}</option>
+                        <option value="{{ $m }}" {{ (int) $selectedMonth === $m ? 'selected' : '' }}>{{ __('global.months.' . $m) }}</option>
                     @endfor
                 </select>
             </div>

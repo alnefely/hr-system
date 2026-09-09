@@ -117,7 +117,9 @@ class SalesStatsFilterTest extends TestCase
         ]))->assertOk();
 
         $response->assertViewHas('totalInvoicesCount', 1);
-        $this->assertEquals(
+
+        // الوصف بيذكر الفرع كمان، فبنتأكد من الفترة جواه
+        $this->assertStringContainsString(
             __('sale.stats.period_current_month'),
             $response->viewData('statsPeriodLabel')
         );
@@ -177,5 +179,122 @@ class SalesStatsFilterTest extends TestCase
             ->firstWhere('label', $this->branch->name);
 
         $this->assertNull($row, 'المنتهية خدمته لازم ما يظهرش في الرسم');
+    }
+
+    // =====================================================
+    //  استعلامات التجميع
+    // =====================================================
+
+    /**
+     * كروت المبيعات مابتجيبش أعمدة غير مجمّعة مع COUNT/SUM.
+     *
+     * الاستعلام الأساسي عليه select('sales.*') عشان الترتيب بأعمدة
+     * العلاقات، و selectRaw بيضيف على الموجود مش بيستبدله. النتيجة
+     * كانت: select sales.*, COUNT(*) ... من غير GROUP BY — وده
+     * MySQL بيرفضه بـ only_full_group_by (خطأ 1140).
+     *
+     * SQLite بتسمح بيه، فالاختبار بيفحص الـ SQL نفسه.
+     */
+    public function test_stats_queries_do_not_select_ungrouped_columns(): void
+    {
+        $captured = [];
+
+        \Illuminate\Support\Facades\DB::listen(function ($query) use (&$captured) {
+            $sql = strtolower($query->sql);
+
+            // بس استعلامات التجميع على المبيعات
+            $isSales     = str_contains($sql, 'sales');
+            $isAggregate = str_contains($sql, 'count(*)') || str_contains($sql, 'sum(');
+
+            // بنستثني عدّاد الترقيم بتاع DataTables
+            $isPagingCount = str_starts_with(trim($sql), 'select count(*) as aggregate');
+
+            if ($isSales && $isAggregate && ! $isPagingCount) {
+                $captured[] = $sql;
+            }
+        });
+
+        $this->get(route('admin.sales.index'))->assertOk();
+
+        $this->assertNotEmpty($captured, 'مفيش استعلامات تجميع اتنفّذت');
+
+        foreach ($captured as $sql) {
+            // كل محرّك بيقتبس بطريقة: MySQL بـ ` و SQLite بـ "
+            // فبنشيل علامات الاقتباس قبل المقارنة.
+            $plain = str_replace(['`', '"'], '', $sql);
+
+            $this->assertStringNotContainsString(
+                'sales.*',
+                $plain,
+                'استعلام تجميع بيختار كل أعمدة المبيعات: ' . $sql
+            );
+
+            // ولو فيه عمود عادي لازم يكون في GROUP BY
+            if (str_contains($sql, 'currency') && ! str_contains($sql, 'group by')) {
+                $this->fail('استعلام فيه عمود عادي من غير GROUP BY: ' . $sql);
+            }
+        }
+    }
+
+    /** الشاشة بتشتغل مع كل الفلاتر من غير خطأ SQL. */
+    public function test_sales_screen_works_with_every_filter(): void
+    {
+        $this->makeSale('AGG-1', now()->toDateString(), 'paid', 1000);
+
+        $filters = [
+            [],
+            ['date_from' => now()->startOfYear()->toDateString(), 'date_to' => now()->endOfYear()->toDateString()],
+            ['payment_status' => 'paid'],
+            ['branch_id' => $this->branch->id],
+            ['currency' => 'EGP'],
+            ['sale_type' => 'direct_sale'],
+        ];
+
+        foreach ($filters as $filter) {
+            $this->get(route('admin.sales.index', $filter))
+                ->assertOk('الشاشة وقعت مع الفلتر: ' . json_encode($filter));
+        }
+    }
+
+    /**
+     * وصف الكروت بيذكر كل فلتر شغال.
+     *
+     * الأرقام كانت بتتفلتر صح، بس الوصف كان بيقول "خلال الشهر
+     * الحالي" بس — فمع فلتر قناة أو حالة المستخدم يفتكر إن
+     * الفلتر مااشتغلش.
+     */
+    public function test_stats_label_names_the_active_filters(): void
+    {
+        $this->makeSale('LBL-1', now()->toDateString(), 'paid', 1000);
+
+        $label = $this->get(route('admin.sales.index', [
+            'payment_status' => 'paid',
+        ]))->assertOk()->viewData('statsPeriodLabel');
+
+        $this->assertStringContainsString(
+            __('sale.statuses.paid'),
+            $label,
+            'الوصف مش بيذكر فلتر حالة السداد'
+        );
+    }
+
+    /** وفلتر الفرع كمان بيتذكر بالاسم. */
+    public function test_stats_label_names_the_branch(): void
+    {
+        $this->makeSale('LBL-2', now()->toDateString(), 'paid', 1000);
+
+        $label = $this->get(route('admin.sales.index', [
+            'branch_id' => $this->branch->id,
+        ]))->assertOk()->viewData('statsPeriodLabel');
+
+        $this->assertStringContainsString($this->branch->name, $label, 'الوصف مش بيذكر الفرع');
+    }
+
+    /** من غير فلاتر الوصف بيفضل بسيط. */
+    public function test_stats_label_stays_clean_without_filters(): void
+    {
+        $label = $this->get(route('admin.sales.index'))->assertOk()->viewData('statsPeriodLabel');
+
+        $this->assertSame(__('sale.stats.period_current_month'), $label);
     }
 }

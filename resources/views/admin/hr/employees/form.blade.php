@@ -429,7 +429,7 @@
                         </button>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-sm table-bordered bg-white mb-0" id="emp_allowances_table">
+                        <table class="table table-sm table-bordered mb-0" id="emp_allowances_table">
                             <thead class="table-light">
                                 <tr>
                                     <th>{{ __('employee.allowances.name_header') }}</th>
@@ -576,6 +576,8 @@
             @forelse ($existingDocs as $dIdx => $docItem)
             <tr class="doc-row" data-index="{{ $dIdx }}">
                 <td>
+                    {{-- الـ id بيخلي الحفظ يحدّث المستند بدل ما يعمل نسخة جديدة --}}
+                    <input type="hidden" name="documents[{{ $dIdx }}][id]" value="{{ $docItem['id'] ?? '' }}">
                     <div class="row g-2">
 
                         {{-- الصف الأول: النوع والوصف --}}

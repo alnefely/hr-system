@@ -43,6 +43,23 @@ class PayrollController extends Controller
                 $query->where('branch_id', $request->branch_id);
             }
 
+            // نطاق تواريخ على فترة المسير نفسها (سنة/شهر) مش على
+            // تاريخ الإنشاء — المستخدم بيفكّر بالفترة اللي المسير
+            // بيغطيها.
+            if ($request->filled('date_from')) {
+                $from = \Carbon\Carbon::parse($request->date_from);
+                $query->whereRaw('(payrolls.year * 100 + payrolls.month) >= ?', [
+                    $from->year * 100 + $from->month,
+                ]);
+            }
+
+            if ($request->filled('date_to')) {
+                $to = \Carbon\Carbon::parse($request->date_to);
+                $query->whereRaw('(payrolls.year * 100 + payrolls.month) <= ?', [
+                    $to->year * 100 + $to->month,
+                ]);
+            }
+
             return datatables($query)
                 ->addColumn('title_link', function ($row) {
                     return '<a href="' . route('admin.payrolls.show', $row->id) . '" class="fw-bold text-primary">' . e($row->title) . '</a>';
@@ -113,11 +130,47 @@ class PayrollController extends Controller
         $month    = (int) $validated['month'];
         $branchId = $validated['branch_id'] ?? null;
 
-        if ($generator->exists($year, $month, $branchId)) {
-            return redirect()->back()->withInput()->with('error', __('payroll.messages.already_exists'));
-        }
-
         try {
+            // من غير فرع محدد بنعمل كشف مستقل لكل فرع بدل كشف واحد
+            // بيجمّع كل الموظفين — الكشف المجمّع مابينفعش للفلترة
+            // ولا للتقارير الفرعية، وكل فرع ليه عملته وخزينته.
+            if ($branchId === null) {
+                $result = $generator->generateForAllBranches(
+                    $year,
+                    $month,
+                    $validated['notes'] ?? null
+                );
+
+                foreach ($result['created'] as $payroll) {
+                    $this->notifyPayrollAwaitingReview($payroll);
+                }
+
+                if (! $result['created']) {
+                    return redirect()->back()->withInput()->with(
+                        'error',
+                        $result['skipped']
+                            ? __('payroll.messages.all_branches_exist')
+                            : __('payroll.messages.no_branches_to_generate')
+                    );
+                }
+
+                $message = __('payroll.messages.created_for_branches', [
+                    'count' => count($result['created']),
+                ]);
+
+                if ($result['skipped']) {
+                    $message .= ' — ' . __('payroll.messages.skipped_branches', [
+                        'branches' => implode('، ', $result['skipped']),
+                    ]);
+                }
+
+                return redirect()->route('admin.payrolls.index')->with('success', $message);
+            }
+
+            if ($generator->exists($year, $month, $branchId)) {
+                return redirect()->back()->withInput()->with('error', __('payroll.messages.already_exists'));
+            }
+
             $payroll = $generator->generate($year, $month, $branchId, $validated['notes'] ?? null);
             $this->notifyPayrollAwaitingReview($payroll);
         } catch (QueryException $e) {

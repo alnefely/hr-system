@@ -462,4 +462,103 @@ class TableFiltersTest extends TestCase
             );
         }
     }
+
+    /**
+     * مرفق فاتورة المبيعات بيستخدم مدير الملفات.
+     *
+     * كان حقل رفع عادي، بينما المصروفات ومستندات الموظف بيستخدموا
+     * مدير الملفات — فالملفات مكانتش بتتجمّع في مكتبة واحدة.
+     */
+    public function test_sales_attachment_uses_the_file_manager(): void
+    {
+        foreach (['admin.sales.create'] as $route) {
+            $html = $this->get(route($route))->assertOk()->getContent();
+
+            $this->assertStringNotContainsString(
+                'name="attachment_file"',
+                $html,
+                'المرفق لسه حقل رفع عادي'
+            );
+
+            // مدير الملفات بيحط زرار بيفتح المكتبة
+            $this->assertMatchesRegularExpression(
+                '/name="attachment"|lfm/i',
+                $html,
+                'مكوّن مدير الملفات مش مستخدم'
+            );
+        }
+    }
+
+    /** شاشة الرواتب فيها شريط فلترة فوق الجدول. */
+    public function test_payrolls_screen_has_a_filter_bar(): void
+    {
+        $html = $this->get(route('admin.payrolls.index'))->assertOk()->getContent();
+
+        foreach (['branch_id', 'status', 'date_from', 'date_to'] as $field) {
+            $this->assertStringContainsString(
+                'name="' . $field . '"',
+                $html,
+                "فلتر {$field} مش موجود في شاشة الرواتب"
+            );
+        }
+    }
+
+    /**
+     * شاشة المصروفات ليها حقل فترة واحد.
+     *
+     * كان فيه حقلين بيعملوا نفس الحاجة: دورة العهدة (شهر/سنة)
+     * ونطاق تواريخ مخصص — والتاني بيتغلّب على الأول.
+     */
+    public function test_expenses_screen_has_a_single_period_field(): void
+    {
+        $html = $this->get(route('admin.expenses.index'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('name="date_from"', $html);
+        $this->assertStringContainsString('name="date_to"', $html);
+
+        // حقل دورة العهدة اتشال من شريط الفلترة
+        $this->assertStringNotContainsString(
+            __('expense.filters.custody_cycle'),
+            $html,
+            'حقل دورة العهدة لسه في شريط الفلترة'
+        );
+    }
+
+    /** الافتراضي: الشهر الحالي كامل. */
+    public function test_expenses_period_defaults_to_the_current_month(): void
+    {
+        $response = $this->get(route('admin.expenses.index'))->assertOk();
+
+        $this->assertEquals(now()->startOfMonth()->toDateString(), $response->viewData('dateFrom'));
+        $this->assertEquals(now()->endOfMonth()->toDateString(), $response->viewData('dateTo'));
+    }
+
+    /** بطاقات العهدة بتتخفي بس لما الفترة تتخطى الشهر. */
+    public function test_custody_cards_hide_only_for_multi_month_ranges(): void
+    {
+        // شهر واحد كامل — البطاقات تفضل ظاهرة
+        $single = $this->get(route('admin.expenses.index', [
+            'date_from' => '2026-08-01', 'date_to' => '2026-08-31',
+        ]))->assertOk();
+
+        $this->assertFalse($single->viewData('usingCustomRange'), 'البطاقات اتخفت لشهر واحد');
+
+        // فترة متعدية الشهر — البطاقات تتخفي
+        $multi = $this->get(route('admin.expenses.index', [
+            'date_from' => '2026-07-01', 'date_to' => '2026-09-30',
+        ]))->assertOk();
+
+        $this->assertTrue($multi->viewData('usingCustomRange'), 'البطاقات مااتخفتش لفترة متعدية الشهر');
+    }
+
+    /** التواريخ المعكوسة بتتصلّح. */
+    public function test_expenses_swaps_reversed_dates(): void
+    {
+        $response = $this->get(route('admin.expenses.index', [
+            'date_from' => '2026-09-30', 'date_to' => '2026-09-01',
+        ]))->assertOk();
+
+        $this->assertEquals('2026-09-01', $response->viewData('dateFrom'));
+        $this->assertEquals('2026-09-30', $response->viewData('dateTo'));
+    }
 }

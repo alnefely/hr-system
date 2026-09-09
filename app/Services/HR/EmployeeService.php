@@ -290,31 +290,64 @@ class EmployeeService
                 }
             }
 
-            // 3. إضافة مستندات جديدة إذا أُرسلت
+            // 3. مزامنة المستندات
+            //
+            // شاشة التعديل بتعرض المستندات المحفوظة وبتبعتها تاني مع
+            // الـ id بتاعها. من غير مطابقة بالـ id كان كل حفظ بيعمل
+            // نسخة جديدة وتتكرر المستندات.
             if ($documentsData !== null && is_array($documentsData)) {
-                foreach ($documentsData as $doc) {
-                    if (!empty($doc['file_path'])) {
-                        $documentType = $doc['document_type'] ?? 'other';
+                $keptIds = [];
 
-                        $employee->documents()->create([
-                            // النوع بيجي من القائمة زي شاشة البروفايل بالظبط.
-                            // كان ثابتاً بقيمة مالهاش ترجمة، فكانت بتظهر
-                            // كمفتاح خام في جدول مستندات الموظف.
-                            'document_type' => $documentType,
-                            // الاسم اختياري: لو سابه فاضي بنستخدم اسم النوع
-                            // بدل ما نجبره يكتب نفس المعنى مرتين.
-                            'title'         => !empty($doc['title'])
-                                ? trim($doc['title'])
-                                : __('document.types.' . $documentType),
-                            'file_path'     => trim($doc['file_path']),
-                            'issue_date'    => $doc['issue_date'] ?? null ?: null,
-                            'expiry_date'   => $doc['expiry_date'] ?? null ?: null,
-                            'is_verified'   => !empty($doc['is_verified']),
-                            'verified_by'   => !empty($doc['is_verified']) ? auth('admin')->id() : null,
-                            'verified_at'   => !empty($doc['is_verified']) ? now() : null,
-                        ]);
+                foreach ($documentsData as $doc) {
+                    if (empty($doc['file_path'])) {
+                        continue;
                     }
+
+                    $documentType = $doc['document_type'] ?? 'other';
+                    $verified     = !empty($doc['is_verified']);
+
+                    $attributes = [
+                        // النوع بيجي من القائمة زي شاشة البروفايل بالظبط.
+                        'document_type' => $documentType,
+                        // الاسم اختياري: لو سابه فاضي بنستخدم اسم النوع
+                        // بدل ما نجبره يكتب نفس المعنى مرتين.
+                        'title'         => !empty($doc['title'])
+                            ? trim($doc['title'])
+                            : __('document.types.' . $documentType),
+                        'file_path'     => trim($doc['file_path']),
+                        'issue_date'    => $doc['issue_date'] ?? null ?: null,
+                        'expiry_date'   => $doc['expiry_date'] ?? null ?: null,
+                        'is_verified'   => $verified,
+                    ];
+
+                    $existing = !empty($doc['id'])
+                        ? $employee->documents()->whereKey($doc['id'])->first()
+                        : null;
+
+                    if ($existing) {
+                        // وقت الاعتماد بيتسجّل مرة واحدة عند أول اعتماد
+                        if ($verified && ! $existing->is_verified) {
+                            $attributes['verified_by'] = auth('admin')->id();
+                            $attributes['verified_at'] = now();
+                        } elseif (! $verified) {
+                            $attributes['verified_by'] = null;
+                            $attributes['verified_at'] = null;
+                        }
+
+                        $existing->update($attributes);
+                        $keptIds[] = $existing->id;
+
+                        continue;
+                    }
+
+                    $attributes['verified_by'] = $verified ? auth('admin')->id() : null;
+                    $attributes['verified_at'] = $verified ? now() : null;
+
+                    $keptIds[] = $employee->documents()->create($attributes)->id;
                 }
+
+                // اللي المستخدم شاله من الفورم يتحذف
+                $employee->documents()->whereNotIn('id', $keptIds ?: [0])->delete();
             }
 
             return $employee;

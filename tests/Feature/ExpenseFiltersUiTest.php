@@ -75,11 +75,11 @@ class ExpenseFiltersUiTest extends TestCase
     }
 
     /** مع نطاق تواريخ: بطاقتا العهدة بتتخفي. */
-    public function test_custody_cards_are_hidden_with_a_custom_date_range(): void
+    public function test_custody_cards_are_hidden_for_a_multi_month_range(): void
     {
         $html = $this->get(route('admin.expenses.index', [
             'year' => 2026, 'month' => 9, 'branch_id' => $this->branch->id,
-            'date_from' => '2026-09-01', 'date_to' => '2026-09-15',
+            'date_from' => '2026-07-01', 'date_to' => '2026-09-30',
         ]))->assertOk()->getContent();
 
         $this->assertStringNotContainsString('fa-vault', $html, 'بطاقة الرصيد المخصص المفروض تتخفي');
@@ -90,23 +90,31 @@ class ExpenseFiltersUiTest extends TestCase
     public function test_period_card_and_warning_replace_them(): void
     {
         $html = $this->get(route('admin.expenses.index', [
-            'date_from' => '2026-09-01', 'date_to' => '2026-09-15',
+            'date_from' => '2026-07-01', 'date_to' => '2026-09-30',
         ]))->assertOk()->getContent();
 
-        $this->assertStringContainsString('نطاق مخصص', $html, 'شارة النطاق المخصص مش ظاهرة');
         $this->assertStringContainsString('عدد المصروفات في الفترة', $html);
-        $this->assertStringContainsString('بطاقات العهدة مخفية', $html, 'التنبيه مش ظاهر');
+        $this->assertStringContainsString(
+            __('expense.filters.multi_month_notice'),
+            $html,
+            'التنبيه بسبب إخفاء البطاقات مش ظاهر'
+        );
     }
 
     /** تاريخ واحد (من فقط) يكفي لاعتبارها فترة مخصصة. */
-    public function test_a_single_date_bound_also_counts_as_a_custom_range(): void
+    /**
+     * فترة جوه نفس الشهر بتفضل البطاقات ظاهرة.
+     *
+     * قبل التوحيد كان أي نطاق مخصص بيخفيهم — حتى لو نص شهر.
+     * دلوقتي المعيار إن الفترة تتخطى الشهر فعلاً.
+     */
+    public function test_a_partial_month_keeps_the_custody_cards(): void
     {
         $html = $this->get(route('admin.expenses.index', [
-            'date_from' => '2026-09-05',
+            'date_from' => '2026-09-05', 'date_to' => '2026-09-20',
         ]))->assertOk()->getContent();
 
-        $this->assertStringNotContainsString('fa-scale-balanced', $html);
-        $this->assertStringContainsString('نطاق مخصص', $html);
+        $this->assertStringContainsString('fa-scale-balanced', $html, 'البطاقات اتخفت لفترة جوه شهر واحد');
     }
 
     /** أيقونة الشرح موجودة ومحتواها بيتحمّل. */
@@ -124,8 +132,9 @@ class ExpenseFiltersUiTest extends TestCase
     {
         $html = $this->get(route('admin.expenses.index'))->assertOk()->getContent();
 
-        $this->assertStringContainsString('دورة العهدة (الشهر / السنة)', $html);
-        $this->assertStringContainsString('نطاق تواريخ مخصص', $html);
+        // حقل فترة واحد بدل حقلين بيعملوا نفس الحاجة
+        $this->assertStringContainsString(__('expense.filters.period'), $html);
+        $this->assertStringNotContainsString(__('expense.filters.custody_cycle'), $html);
     }
 
     /** الـ popover مفعّل في الـ layout (الثيم بيفعّل الـ tooltip بس). */

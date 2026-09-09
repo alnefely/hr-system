@@ -12,7 +12,6 @@ use App\Models\SalePayment;
 use App\Models\SalesChannel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class SaleController extends Controller
 {
@@ -124,30 +123,74 @@ class SaleController extends Controller
             $statsQuery->inMonth(now()->year, now()->month);
         }
 
+        // الاستعلام الأساسي عليه select('sales.*') للترتيب بأعمدة
+        // العلاقات. استعلامات التجميع لازم تصفّره — selectRaw
+        // بيضيف على الموجود، والنتيجة أعمدة مش مجمّعة مع COUNT
+        // وده بيقع في MySQL بـ only_full_group_by.
         $revenuesByCurrency = (clone $statsQuery)
-            ->select('currency', DB::raw('SUM(total_amount) as total_rev'))
-            ->groupBy('currency')
+            ->reorder()
+            ->select('sales.currency', DB::raw('SUM(sales.total_amount) as total_rev'))
+            ->groupBy('sales.currency')
             ->pluck('total_rev', 'currency')
             ->toArray();
 
         // صف واحد بكل العدادات بدل 3 استعلامات منفصلة
         $counts = (clone $statsQuery)
-            ->selectRaw('COUNT(*) as total')
-            ->selectRaw("SUM(CASE WHEN payment_status = 'paid' THEN 1 ELSE 0 END) as paid")
-            ->selectRaw("SUM(CASE WHEN payment_status IN ('unpaid', 'partially_paid') THEN 1 ELSE 0 END) as unpaid")
+            ->reorder()
+            ->select(DB::raw('COUNT(*) as total'))
+            ->selectRaw("SUM(CASE WHEN sales.payment_status = 'paid' THEN 1 ELSE 0 END) as paid")
+            ->selectRaw("SUM(CASE WHEN sales.payment_status IN ('unpaid', 'partially_paid') THEN 1 ELSE 0 END) as unpaid")
             ->first();
 
         $totalInvoicesCount = (int) ($counts->total ?? 0);
         $paidSalesCount     = (int) ($counts->paid ?? 0);
         $unpaidSalesCount   = (int) ($counts->unpaid ?? 0);
 
-        // وصف الفترة المعروضة عشان المستخدم يعرف الأرقام بتخص إيه
+        // وصف الأرقام: الفترة + أي فلاتر تانية شغالة.
+        //
+        // من غير ذكر باقي الفلاتر، فلتر القناة (مثلاً) بيغيّر
+        // الأرقام والكارت لسه بيقول "خلال الشهر الحالي" بس —
+        // فالمستخدم يفتكر إن الفلتر مااشتغلش.
         $statsPeriodLabel = $hasDateFilter
             ? __('sale.stats.period_filtered', [
                 'from' => $request->date_from ?: __('sale.stats.period_open_start'),
                 'to'   => $request->date_to ?: __('sale.stats.period_open_end'),
             ])
             : __('sale.stats.period_current_month');
+
+        $activeFilters = [];
+
+        if ($request->filled('branch_id')) {
+            $activeFilters[] = Branch::find($request->branch_id)?->name;
+        }
+
+        if ($request->filled('customer_id')) {
+            $activeFilters[] = Customer::find($request->customer_id)?->name;
+        }
+
+        if ($request->filled('sales_channel_id')) {
+            $activeFilters[] = SalesChannel::find($request->sales_channel_id)?->name;
+        }
+
+        if ($request->filled('payment_status')) {
+            $key = 'sale.statuses.' . $request->payment_status;
+            $activeFilters[] = __($key) === $key ? $request->payment_status : __($key);
+        }
+
+        if ($request->filled('sale_type')) {
+            $key = 'sale.type_enums.' . $request->sale_type;
+            $activeFilters[] = __($key) === $key ? $request->sale_type : __($key);
+        }
+
+        if ($request->filled('currency')) {
+            $activeFilters[] = $request->currency;
+        }
+
+        $activeFilters = array_values(array_filter($activeFilters));
+
+        if ($activeFilters) {
+            $statsPeriodLabel .= ' · ' . implode(' · ', $activeFilters);
+        }
 
         return view('admin.sales.index', compact(
             'customers',
@@ -198,9 +241,7 @@ class SaleController extends Controller
             $data['due_amount']  = max(0, $total - $paid);
         }
 
-        if ($request->hasFile('attachment_file')) {
-            $data['attachment'] = $request->file('attachment_file')->store('sales', 'public');
-        }
+        // المرفق بييجي كمسار من مدير الملفات، فمفيش رفع هنا.
 
         DB::transaction(function () use ($data, $request) {
             $sale = Sale::create($data);
@@ -266,12 +307,8 @@ class SaleController extends Controller
         // ويخلي المبلغ المدفوع رقم مش مسنود بأي دفعة فعلية.
         unset($data['paid_amount'], $data['due_amount'], $data['payment_status']);
 
-        if ($request->hasFile('attachment_file')) {
-            if ($sale->attachment) {
-                Storage::disk('public')->delete($sale->attachment);
-            }
-            $data['attachment'] = $request->file('attachment_file')->store('sales', 'public');
-        }
+        // المرفق بييجي كمسار من مدير الملفات. الملفات بتفضل في
+        // المكتبة عشان تتعاد استخدامها، فمابنحذفش الملف القديم.
 
         DB::transaction(function () use ($sale, $data, $request) {
             $sale->update($data);

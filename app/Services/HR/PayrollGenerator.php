@@ -2,6 +2,7 @@
 
 namespace App\Services\HR;
 
+use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
 use App\Models\EmployeeLeave;
@@ -72,6 +73,50 @@ class PayrollGenerator
 
             return $payroll->refresh();
         });
+    }
+
+    /**
+     * أنشئ كشف مستقل لكل فرع فيه موظفون نشطون.
+     *
+     * كشف واحد يجمع كل الفروع بيبقى غير قابل للفلترة ولا للتقارير
+     * الفرعية، وكل فرع ليه عملته وخزينته — فالتجميع بيدي رقم
+     * مالوش معنى محاسبي.
+     *
+     * @return array{created: list<Payroll>, skipped: list<string>}
+     */
+    public function generateForAllBranches(int $year, int $month, ?string $notes = null, ?int $createdBy = null): array
+    {
+        $created = [];
+        $skipped = [];
+
+        foreach ($this->branchesWithActiveEmployees() as $branch) {
+            if ($this->exists($year, $month, $branch->id)) {
+                $skipped[] = $branch->name;
+
+                continue;
+            }
+
+            $created[] = $this->generate($year, $month, $branch->id, $notes, $createdBy);
+        }
+
+        return ['created' => $created, 'skipped' => $skipped];
+    }
+
+    /**
+     * الفروع اللي فيها موظفون نشطون.
+     *
+     * الفرع الفاضي مالوش كشف — كشف من غير بنود بيلخبط العدّادات.
+     *
+     * @return Collection<int, Branch>
+     */
+    public function branchesWithActiveEmployees(): Collection
+    {
+        $branchIds = Employee::active()
+            ->whereNotNull('branch_id')
+            ->distinct()
+            ->pluck('branch_id');
+
+        return Branch::whereIn('id', $branchIds)->orderBy('name')->get(['id', 'name']);
     }
 
     /** هل في مسير مسجّل بالفعل لنفس الشهر والفرع؟ */

@@ -2,6 +2,63 @@
 @section('title', __('payroll.title'))
 
 @section('content')
+{{-- فلترة المسيرات --}}
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body">
+        <form action="{{ route('admin.payrolls.index') }}" method="GET" class="row g-3 align-items-end">
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold mb-1">
+                    {{ __('payroll.fields.branch') }}
+                    <x-inputs.help :text="__('payroll.hints.branch_filter')" />
+                </label>
+                <select name="branch_id" class="form-select select2">
+                    <option value="">{{ __('payroll.filters.all_branches') }}</option>
+                    @foreach ($branches as $branch)
+                        <option value="{{ $branch->id }}" {{ (int) request('branch_id') === (int) $branch->id ? 'selected' : '' }}>
+                            {{ $branch->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-bold mb-1">{{ __('payroll.fields.status') }}</label>
+                <select name="status" class="form-select select2">
+                    <option value="">{{ __('payroll.filters.all_statuses') }}</option>
+                    @foreach (['draft', 'approved', 'rejected', 'paid'] as $statusKey)
+                        <option value="{{ $statusKey }}" {{ request('status') === $statusKey ? 'selected' : '' }}>
+                            {{ __('payroll.enums.' . $statusKey) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-bold mb-1">
+                    {{ __('payroll.filters.period_range') }}
+                    <x-inputs.help :text="__('payroll.hints.period_range')" />
+                </label>
+                <div class="input-group">
+                    <input type="date" name="date_from" class="form-control px-1" value="{{ request('date_from') }}">
+                    <input type="date" name="date_to" class="form-control px-1" value="{{ request('date_to') }}">
+                </div>
+            </div>
+
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1" style="height: 38px;">
+                    <i class="fa-solid fa-filter me-1"></i> {{ __('global.filter') }}
+                </button>
+                <a href="{{ route('admin.payrolls.index') }}" class="btn btn-label-secondary"
+                   style="height: 38px;" title="{{ __('global.reset_filter') }}">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
 <div class="row g-4 mb-4">
     <div class="col-sm-6 col-xl-4">
         <div class="card">
@@ -101,7 +158,7 @@
                 __('global.actions'),
             ]"
             :fields="$columns"
-            :url="route('admin.payrolls.index')"
+            :url="route('admin.payrolls.index', request()->query())"
         />
     </div>
 </div>

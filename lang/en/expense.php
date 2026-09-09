@@ -19,6 +19,9 @@ return [
     ],
 
     'filters' => [
+        'multi_month_notice' => 'The period spans more than one month - custody balance cards are hidden because custody runs monthly',
+        'period' => 'Period (from / to)',
+        'period_label' => 'Period from :from to :to',
         'custody_cycle' => 'Custody Cycle (Month / Year)',
         'all_categories' => 'All Categories',
         'all_branches'   => 'All Branches',
@@ -92,6 +95,7 @@ return [
     'back' => 'Back to list',
 
     'hints' => [
+        'period' => 'Every figure and the table are calculated for this period. Defaults to the whole current month. If the range spans more than one month the custody balance cards are hidden, since custody runs on a monthly cycle.',
         'custody_cycle' => 'The petty cash financial cycle.<br>It drives the <b>allocated</b> and <b>remaining</b> cards above.<br><small>Ignored when a custom date range is set.</small>',
         'title'         => 'A short clear description of the expense as it appears in reports',
         'category'      => 'The expense category - the expense breakdown report is built on it',

@@ -190,8 +190,14 @@
 
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label">{{ __('sale.fields.attachment') }} <x-inputs.help :text="__('sale.hints.attachment')" /></label>
-                            <input type="file" name="attachment_file" class="form-control" accept=".pdf,.png,.jpg,.jpeg" />
+                            <x-inputs.lfm
+                                name="attachment"
+                                :label="__('sale.fields.attachment')"
+                                :tooltip="__('sale.hints.attachment')"
+                                type="file"
+                                :showClear="true"
+                                :value="old('attachment')"
+                            />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">{{ __('sale.fields.notes') }} <x-inputs.help :text="__('sale.hints.notes')" /></label>

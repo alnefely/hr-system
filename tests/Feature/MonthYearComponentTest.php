@@ -71,7 +71,6 @@ class MonthYearComponentTest extends TestCase
 
         foreach ([
             route('admin.payrolls.create'),
-            route('admin.expenses.index'),
         ] as $url) {
             $html = $this->get($url)->assertOk()->getContent();
 
@@ -90,7 +89,7 @@ class MonthYearComponentTest extends TestCase
     /** الحقلان في input-group واحد — سطر أفقي. */
     public function test_month_and_year_are_on_one_line(): void
     {
-        $html = $this->get(route('admin.expenses.index'))->assertOk()->getContent();
+        $html = $this->get(route('admin.payrolls.create'))->assertOk()->getContent();
 
         $monthPos = strpos($html, 'name="month"');
         $this->assertNotFalse($monthPos, 'حقل الشهر مش موجود');
