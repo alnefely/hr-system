@@ -62,6 +62,7 @@ return [
 
 
     // ═══ فلاتر اللوحة ═══
+    'of_currencies' => '(من :count عملات)',
     'all_currencies' => 'كل العملات',
 
     'filters' => [

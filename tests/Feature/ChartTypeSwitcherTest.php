@@ -228,4 +228,140 @@ class ChartTypeSwitcherTest extends TestCase
         // وشبكة الرادار متظبّطة
         $this->assertStringContainsString('polygons', $html, 'شبكة الرادار مش متظبّطة');
     }
+
+    /**
+     * البادج بيقول العملات المعروضة فعلاً مش "كل العملات" دايماً.
+     *
+     * الأشكال الدائرية وخريطة المساحات والرادار بتعرض عملة واحدة
+     * بس — فالبادج كان بيكذب لما يقول "كل العملات".
+     */
+    public function test_currency_badge_reflects_the_chart_type(): void
+    {
+        $html = $this->dashboard();
+
+        // الدالة اللي بتحدد الوصف موجودة
+        $this->assertStringContainsString('currencyLabel', $html, 'مفيش دالة لوصف العملات');
+        $this->assertStringContainsString('isSingleCurrency', $html, 'مفيش تفرقة بين الأشكال');
+
+        // وكل رسم ليه بادج بمعرّف عشان يتحدّث
+        foreach (['trendCurrency', 'expenseCurrency', 'channelsCurrency'] as $id) {
+            $this->assertStringContainsString(
+                'id="' . $id . '"',
+                $html,
+                "البادج «{$id}» مالوش معرّف — مش هيتحدّث مع الشكل"
+            );
+        }
+    }
+
+    /** نص "من كذا عملة" مترجم في اللغتين. */
+    public function test_currency_count_hint_is_translated(): void
+    {
+        foreach (['ar', 'en'] as $locale) {
+            app()->setLocale($locale);
+
+            $text = __('dashboard.of_currencies');
+
+            $this->assertNotEquals('dashboard.of_currencies', $text, "مش مترجم في {$locale}");
+            $this->assertStringContainsString(':count', $text, 'العدد مش في النص');
+        }
+
+        app()->setLocale('ar');
+    }
+
+    /**
+     * كل رقم في الرسوم معاه عملته.
+     *
+     * الدونات كان بيعرض 2700 في النص من غير عملة ولا فاصلة،
+     * والتلميحات كمان — فالمستخدم مش عارف جنيه ولا ريال.
+     */
+    public function test_figures_carry_their_currency(): void
+    {
+        $html = $this->dashboard();
+
+        // دالة موحّدة بتحط العملة جنب الرقم
+        $this->assertStringContainsString(
+            'var money = function',
+            $html,
+            'مفيش دالة موحّدة لتنسيق المبالغ'
+        );
+
+        // الإجمالي في الدونات بيتحسب من كل الشرايح
+        $this->assertStringContainsString(
+            'seriesTotals',
+            $html,
+            'إجمالي الدونات مش بيتحسب من كل الشرايح'
+        );
+
+        // والتلميح بياخد العملة من اسم السلسلة في الأشكال المتعددة
+        $this->assertStringContainsString(
+            'seriesNames',
+            $html,
+            'التلميح مش بياخد العملة من اسم السلسلة'
+        );
+    }
+
+    /**
+     * الأشكال الدائرية بتعرض كل عملة برقمها.
+     *
+     * كانت بتعرض أول عملة بس، فقسم فيه مصروف بالجنيه والريال كان
+     * بيبان برقم واحد — والمستخدم مش عارف ده جنيه ولا ريال.
+     */
+    public function test_circular_charts_break_down_by_currency(): void
+    {
+        $html = $this->dashboard();
+
+        // كل عملة بتتحفظ لوحدها بدل ما تتجمع في رقم واحد
+        $this->assertStringContainsString(
+            'breakdown',
+            $html,
+            'الأشكال الدائرية مش بتفصّل بالعملة'
+        );
+
+        $this->assertStringContainsString(
+            'currencyLines',
+            $html,
+            'مفيش دالة بتبني سطر لكل عملة'
+        );
+
+        // والدائرية مابقتش ضمن اللي بتعرض عملة واحدة
+        $this->assertMatchesRegularExpression(
+            "/isSingleCurrency[^}]*treemap[^}]*radar/s",
+            $html,
+            'الدائرية لسه محسوبة كعملة واحدة'
+        );
+    }
+
+    /**
+     * ألوان الرسوم بتتغيّر مع الوضع الليلي والنهاري.
+     *
+     * التسميات كانت بلون النص الثانوي الباهت — صعبة القراءة في
+     * الوضعين، خصوصاً فوق الشرايح الملوّنة.
+     */
+    public function test_chart_colors_adapt_to_the_theme(): void
+    {
+        $html = $this->dashboard();
+
+        // بيقرا الوضع الحالي
+        $this->assertStringContainsString(
+            "getAttribute('data-bs-theme')",
+            $html,
+            'الرسوم مش بتقرا الوضع الحالي'
+        );
+
+        // لون نص أساسي للقراءة + لون فوق الشرايح
+        foreach (['textStrong', 'textOnFill', 'surfaceColor'] as $variable) {
+            $this->assertStringContainsString(
+                'var ' . $variable,
+                $html,
+                "المتغيّر «{$variable}» مش معرّف"
+            );
+        }
+
+        // وقيم احتياطية للوضعين لو المتغيّرات مش متاحة
+        $this->assertMatchesRegularExpression(
+            '/isDark \?[^:]*:[^;]*;/',
+            $html,
+            'مفيش قيم احتياطية للوضعين'
+        );
+    }
 }

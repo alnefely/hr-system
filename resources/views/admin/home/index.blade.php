@@ -249,7 +249,7 @@
                     {{ __('dashboard.charts.trend') }}
                 </h6>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-label-secondary" data-bs-toggle="tooltip"
+                    <span class="badge bg-label-secondary" id="trendCurrency" data-bs-toggle="tooltip"
                           title="{{ __('dashboard.hints.trend_currency') }}">
                         {{ __('dashboard.all_currencies') }}
                     </span>
@@ -759,8 +759,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // الألوان من متغيرات الثيم عشان الرسوم تتماشى مع الوضع الليلي والنهاري
     var styles      = getComputedStyle(document.documentElement);
-    var textMuted   = styles.getPropertyValue('--bs-secondary-color') || '#8592a3';
-    var borderColor = styles.getPropertyValue('--bs-border-color') || '#e6e6e8';
+    var isDark      = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+    // النص الثانوي: تسميات المحاور والأسطورة
+    var textMuted   = (styles.getPropertyValue('--bs-secondary-color') || '').trim()
+        || (isDark ? '#a1a5b7' : '#8592a3');
+
+    // النص الأساسي: الأرقام والأسماء اللي المستخدم بيقراها فعلاً.
+    // كانت بلون النص الثانوي الباهت فكانت صعبة القراءة.
+    var textStrong  = (styles.getPropertyValue('--bs-body-color') || '').trim()
+        || (isDark ? '#e7e6f1' : '#5d596c');
+
+    var borderColor = (styles.getPropertyValue('--bs-border-color') || '').trim()
+        || (isDark ? '#44485e' : '#e6e6e8');
+
+    // لون النص فوق الشرايح الملوّنة — أبيض في الوضعين لأن ألوان
+    // اللوحة كلها داكنة بما يكفي.
+    var textOnFill  = '#ffffff';
+
+    // خلفية البطاقة: بتتستخدم كحد فاصل بين الشرايح المتقاربة.
+    // --bs-card-bg معرّف جوه .card بس، فبنحدده صراحةً.
+    var surfaceColor = isDark ? '#2f3349' : '#ffffff';
 
     var isRtl   = document.documentElement.getAttribute('dir') === 'rtl';
     var PALETTE = ['#7367f0', '#28c76f', '#ff9f43', '#ea5455', '#00cfe8', '#a8aaae'];
@@ -769,7 +788,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chart: { toolbar: { show: false }, fontFamily: 'inherit' },
         grid:  { borderColor: borderColor, strokeDashArray: 4 },
         dataLabels: { enabled: false },
-        legend: { labels: { colors: textMuted } },
+        legend: { labels: { colors: textStrong } },
         tooltip: { rtl: isRtl },
     };
 
@@ -782,6 +801,7 @@ document.addEventListener('DOMContentLoaded', function () {
         due:      @json(__('dashboard.outstanding')),
         invoices: @json(__('dashboard.invoice_count')),
         error:    @json(__('dashboard.filters.load_error')),
+        ofCurrencies: @json(__('dashboard.of_currencies')),
     };
 
     var nf  = new Intl.NumberFormat('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -797,16 +817,27 @@ document.addEventListener('DOMContentLoaded', function () {
      *
      * فبنعيد البناء لما العدد يتغيّر، ونحدّث بنداء واحد لما يفضل زيّه.
      */
-    function Chart(selector, build, name, defaultType, labelsOf) {
+    function Chart(selector, build, name, defaultType, labelsOf, options) {
+        options = options || {};
+
         this.el          = document.querySelector(selector);
         this.build       = build;
         this.name        = name;
         this.defaultType = defaultType;
         this.labelsOf    = labelsOf || function () { return []; };
+        this.currencyOf  = options.currencyOf || null;
+        this.badge       = options.badge ? document.querySelector(options.badge) : null;
         this.api         = null;
         this.length      = -1;
         this.lastData    = null;
     }
+
+    /** بيحدّث البادج بالعملات المعروضة فعلاً في الشكل الحالي. */
+    Chart.prototype.updateBadge = function (data) {
+        if (!this.badge || !this.currencyOf) return;
+
+        this.badge.textContent = currencyLabel(this.currencyOf(data), this.type());
+    };
 
     /** الشكل الحالي: اللي المستخدم اختاره أو الافتراضي. */
     Chart.prototype.type = function () {
@@ -817,8 +848,15 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!this.el) return;
 
         this.lastData = data;
+        this.updateBadge(data);
 
-        var options = applyType(this.build(data), this.type(), this.labelsOf(data));
+        // في الأشكال اللي بتعرض عملة واحدة بنمرّرها عشان تظهر
+        // جنب كل رقم. الأشكال متعددة العملات كل سلسلة اسمها
+        // العملة بتاعتها فالتلميح بيوضّحها لوحده.
+        var shown    = this.currencyOf ? this.currencyOf(data) : [];
+        var currency = isSingleCurrency(this.type()) ? (shown[0] || '') : '';
+
+        var options = applyType(this.build(data), this.type(), this.labelsOf(data), currency);
         var count   = (options.series || []).length;
 
         // مفيش بيانات — نفضي المكان بدل ما نرسم رسم فاضي
@@ -855,6 +893,7 @@ document.addEventListener('DOMContentLoaded', function () {
         saveType(this.name, type);
 
         if (this.lastData) {
+            // render بيحدّث البادج كمان، فالوصف بيتغيّر مع الشكل
             this.render(this.lastData);
         }
     };
@@ -928,7 +967,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 show: true,
                 position: 'top',
                 horizontalAlign: isRtl ? 'right' : 'left',
-                labels: { colors: textMuted },
+                labels: { colors: textStrong },
             },
             xaxis: {
                 categories: data.labels,
@@ -973,20 +1012,82 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /**
-     * بيحوّل سلاسل متعددة لمجموع واحد لكل تسمية.
+     * بيحوّل سلاسل متعددة لقيمة واحدة لكل تسمية + تفصيل بالعملة.
      *
-     * الأشكال الدائرية بتعرض نسبة من كلّ، فجمع عملات مختلفة فيها
-     * مالوش معنى — بناخد أول عملة بس ونقول كده في العنوان.
+     * الشكل الدائري محتاج رقم واحد لكل شريحة عشان يرسم حجمها،
+     * فبناخد المجموع. لكن التفصيل بيتحفظ عشان التسمية والتلميح
+     * يعرضوا كل عملة برقمها — جمع عملات في رقم واحد من غير تفصيل
+     * بيبقى مضلّل.
      */
     function flattenSeries(series, labels) {
-        if (!series.length) return { values: [], labels: labels };
+        if (!series.length) return { values: [], labels: labels, breakdown: [] };
 
-        var first = series[0];
+        var values    = [];
+        var breakdown = [];
 
-        return {
-            values: (first.data || []).map(function (v) { return Math.abs(parseFloat(v) || 0); }),
-            labels: labels,
-        };
+        (labels || []).forEach(function (label, i) {
+            var perCurrency = [];
+            var sum = 0;
+
+            series.forEach(function (serie) {
+                var amount = Math.abs(parseFloat((serie.data || [])[i]) || 0);
+
+                if (amount > 0) {
+                    perCurrency.push({ currency: serie.name, amount: amount });
+                    sum += amount;
+                }
+            });
+
+            values.push(sum);
+            breakdown.push(perCurrency);
+        });
+
+        return { values: values, labels: labels, breakdown: breakdown };
+    }
+
+    /**
+     * سطر لكل عملة: "2,700.00 EGP".
+     *
+     * بيرجّع مصفوفة عشان ApexCharts بيعرض كل عنصر في سطر.
+     */
+    function currencyLines(entries) {
+        return (entries || []).map(function (entry) {
+            return nf.format(entry.amount) + ' ' + entry.currency;
+        });
+    }
+
+    /**
+     * الأشكال اللي بتعرض عملة واحدة بس.
+     *
+     * دي بتعرض قيمة واحدة لكل تسمية (نسبة من كلّ)، فجمع عملات
+     * مختلفة فيها بيدي رقم مالوش معنى — بنعرض أول عملة بس.
+     */
+    function isSingleCurrency(type) {
+        // الدائرية بقت تعرض كل العملات في التسمية، فالمتبقي
+        // بعملة واحدة هو خريطة المساحات والرادار بس.
+        return type === 'treemap' || type === 'radar';
+    }
+
+    /**
+     * وصف العملات المعروضة فعلاً في الشكل الحالي.
+     *
+     * @param {Array}  currencies كل العملات المتاحة في البيانات
+     * @param {string} type       الشكل المختار
+     */
+    function currencyLabel(currencies, type) {
+        if (!currencies.length) {
+            return L.noData;
+        }
+
+        if (isSingleCurrency(type)) {
+            // عملة واحدة معروضة — بنقول اسمها وإن في غيرها
+            return currencies.length > 1
+                ? currencies[0] + ' ' + L.ofCurrencies.replace(':count', currencies.length)
+                : currencies[0];
+        }
+
+        // كل العملات معروضة، كل واحدة سلسلة مستقلة
+        return currencies.join(' · ');
     }
 
     /** الخيارات اللي بتخص شكل معيّن ولازم تتشال قبل التبديل. */
@@ -1003,8 +1104,16 @@ document.addEventListener('DOMContentLoaded', function () {
      * الأعمدة و dashArray بطول مش مطابق لعدد سلاسله فيطلع بايظ.
      * فبنبدأ من نسخة نضيفة وبنبني خيارات الشكل من الأول.
      */
-    function applyType(options, type, labels) {
+    function applyType(options, type, labels, currency) {
         var out = {};
+
+        // العملة بتتحط جنب كل رقم — من غيرها الرقم مالوش معنى
+        // خصوصاً في الأشكال اللي بتعرض عملة واحدة من كذا.
+        var money = function (v) {
+            var amount = nf.format(parseFloat(v) || 0);
+
+            return currency ? amount + ' ' + currency : amount;
+        };
 
         // ناخد كل حاجة مش خاصة بشكل معيّن (series, tooltip, ...)
         Object.keys(options).forEach(function (key) {
@@ -1016,7 +1125,26 @@ document.addEventListener('DOMContentLoaded', function () {
         out.chart  = Object.assign({}, options.chart, { type: type, stacked: false });
         out.colors = PALETTE;
         out.grid   = { borderColor: borderColor, strokeDashArray: 4 };
-        out.tooltip = { rtl: isRtl, y: { formatter: function (v) { return nf.format(v); } } };
+        out.tooltip = {
+            rtl: isRtl,
+            y: {
+                formatter: function (value, opt) {
+                    if (currency) {
+                        return money(value);
+                    }
+
+                    // الأشكال متعددة العملات: اسم السلسلة هو العملة
+                    var unit = opt && opt.w && opt.w.globals.seriesNames
+                        ? opt.w.globals.seriesNames[opt.seriesIndex]
+                        : '';
+
+                    // اسم السلسلة ممكن يكون "الإيرادات · EGP"
+                    var code = unit ? String(unit).split('·').pop().trim() : '';
+
+                    return nf.format(parseFloat(value) || 0) + (code ? ' ' + code : '');
+                },
+            },
+        };
 
         // ---------- الأشكال الدائرية ----------
         if (isCircular(type)) {
@@ -1024,37 +1152,116 @@ document.addEventListener('DOMContentLoaded', function () {
 
             out.series = flat.values;
             out.labels = flat.labels;
-            out.legend = { show: true, position: 'bottom', labels: { colors: textMuted } };
-            out.dataLabels = { enabled: true };
+
+            // التلميح بيعرض كل عملة في سطر بدل رقم مجمّع مالوش معنى
+            out.tooltip = {
+                rtl: isRtl,
+                custom: function (ctx) {
+                    var i     = ctx.seriesIndex;
+                    var name  = flat.labels[i] || '';
+                    var lines = currencyLines(flat.breakdown[i]);
+
+                    return '<div class="px-2 py-1">'
+                        + '<div class="fw-bold mb-1">' + name + '</div>'
+                        + lines.map(function (line) {
+                            return '<div dir="ltr" class="text-end">' + line + '</div>';
+                        }).join('')
+                        + '</div>';
+                },
+            };
+
+            // الأسطورة بتعرض الاسم بس — التفاصيل على الرسم وفي التلميح
+            out.legend = { show: true, position: 'bottom', labels: { colors: textStrong } };
+
+            // الاسم في سطر وكل عملة في سطر تحته.
+            // النص أبيض بظل خفيف عشان يبان فوق أي لون شريحة —
+            // لون النص الثانوي كان باهت وصعب القراءة في الوضعين.
+            out.dataLabels = {
+                enabled: true,
+                style: {
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    colors: [textOnFill],
+                },
+                dropShadow: { enabled: true, blur: 3, opacity: 0.5 },
+                formatter: function (value, opt) {
+                    var i = opt.seriesIndex;
+
+                    return [flat.labels[i] || ''].concat(currencyLines(flat.breakdown[i]));
+                },
+            };
+
+            // حد فاصل بلون الخلفية عشان الشرايح المتقاربة تتفصل
+            out.stroke = { width: 2, colors: [surfaceColor] };
+
             out.plotOptions = {};
 
             // الشكل ده بيطلّع خط من كل قسم والتسمية في نهايته
             if (type === 'pieLabeled') {
                 out.chart.type = 'pie';
-                out.dataLabels = {
-                    enabled: true,
-                    style: { fontSize: '12px', colors: [textMuted] },
-                    dropShadow: { enabled: false },
-                    formatter: function (value, opt) {
-                        var name = opt.w.globals.labels[opt.seriesIndex] || '';
-                        return [name, value.toFixed(1) + '%'];
-                    },
-                };
+
+                // offset سالب بيطلّع التسمية برّه الشريحة — الموجب
+                // كان بيدخّلها جوه فتتداخل مع الألوان.
                 out.plotOptions = {
                     pie: {
-                        dataLabels: { offset: 28, minAngleToShowLabel: 8 },
+                        dataLabels: { offset: -18, minAngleToShowLabel: 12 },
                         expandOnClick: true,
+                        customScale: 0.82,
                     },
                 };
+
+                // برّه الشريحة النص على خلفية البطاقة، فبياخد
+                // لون النص الأساسي مش الأبيض.
+                out.dataLabels = Object.assign({}, out.dataLabels, {
+                    style: { fontSize: '11px', fontWeight: 600, colors: [textStrong] },
+                    dropShadow: { enabled: false },
+                });
+
                 out.legend = { show: false };
-                out.stroke = { width: 1, colors: ['transparent'] };
 
                 return out;
             }
 
             if (type === 'donut') {
+                // جوه الدونات التسمية بتتزحم، فبنسيب الأرقام
+                // للتلميح والإجمالي في النص.
+                out.dataLabels = {
+                    enabled: true,
+                    style: { fontSize: '12px', fontWeight: 600, colors: [textOnFill] },
+                    dropShadow: { enabled: true, blur: 2, opacity: 0.45 },
+                    formatter: function (percent) {
+                        return percent.toFixed(1) + '%';
+                    },
+                };
+
                 out.plotOptions = {
-                    pie: { donut: { labels: { show: true, total: { show: true, label: L.total } } } },
+                    pie: {
+                        donut: {
+                            labels: {
+                                show: true,
+                                name: { fontSize: '13px', color: textStrong },
+                                value: {
+                                    fontSize: '20px',
+                                    fontWeight: 600,
+                                    color: textStrong,
+                                    formatter: function (value) {
+                                        return nf.format(parseFloat(value) || 0);
+                                    },
+                                },
+                                total: {
+                                    show: true,
+                                    label: L.total,
+                                    color: textStrong,
+                                    formatter: function (w) {
+                                        var sum = (w.globals.seriesTotals || [])
+                                            .reduce(function (a, b) { return a + b; }, 0);
+
+                                        return nf.format(sum);
+                                    },
+                                },
+                            },
+                        },
+                    },
                 };
             }
 
@@ -1071,7 +1278,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 }),
             }];
             out.plotOptions = { treemap: { distributed: true, enableShades: false } };
-            out.dataLabels  = { enabled: true, style: { fontSize: '12px' } };
+            out.dataLabels  = {
+                enabled: true,
+                style: { fontSize: '12px', fontWeight: 600, colors: [textOnFill] },
+                dropShadow: { enabled: true, blur: 2, opacity: 0.45 },
+                formatter: function (text, opt) {
+                    return [text, money(opt.value)];
+                },
+            };
             out.legend = { show: false };
 
             return out;
@@ -1119,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', function () {
             out.legend = {
                 show: true, position: 'top',
                 horizontalAlign: isRtl ? 'right' : 'left',
-                labels: { colors: textMuted },
+                labels: { colors: textStrong },
             };
 
             return out;
@@ -1149,7 +1363,7 @@ document.addEventListener('DOMContentLoaded', function () {
             out.legend = {
                 show: true, position: 'top',
                 horizontalAlign: isRtl ? 'right' : 'left',
-                labels: { colors: textMuted },
+                labels: { colors: textStrong },
             };
 
             return out;
@@ -1167,20 +1381,43 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         if (horizontal) {
-            // الأفقي: الاسم والقيمة جوه العمود عشان ياخد العرض كله
+            // الأفقي: الرقم جوه العمود والاسم على المحور الجانبي.
+            //
+            // كان الاتنين جوه العمود، فالعمود القصير نصه بيخرج
+            // برّه ويتداخل مع اللي جنبه.
             out.plotOptions.bar.dataLabels = { position: 'center' };
             out.dataLabels = {
                 enabled: true,
                 textAnchor: 'middle',
-                style: { fontSize: '12px', colors: ['#fff'] },
+                style: { fontSize: '11px', fontWeight: 600, colors: [textOnFill] },
                 formatter: function (value, opt) {
                     if (!value) return '';
-                    var name = (labels || [])[opt.dataPointIndex] || '';
-                    return name + ' — ' + nf0.format(value);
+
+                    // النسبة من أكبر قيمة — العمود القصير مش هيسع
+                    // غير رقم مختصر
+                    var max = Math.max.apply(null, (opt.w.globals.series || [[]])
+                        .reduce(function (all, serie) { return all.concat(serie); }, [0]));
+
+                    var unit  = opt.w.globals.seriesNames[opt.seriesIndex] || '';
+                    var ratio = max ? value / max : 0;
+
+                    if (ratio < 0.2) {
+                        return nf0.format(value);
+                    }
+
+                    return nf0.format(value) + (unit ? ' ' + unit : '');
                 },
-                dropShadow: { enabled: true, blur: 2, opacity: 0.4 },
+                dropShadow: { enabled: true, blur: 2, opacity: 0.45 },
             };
-            out.yaxis = { labels: { show: false } };
+
+            // الاسم على المحور الجانبي بدل ما يكون جوه العمود
+            out.yaxis = {
+                labels: {
+                    show: true,
+                    maxWidth: 190,
+                    style: { colors: [textStrong], fontSize: '11px' },
+                },
+            };
         } else {
             out.dataLabels = { enabled: false };
             out.yaxis = {
@@ -1196,7 +1433,7 @@ document.addEventListener('DOMContentLoaded', function () {
         out.legend = {
             show: true, position: 'top',
             horizontalAlign: isRtl ? 'right' : 'left',
-            labels: { colors: textMuted },
+            labels: { colors: textStrong },
         };
 
         return out;
@@ -1231,7 +1468,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 show: true,
                 position: 'top',
                 horizontalAlign: isRtl ? 'right' : 'left',
-                labels: { colors: textMuted },
+                labels: { colors: textStrong },
             },
             xaxis: {
                 categories: data.labels || [],
@@ -1254,21 +1491,34 @@ document.addEventListener('DOMContentLoaded', function () {
     // ====================================================
     var trendChart = new Chart(
         '#chartTrend', trendOptions, 'trend', 'line',
-        function (d) { return (d && d.labels) || []; }
+        function (d) { return (d && d.labels) || []; },
+        {
+            badge: '#trendCurrency',
+            currencyOf: function (d) {
+                return ((d && d.series) || []).map(function (x) { return x.currency; });
+            },
+        }
     );
+
+    /** العملات الموجودة في بيانات التوزيع. */
+    function currenciesOf(d) {
+        return ((d && d.groups) || []).map(function (g) { return g.currency; });
+    }
 
     var expenseChart = new Chart(
         '#chartExpenses',
         function (d) { return insideBarOptions(byCurrency(d)); },
         'expenses', 'bar',
-        function (d) { return byCurrency(d).labels; }
+        function (d) { return byCurrency(d).labels; },
+        { badge: '#expenseCurrency', currencyOf: currenciesOf }
     );
 
     var channelChart = new Chart(
         '#chartChannels',
         function (d) { return insideBarOptions(byCurrency(d)); },
         'channels', 'bar',
-        function (d) { return byCurrency(d).labels; }
+        function (d) { return byCurrency(d).labels; },
+        { badge: '#channelsCurrency', currencyOf: currenciesOf }
     );
 
     trendChart.render(@json($trend));
@@ -1289,7 +1539,7 @@ document.addEventListener('DOMContentLoaded', function () {
             chart:  Object.assign({}, baseOptions.chart, { type: 'bar', height: 260, stacked: true }),
             colors: ['#7367f0', '#ff9f43'],
             plotOptions: { bar: { borderRadius: 6, columnWidth: '45%' } },
-            legend: { show: true, position: 'top', horizontalAlign: isRtl ? 'right' : 'left', labels: { colors: textMuted } },
+            legend: { show: true, position: 'top', horizontalAlign: isRtl ? 'right' : 'left', labels: { colors: textStrong } },
             series: d.series,
             xaxis: {
                 categories: d.labels,

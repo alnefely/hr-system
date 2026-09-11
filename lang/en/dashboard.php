@@ -62,6 +62,7 @@ return [
 
 
     // Dashboard filters
+    'of_currencies' => '(of :count currencies)',
     'all_currencies' => 'All currencies',
 
     'filters' => [
