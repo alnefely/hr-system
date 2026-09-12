@@ -173,6 +173,37 @@ class PayrollPerBranchTest extends TestCase
         ]);
     }
 
+    /**
+     * السيدر نفسه لازم يمشي على نفس القاعدة.
+     *
+     * كان بيعمل كشف واحد لكل شهر بـ branch_id فاضي، فالبيانات
+     * التجريبية بتخالف سلوك الشاشة وبتخفي مشاكل الفلترة.
+     */
+    public function test_the_seeder_creates_payrolls_per_branch(): void
+    {
+        $this->seed(\Database\Seeders\ComprehensiveDummySeeder::class);
+
+        $payrolls = Payroll::withoutGlobalScopes()->get();
+
+        $this->assertNotEmpty($payrolls, 'السيدر مانشأش كشوف أصلاً');
+
+        $this->assertEquals(
+            0,
+            $payrolls->whereNull('branch_id')->count(),
+            'السيدر لسه بيعمل كشف مجمّع من غير فرع'
+        );
+
+        // وكل كشف موظفينه من فرعه هو بس
+        foreach ($payrolls as $payroll) {
+            $foreign = Employee::withoutGlobalScopes()
+                ->whereIn('id', $payroll->items()->pluck('employee_id'))
+                ->where('branch_id', '!=', $payroll->branch_id)
+                ->count();
+
+            $this->assertEquals(0, $foreign, "الكشف #{$payroll->id} فيه موظفين من فرع تاني");
+        }
+    }
+
     /** واختيار فرع بعينه بيعمل كشف واحد بس. */
     public function test_selecting_one_branch_creates_a_single_payroll(): void
     {

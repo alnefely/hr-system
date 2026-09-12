@@ -754,89 +754,98 @@ class ComprehensiveDummySeeder extends Seeder
         // 11. Payrolls & PayrollItems (2026-07, 2026-08, 2026-09)
         Payroll::query()->delete();
         $payrollMonths = [
-            ['year' => 2026, 'month' => 7, 'status' => 'paid',     'title' => 'مسير رواتب شهر يوليو 2026 - شامل جميع الفروع'],
-            ['year' => 2026, 'month' => 8, 'status' => 'approved', 'title' => 'مسير رواتب شهر أغسطس 2026 - شامل جميع الفروع'],
-            ['year' => 2026, 'month' => 9, 'status' => 'draft',    'title' => 'مسير رواتب شهر سبتمبر 2026 - شامل جميع الفروع'],
+            ['year' => 2026, 'month' => 7, 'status' => 'paid',     'title' => 'مسير رواتب شهر يوليو 2026'],
+            ['year' => 2026, 'month' => 8, 'status' => 'approved', 'title' => 'مسير رواتب شهر أغسطس 2026'],
+            ['year' => 2026, 'month' => 9, 'status' => 'draft',    'title' => 'مسير رواتب شهر سبتمبر 2026'],
         ];
 
+        // كل كشف تابع لفرع. الكشف المجمّع (branch_id = null) مابقاش
+        // مسموح: الفلترة على فرع مابترجعهوش، والتقارير مابتعرفش
+        // توزّع المبالغ، وكل فرع ليه عملته وخزينته.
+        $employeesByBranch = collect($employees)->groupBy('branch_id');
+
         foreach ($payrollMonths as $pm) {
-            $payroll = Payroll::create([
-                'title'       => $pm['title'],
-                'year'        => $pm['year'],
-                'month'       => $pm['month'],
-                'branch_id'   => null,
-                'status'      => $pm['status'],
-                'created_by'  => $admin->id,
-                'approved_by' => in_array($pm['status'], ['approved', 'paid']) ? $admin->id : null,
-                'approved_at' => in_array($pm['status'], ['approved', 'paid']) ? Carbon::create($pm['year'], $pm['month'], 28) : null,
-                'paid_by'     => $pm['status'] === 'paid' ? $admin->id : null,
-                'paid_at'     => $pm['status'] === 'paid' ? Carbon::create($pm['year'], $pm['month'], 30) : null,
-                'notes'       => 'تم اعتماد وصرف المسير بالحسابات البنكية للموظفين',
-            ]);
+            foreach ($employeesByBranch as $branchId => $branchEmployees) {
+                $branchName = $branchEmployees->first()->branch?->name ?? '';
 
-            $totalBasic      = 0;
-            $totalAllowances = 0;
-            $totalDeductions = 0;
-            $totalNet        = 0;
-
-            foreach ($employees as $emp) {
-                $salary = $emp->latestSalary;
-                $basic = $salary ? (float) $salary->basic_salary : 10000;
-                $alwTotal = (float) $emp->allowances()->sum('amount');
-
-                $deductions = 0;
-                $dedDetails = [];
-
-                if ($emp->employee_code === 'EMP-003' && in_array($pm['month'], [7, 8])) {
-                    $deductions += 3000;
-                    $dedDetails[] = ['type' => 'advance', 'name' => 'قسط سلفة علاجية', 'amount' => 3000];
-                }
-
-                if ($emp->employee_code === 'EMP-004' && in_array($pm['month'], [7, 8])) {
-                    $deductions += 2000;
-                    $dedDetails[] = ['type' => 'advance', 'name' => 'قسط سلفة سيارة', 'amount' => 2000];
-                }
-
-                if ($emp->employee_code === 'EMP-004' && $pm['month'] == 7) {
-                    $deductions += 666.67;
-                    $dedDetails[] = ['type' => 'penalty', 'name' => 'جزاء تأخير (يوم عمل)', 'amount' => 666.67];
-                }
-
-                if ($emp->employee_code === 'EMP-005' && $pm['month'] == 8) {
-                    $deductions += 300;
-                    $dedDetails[] = ['type' => 'penalty', 'name' => 'جزاء غياب نصف يوم', 'amount' => 300];
-                }
-
-                $net = ($basic + $alwTotal) - $deductions;
-
-                PayrollItem::create([
-                    'payroll_id'        => $payroll->id,
-                    'employee_id'       => $emp->id,
-                    'basic_salary'      => $basic,
-                    'allowances'        => $alwTotal,
-                    'allowance_details' => $emp->allowances()->get(['name', 'amount'])->toArray(),
-                    'deductions'        => $deductions,
-                    'deduction_details' => $dedDetails,
-                    'net_salary'        => $net,
-                    'status'            => $pm['status'] === 'paid' ? 'paid' : 'pending',
-                    'payment_method'    => 'bank_transfer',
-                    'paid_at'           => $pm['status'] === 'paid' ? Carbon::create($pm['year'], $pm['month'], 30) : null,
-                    'paid_by'           => $pm['status'] === 'paid' ? $admin->id : null,
-                    'notes'             => 'تمت المراجعة والاعتماد المحاسبي',
+                $payroll = Payroll::create([
+                    'title'       => $pm['title'] . ($branchName ? ' - ' . $branchName : ''),
+                    'year'        => $pm['year'],
+                    'month'       => $pm['month'],
+                    'branch_id'   => $branchId,
+                    'status'      => $pm['status'],
+                    'created_by'  => $admin->id,
+                    'approved_by' => in_array($pm['status'], ['approved', 'paid']) ? $admin->id : null,
+                    'approved_at' => in_array($pm['status'], ['approved', 'paid']) ? Carbon::create($pm['year'], $pm['month'], 28) : null,
+                    'paid_by'     => $pm['status'] === 'paid' ? $admin->id : null,
+                    'paid_at'     => $pm['status'] === 'paid' ? Carbon::create($pm['year'], $pm['month'], 30) : null,
+                    'notes'       => 'تم اعتماد وصرف المسير بالحسابات البنكية للموظفين',
                 ]);
 
-                $totalBasic      += $basic;
-                $totalAllowances += $alwTotal;
-                $totalDeductions += $deductions;
-                $totalNet        += $net;
-            }
+                $totalBasic      = 0;
+                $totalAllowances = 0;
+                $totalDeductions = 0;
+                $totalNet        = 0;
 
-            $payroll->update([
-                'total_basic_salary' => $totalBasic,
-                'total_allowances'   => $totalAllowances,
-                'total_deductions'   => $totalDeductions,
-                'total_net_salary'   => $totalNet,
-            ]);
+                foreach ($branchEmployees as $emp) {
+                    $salary = $emp->latestSalary;
+                    $basic = $salary ? (float) $salary->basic_salary : 10000;
+                    $alwTotal = (float) $emp->allowances()->sum('amount');
+
+                    $deductions = 0;
+                    $dedDetails = [];
+
+                    if ($emp->employee_code === 'EMP-003' && in_array($pm['month'], [7, 8])) {
+                        $deductions += 3000;
+                        $dedDetails[] = ['type' => 'advance', 'name' => 'قسط سلفة علاجية', 'amount' => 3000];
+                    }
+
+                    if ($emp->employee_code === 'EMP-004' && in_array($pm['month'], [7, 8])) {
+                        $deductions += 2000;
+                        $dedDetails[] = ['type' => 'advance', 'name' => 'قسط سلفة سيارة', 'amount' => 2000];
+                    }
+
+                    if ($emp->employee_code === 'EMP-004' && $pm['month'] == 7) {
+                        $deductions += 666.67;
+                        $dedDetails[] = ['type' => 'penalty', 'name' => 'جزاء تأخير (يوم عمل)', 'amount' => 666.67];
+                    }
+
+                    if ($emp->employee_code === 'EMP-005' && $pm['month'] == 8) {
+                        $deductions += 300;
+                        $dedDetails[] = ['type' => 'penalty', 'name' => 'جزاء غياب نصف يوم', 'amount' => 300];
+                    }
+
+                    $net = ($basic + $alwTotal) - $deductions;
+
+                    PayrollItem::create([
+                        'payroll_id'        => $payroll->id,
+                        'employee_id'       => $emp->id,
+                        'basic_salary'      => $basic,
+                        'allowances'        => $alwTotal,
+                        'allowance_details' => $emp->allowances()->get(['name', 'amount'])->toArray(),
+                        'deductions'        => $deductions,
+                        'deduction_details' => $dedDetails,
+                        'net_salary'        => $net,
+                        'status'            => $pm['status'] === 'paid' ? 'paid' : 'pending',
+                        'payment_method'    => 'bank_transfer',
+                        'paid_at'           => $pm['status'] === 'paid' ? Carbon::create($pm['year'], $pm['month'], 30) : null,
+                        'paid_by'           => $pm['status'] === 'paid' ? $admin->id : null,
+                        'notes'             => 'تمت المراجعة والاعتماد المحاسبي',
+                    ]);
+
+                    $totalBasic      += $basic;
+                    $totalAllowances += $alwTotal;
+                    $totalDeductions += $deductions;
+                    $totalNet        += $net;
+                }
+
+                $payroll->update([
+                    'total_basic_salary' => $totalBasic,
+                    'total_allowances'   => $totalAllowances,
+                    'total_deductions'   => $totalDeductions,
+                    'total_net_salary'   => $totalNet,
+                ]);
+            }
         }
 
         // 12. Expense Categories
