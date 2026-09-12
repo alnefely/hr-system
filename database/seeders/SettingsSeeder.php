@@ -32,7 +32,7 @@ class SettingsSeeder extends Seeder
             [
                 'key'         => 'site_name',
                 'group'       => 'general',
-                'value'       => 'Rhmany',
+                'value'       => 'HR SYS',
                 'options'     => null,
                 'type'        => 'text',
                 'dir'         => 'auto',

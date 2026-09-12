@@ -8,6 +8,7 @@ return [
     'vendor_report'             => 'External Contracts & Subscriptions Report',
     'branch_comparison_report'  => 'Branch Performance Comparison Report',
     'employee_statement'        => 'Employee Account Statement',
+    'documents'                 => 'Employee Documents Monitor',
     'salary_audit'              => 'Employee Salary Audit Sheet (Monthly)',
 
     'pl' => [
@@ -29,4 +30,25 @@ return [
         'branch'    => 'Select Branch',
         'print'     => 'Print Report',
     ],
+
+    'doc_status' => [
+        'attention'  => 'Everything needing attention',
+        'expiring'   => 'Expiring soon',
+        'expired'    => 'Expired',
+        'pending'    => 'Pending review',
+        'days_left'  => ':days days left',
+        'all_clear'  => 'No documents need attention right now',
+    ],
+
+    'doc_hints' => [
+        'expiring' => 'Documents expiring within :days days and needing renewal',
+        'expired'  => 'Documents whose validity has already lapsed',
+        'pending'  => 'Uploaded documents not yet approved',
+    ],
+
+    'doc_filters' => [
+        'days'      => 'Alert window',
+        'days_hint' => 'How many days ahead counts as "expiring soon". Defaults to 30 days.',
+    ],
+
 ];

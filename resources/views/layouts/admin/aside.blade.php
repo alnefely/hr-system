@@ -241,7 +241,7 @@
             </li>
         @endif
 
-        @if (admin_can('report_employee_statement') || admin_can('report_salary_audit') || admin_can('report_financial_pl'))
+        @if (admin_can('report_employee_statement') || admin_can('report_salary_audit') || admin_can('report_financial_pl') || admin_can('report_documents'))
             <li class="menu-item {{ request()->is('admin/reports*') ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="fa-solid fa-chart-line"></i>
@@ -266,6 +266,13 @@
                         <li class="menu-item {{ request()->is('admin/reports/employee-statement*') ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.employee-statement') }}" class="menu-link">
                                 <div>{{ __('report.employee_statement') }}</div>
+                            </a>
+                        </li>
+                    @endif
+                    @if (admin_can('report_documents'))
+                        <li class="menu-item {{ request()->is('admin/reports/documents*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.reports.documents') }}" class="menu-link">
+                                <div>{{ __('report.documents') }}</div>
                             </a>
                         </li>
                     @endif

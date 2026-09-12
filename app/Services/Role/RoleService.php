@@ -262,6 +262,7 @@ class RoleService
                     'report_employee_statement',
                     'report_salary_audit',
                     'report_financial_pl',
+                    'report_documents',
                 ],
             ],
             'expense' => [

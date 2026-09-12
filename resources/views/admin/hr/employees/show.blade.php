@@ -365,10 +365,10 @@
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-icon btn-label-danger waves-effect btn-swal-confirm"
-                                                                data-swal-title="{{ __('global.confirm_delete') }}"
-                                                                data-swal-text="هل أنت متأكد من حذف سجل الراتب؟"
-                                                                data-swal-icon="warning"
-                                                                data-swal-button="{{ __('global.delete') }}"
+                                                                data-title="{{ __('global.confirm_delete') }}"
+                                                                data-text="هل أنت متأكد من حذف سجل الراتب؟"
+                                                                data-icon="warning"
+                                                                data-btn-text="{{ __('global.delete') }}"
                                                                 title="{{ __('global.delete') }}">
                                                             <i class="fa-solid fa-trash"></i>
                                                         </button>
@@ -475,19 +475,19 @@
                                                         @csrf
                                                         @if ($doc->is_verified)
                                                             <button type="submit" class="btn btn-sm btn-icon btn-label-warning me-1 waves-effect btn-swal-confirm" 
-                                                                    data-swal-title="إلغاء الاعتماد؟" 
-                                                                    data-swal-text="هل أنت متأكد من إلغاء اعتماد هذا المستند وإعادته لقيد المراجعة؟"
-                                                                    data-swal-icon="warning"
-                                                                    data-swal-button="نعم، إلغاء الاعتماد"
+                                                                    data-title="إلغاء الاعتماد؟" 
+                                                                    data-text="هل أنت متأكد من إلغاء اعتماد هذا المستند وإعادته لقيد المراجعة؟"
+                                                                    data-icon="warning"
+                                                                    data-btn-text="نعم، إلغاء الاعتماد"
                                                                     title="إلغاء الاعتماد">
                                                                 <i class="fa-solid fa-rotate-left"></i>
                                                             </button>
                                                         @else
                                                             <button type="submit" class="btn btn-sm btn-icon btn-label-success me-1 waves-effect btn-swal-confirm" 
-                                                                    data-swal-title="اعتماد المستند؟" 
-                                                                    data-swal-text="هل أنت متأكد من التحقق واعتماد هذا المستند رسميًا؟"
-                                                                    data-swal-icon="question"
-                                                                    data-swal-button="نعم، اعتمد المستند"
+                                                                    data-title="اعتماد المستند؟" 
+                                                                    data-text="هل أنت متأكد من التحقق واعتماد هذا المستند رسميًا؟"
+                                                                    data-icon="question"
+                                                                    data-btn-text="نعم، اعتمد المستند"
                                                                     title="اعتماد المستند">
                                                                 <i class="fa-solid fa-check-double"></i>
                                                             </button>
@@ -499,10 +499,10 @@
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-icon btn-label-danger waves-effect btn-swal-confirm"
-                                                                data-swal-title="{{ __('global.confirm_delete') }}"
-                                                                data-swal-text="سيتم نقل المستند لسلة المحذوفات"
-                                                                data-swal-icon="warning"
-                                                                data-swal-button="{{ __('global.delete') }}"
+                                                                data-title="{{ __('global.confirm_delete') }}"
+                                                                data-text="سيتم نقل المستند لسلة المحذوفات"
+                                                                data-icon="warning"
+                                                                data-btn-text="{{ __('global.delete') }}"
                                                                 title="{{ __('global.delete') }}">
                                                             <i class="fa-solid fa-trash"></i>
                                                         </button>

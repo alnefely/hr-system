@@ -61,4 +61,11 @@ return [
     'placeholders' => [
         'title' => 'e.g. Contract 2026 (optional)',
     ],
+
+    'confirm' => [
+        'verify_title'  => 'Approve this document?',
+        'verify_text'   => 'You are about to officially approve ":document" for :employee.',
+        'verify_button' => 'Yes, approve',
+    ],
+
 ];

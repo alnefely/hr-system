@@ -39,6 +39,7 @@ return [
         'employee_statement'        => 'Employee Statement',
         'report_employee_statement' => 'Employee Statement',
         'salary_audit'              => 'Salary Audit & History',
+        'documents'                 => 'Employee Documents Monitor',
         'report_salary_audit'       => 'Salary Audit & History',
             'activity_log_show' => 'View Activity Log',
         'activity_log_show_all' => 'View Full Log (All Modules)',

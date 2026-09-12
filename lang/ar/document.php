@@ -61,4 +61,11 @@ return [
     'placeholders' => [
         'title' => 'مثال: عقد 2026 (اختياري)',
     ],
+
+    'confirm' => [
+        'verify_title'  => 'اعتماد المستند؟',
+        'verify_text'   => 'هتعتمد «:document» الخاص بـ :employee رسمياً.',
+        'verify_button' => 'نعم، اعتمد',
+    ],
+
 ];

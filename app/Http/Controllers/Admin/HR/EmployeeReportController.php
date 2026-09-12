@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin\HR;
 
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
+use App\Models\EmployeeDocument;
+use App\Models\Branch;
 use App\Models\EmployeeLeave;
 use App\Models\EmployeePenalty;
 use App\Models\EmployeePermission;
@@ -391,6 +393,63 @@ class EmployeeReportController extends Controller
             'startDate',
             'endDate',
             'auditData'
+        ));
+    }
+
+    /**
+     * متابعة مستندات الموظفين: اللي قرب ينتهي واللي قيد المراجعة.
+     *
+     * المستندات كانت متفرّقة على ملفات الموظفين، فمفيش مكان واحد
+     * يقول لك إيه اللي محتاج تجديد أو اعتماد.
+     */
+    public function documents(Request $request)
+    {
+        $days = (int) $request->input('days', EmployeeDocument::EXPIRY_ALERT_DAYS);
+        $days = max(1, min($days, 365));
+
+        $status   = $request->input('status', 'attention');
+        $branchId = $request->filled('branch_id') ? (int) $request->branch_id : null;
+
+        $base = fn () => EmployeeDocument::query()
+            ->with(['employee:id,name,employee_code,branch_id', 'employee.branch:id,name', 'verifier:id,name'])
+            ->when($branchId, fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('branch_id', $branchId)));
+
+        // العدّادات بتتحسب قبل الفلترة عشان تفضل ثابتة
+        $counts = [
+            'expiring' => $base()->expiringSoon($days)->count(),
+            'expired'  => $base()->expired()->count(),
+            'pending'  => $base()->pendingVerification()->count(),
+        ];
+
+        $query = $base();
+
+        match ($status) {
+            'expiring' => $query->expiringSoon($days),
+            'expired'  => $query->expired(),
+            'pending'  => $query->pendingVerification(),
+            // الافتراضي: كل اللي محتاج انتباه
+            default    => $query->where(function ($q) use ($days) {
+                $q->expiringSoon($days)
+                    ->orWhere(fn ($x) => $x->expired())
+                    ->orWhere(fn ($x) => $x->pendingVerification());
+            }),
+        };
+
+        $documents = $query
+            ->orderByRaw('expiry_date IS NULL')
+            ->orderBy('expiry_date')
+            ->paginate(20)
+            ->withQueryString();
+
+        $branches = Branch::where('is_active', true)->get(['id', 'name']);
+
+        return view('admin.hr.reports.documents', compact(
+            'documents',
+            'counts',
+            'branches',
+            'days',
+            'status',
+            'branchId'
         ));
     }
 }

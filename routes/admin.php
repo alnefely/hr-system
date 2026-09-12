@@ -333,6 +333,7 @@ Route::resource('/payrolls', PayrollController::class)
 
 // 12. التقارير الإدارية والمالية (Reports)
 Route::get('/reports/employee-statement', [EmployeeReportController::class, 'statement'])->name('reports.employee-statement')->middleware('AdminPermission:report_employee_statement');
+Route::get('/reports/documents', [EmployeeReportController::class, 'documents'])->name('reports.documents')->middleware('AdminPermission:report_documents');
 Route::get('/reports/salary-audit', [EmployeeReportController::class, 'salaryAudit'])->name('reports.salary-audit')->middleware('AdminPermission:report_salary_audit');
 
 use App\Http\Controllers\Admin\ExpenseController;

@@ -47,6 +47,7 @@ return [
         'financial_pl'        => 'تقرير الأرباح والخسائر المالي',
         'employee_statement'  => 'كشف حساب الموظف',
         'salary_audit'        => 'كشف وسجل مرتب الموظف',
+        'documents'           => 'متابعة مستندات الموظفين',
         'report_salary_audit' => 'كشف وسجل مرتب الموظف',
             'activity_log_show' => 'عرض سجل الحركات',
         'activity_log_show_all' => 'عرض السجل الشامل لكل الموديولات',
