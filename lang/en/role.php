@@ -41,6 +41,8 @@ return [
         'salary_audit'              => 'Salary Audit & History',
         'documents'                 => 'Employee Documents Monitor',
         'report_salary_audit'       => 'Salary Audit & History',
+        'report_documents'          => 'Employee Documents Monitor',
+        'link_stats'                => 'Link Statistics',
             'activity_log_show' => 'View Activity Log',
         'activity_log_show_all' => 'View Full Log (All Modules)',
         'activity_log_export' => 'Export Activity Log',

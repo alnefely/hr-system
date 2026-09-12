@@ -18,3 +18,16 @@ Route::group(['prefix' => 'filemanager', 'middleware' => ['AdminPermission:filem
     Lfm::routes();
 });
 
+
+/*
+|--------------------------------------------------------------------------
+| تحويل الروابط المختصرة
+|--------------------------------------------------------------------------
+| لازم تفضل آخر الملف: الراوت بياخد بارامتر حر، ولو اتحط فوق كان
+| هيبلع راوتات النظام. الـ regex بيحصره في شكل الأكواد بس.
+*/
+Route::get('/s/{code}', [\App\Http\Controllers\Links\RedirectController::class, 'handle'])
+    ->where('code', '[A-Za-z0-9_-]{3,32}')
+    ->middleware('throttle:WebRateLimiter')
+    ->name('link.redirect');
+

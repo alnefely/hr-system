@@ -209,6 +209,19 @@ class TooltipsCoverageTest extends TestCase
 
         // مابقاش بيقول "اتجاه 6 شهور" الثابتة
         $this->assertStringNotContainsString('اتجاه 6 شهور', $html, 'الدليل لسه بيقول 6 شهور ثابتة');
+
+        // موديول الروابط المختصرة
+        $this->assertStringContainsString('sec-short-links', $html, 'قسم الروابط المختصرة مش موجود');
+        $this->assertStringContainsString(__('link.title'), $html, 'اسم الموديول مش مذكور');
+
+        // والنقط اللي المستخدم لازم يعرفها عشان مايستغربش
+        $this->assertStringContainsString('لا تظهر لحظياً', $html, 'تأخير الإحصائيات مش موثّق');
+        $this->assertStringContainsString('زيارات البوتات', $html, 'استبعاد البوتات مش موثّق');
+
+        // وأوامر التشغيل الدوري
+        foreach (['links:flush', 'links:aggregate', 'links:prune'] as $command) {
+            $this->assertStringContainsString($command, $html, "الأمر {$command} مش موثّق");
+        }
     }
 
     /**
@@ -234,6 +247,32 @@ class TooltipsCoverageTest extends TestCase
         foreach ($stale as $needle => $why) {
             $this->assertStringNotContainsString($needle, $html, "الدليل لسه بيقول: {$why}");
         }
+    }
+
+    /**
+     * أيقونات المحتويات متحاذية في بداية السطر.
+     *
+     * من غير الـ flex، الأيقونة والنص بيبقوا inline فالأيقونة
+     * بتتزحزح مع طول النص وكل سطر بيبدأ من مكان مختلف.
+     */
+    public function test_guide_toc_icons_are_aligned(): void
+    {
+        $html = $this->get(route('admin.system-guide'))->assertOk()->getContent();
+
+        // التنسيق موجود
+        $this->assertStringContainsString('#guideToc .nav-link', $html, 'مافيش تنسيق للمحتويات');
+        $this->assertStringContainsString('display: flex', $html, 'العناصر مش flex');
+
+        // وكل عنصر نصه ملفوف عشان الـ flex يشتغل
+        preg_match('/<nav[^>]*id="guideToc">(.*?)<\/nav>/s', $html, $m);
+
+        $this->assertNotEmpty($m[1] ?? '', 'مالقيناش قائمة المحتويات');
+
+        $linkCount = substr_count($m[1], '<a class="nav-link');
+        $textCount = substr_count($m[1], '<span class="toc-text">');
+
+        $this->assertGreaterThan(10, $linkCount, 'القائمة شبه فاضية');
+        $this->assertEquals($linkCount, $textCount, 'فيه عناصر نصها مش ملفوف — هتبان مايلة');
     }
 
     /** الدليل بيغطي فلاتر الجداول الجديدة. */

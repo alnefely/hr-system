@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\AuthAdminController;
 use App\Http\Controllers\Admin\CustomerSourceController;
 use App\Http\Controllers\Admin\HomeController;
+use App\Http\Controllers\Admin\LinkController;
+use App\Http\Controllers\Admin\LinkStatsController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingsController;
 use Illuminate\Support\Facades\Route;
@@ -591,3 +593,41 @@ Route::post('/broadcasting/auth', function (Illuminate\Http\Request $request) {
     // auth:admin إجبارية: من غيرها الزائر بيوصل للتفويض، و Broadcast::auth
     // بترجع 200 لأي قناة مالهاش تعريف مطابق — يعني تسريب محتمل.
     ->middleware('auth:admin');
+
+
+/*
+|--------------------------------------------------------------------------
+| الروابط المختصرة
+|--------------------------------------------------------------------------
+| المسارات الثابتة قبل الـ resource عشان {link} مايبلعش كلمة trash.
+*/
+Route::get('/links/trash', [LinkController::class, 'trash'])
+    ->name('links.trash')->middleware('AdminPermission:link_trash');
+Route::post('/links/{id}/restore', [LinkController::class, 'restore'])
+    ->name('links.restore')->middleware('AdminPermission:link_restore');
+Route::delete('/links/{id}/force-delete', [LinkController::class, 'forceDelete'])
+    ->name('links.forceDelete')->middleware('AdminPermission:link_force_delete');
+
+Route::get('/links/generate-code', [LinkController::class, 'generateCode'])
+    ->name('links.generate-code')->middleware('AdminPermission:link_create');
+
+Route::get('/links/{link}/stats', [LinkStatsController::class, 'show'])
+    ->name('links.stats')->middleware('AdminPermission:link_stats');
+
+Route::resource('/links', LinkController::class)
+    ->except(['show'])
+    ->names([
+        'index'   => 'links.index',
+        'create'  => 'links.create',
+        'store'   => 'links.store',
+        'edit'    => 'links.edit',
+        'update'  => 'links.update',
+        'destroy' => 'links.destroy',
+    ])->middleware([
+        'index'   => 'AdminPermission:link_show',
+        'create'  => 'AdminPermission:link_create',
+        'store'   => 'AdminPermission:link_create',
+        'edit'    => 'AdminPermission:link_update',
+        'update'  => 'AdminPermission:link_update',
+        'destroy' => 'AdminPermission:link_delete',
+    ]);

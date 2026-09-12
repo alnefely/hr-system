@@ -2,6 +2,40 @@
 @section('title', 'دليل الاستخدام والتشغيل التفصيلي للمنظومة المالية والإدارية')
 
 @section('content')
+
+<style>
+    /* محاذاة عناصر المحتويات: الأيقونة عمود ثابت في بداية السطر
+       بدل ما تبقى inline وتتزحزح مع طول النص. */
+    #guideToc .nav-link {
+        display: flex;
+        align-items: flex-start;
+        gap: .5rem;
+        text-align: start;
+        line-height: 1.6;
+    }
+
+    /* عرض ثابت لكل الأيقونات مهما اختلف شكلها */
+    #guideToc .nav-link > i {
+        flex: 0 0 1.25rem;
+        width: 1.25rem;
+        text-align: center;
+        margin: 0;
+        margin-top: .15rem;
+    }
+
+    /* النص بياخد باقي السطر ويلتف تحت نفسه */
+    #guideToc .nav-link > span.toc-text {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    /* شارة "جديد" ماتتمططش */
+    #guideToc .nav-link .badge {
+        flex: 0 0 auto;
+        align-self: center;
+    }
+</style>
+
 <div class="row">
     {{-- Header Banner --}}
     <div class="col-12 mb-4">
@@ -33,30 +67,31 @@
             </div>
             <div class="card-body p-2" style="max-height: calc(100vh - 190px); overflow-y: auto;">
                 <nav class="nav nav-pills flex-column gap-1" id="guideToc">
-                    <a class="nav-link py-2 px-3" href="#sec-dashboard"><i class="fa-solid fa-gauge-high me-2"></i> لوحة التحكم والمؤشرات</a>
-                    <a class="nav-link py-2 px-3" href="#sec-formula"><i class="fa-solid fa-calculator me-2"></i> 1. معادلة صافي الراتب والشرح بالعربي</a>
-                    <a class="nav-link py-2 px-3" href="#sec-example"><i class="fa-solid fa-receipt me-2"></i> 2. مثال عملي رقمي خطوة بخطوة</a>
-                    <a class="nav-link py-2 px-3" href="#sec-permissions"><i class="fa-solid fa-clock me-2"></i> 3. الأذونات والاستئذان وحساب الساعات</a>
-                    <a class="nav-link py-2 px-3" href="#sec-leaves"><i class="fa-solid fa-calendar-check me-2"></i> 4. الإجازات، الأرصدة، وسلة المحذوفات</a>
-                    <a class="nav-link py-2 px-3" href="#sec-advances"><i class="fa-solid fa-hand-holding-dollar me-2"></i> 5. السلف والقروض والإسقاط الإداري</a>
-                    <a class="nav-link py-2 px-3" href="#sec-rewards-allowances"><i class="fa-solid fa-award me-2"></i> 6. البدلات الثابتة vs المكافآت الاستثنائية</a>
-                    <a class="nav-link py-2 px-3" href="#sec-approval-cycle"><i class="fa-solid fa-user-check me-2"></i> دورة اعتماد الجزاءات والمكافآت</a>
-                    <a class="nav-link py-2 px-3" href="#sec-penalties"><i class="fa-solid fa-gavel me-2"></i> 7. الجزاءات وحساب سعر يوم العمل</a>
-                    <a class="nav-link py-2 px-3" href="#sec-payroll-lifecycle"><i class="fa-solid fa-money-check-dollar me-2"></i> 8. مسير الرواتب ودورة الاعتماد والصرف</a>
-                    <a class="nav-link py-2 px-3" href="#sec-sales-channels-customers"><i class="fa-solid fa-cart-shopping me-2"></i> 9. المبيعات، الفواتير، وقنوات البيع</a>
-                    <a class="nav-link py-2 px-3" href="#sec-customer-sources"><i class="fa-solid fa-share-nodes me-2"></i> مصادر العملاء <span class="badge bg-label-success ms-1">جديد</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-vendors-subscriptions"><i class="fa-solid fa-repeat me-2"></i> 10. الموردين والاشتراكات الدورية</a>
-                    <a class="nav-link py-2 px-3" href="#sec-expenses-petty-cash"><i class="fa-solid fa-wallet me-2"></i> 11. العهد النقدية وتعدد العملات</a>
+                    <a class="nav-link py-2 px-3" href="#sec-dashboard"><i class="fa-solid fa-gauge-high"></i><span class="toc-text">لوحة التحكم والمؤشرات</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-formula"><i class="fa-solid fa-calculator"></i><span class="toc-text">1. معادلة صافي الراتب والشرح بالعربي</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-example"><i class="fa-solid fa-receipt"></i><span class="toc-text">2. مثال عملي رقمي خطوة بخطوة</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-permissions"><i class="fa-solid fa-clock"></i><span class="toc-text">3. الأذونات والاستئذان وحساب الساعات</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-leaves"><i class="fa-solid fa-calendar-check"></i><span class="toc-text">4. الإجازات، الأرصدة، وسلة المحذوفات</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-advances"><i class="fa-solid fa-hand-holding-dollar"></i><span class="toc-text">5. السلف والقروض والإسقاط الإداري</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-rewards-allowances"><i class="fa-solid fa-award"></i><span class="toc-text">6. البدلات الثابتة vs المكافآت الاستثنائية</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-approval-cycle"><i class="fa-solid fa-user-check"></i><span class="toc-text">دورة اعتماد الجزاءات والمكافآت</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-penalties"><i class="fa-solid fa-gavel"></i><span class="toc-text">7. الجزاءات وحساب سعر يوم العمل</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-payroll-lifecycle"><i class="fa-solid fa-money-check-dollar"></i><span class="toc-text">8. مسير الرواتب ودورة الاعتماد والصرف</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-sales-channels-customers"><i class="fa-solid fa-cart-shopping"></i><span class="toc-text">9. المبيعات، الفواتير، وقنوات البيع</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-customer-sources"><i class="fa-solid fa-share-nodes"></i><span class="toc-text">مصادر العملاء</span><span class="badge bg-label-success ms-1">جديد</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-vendors-subscriptions"><i class="fa-solid fa-repeat"></i><span class="toc-text">10. الموردين والاشتراكات الدورية</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-expenses-petty-cash"><i class="fa-solid fa-wallet"></i><span class="toc-text">11. العهد النقدية وتعدد العملات</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-short-links"><i class="fa-solid fa-link"></i><span class="toc-text">الروابط المختصرة والإحصائيات</span><span class="badge bg-label-success ms-1">جديد</span></a>
 
                     <hr class="my-2">
                     <div class="px-3 pb-1"><small class="text-muted fw-bold">الحوكمة والأمان</small></div>
 
-                    <a class="nav-link py-2 px-3" href="#sec-table-filters"><i class="fa-solid fa-filter me-2"></i> البحث والفلترة في الجداول</a>
-                    <a class="nav-link py-2 px-3" href="#sec-activity-log"><i class="fa-solid fa-shield-halved me-2"></i> 12. سجل حركات النظام (Audit Log)</a>
-                    <a class="nav-link py-2 px-3" href="#sec-branch-isolation"><i class="fa-solid fa-building-lock me-2"></i> 13. عزل البيانات بين الفروع</a>
-                    <a class="nav-link py-2 px-3" href="#sec-auth-security"><i class="fa-solid fa-key me-2"></i> 14. الدخول واستعادة كلمة المرور</a>
-                    <a class="nav-link py-2 px-3" href="#sec-notifications"><i class="fa-solid fa-bell me-2"></i> 15. الإشعارات والتنبيهات اللحظية</a>
-                    <a class="nav-link py-2 px-3" href="#sec-maintenance"><i class="fa-solid fa-terminal me-2"></i> 16. أوامر الصيانة والتشغيل الدوري</a>
+                    <a class="nav-link py-2 px-3" href="#sec-table-filters"><i class="fa-solid fa-filter"></i><span class="toc-text">البحث والفلترة في الجداول</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-activity-log"><i class="fa-solid fa-shield-halved"></i><span class="toc-text">12. سجل حركات النظام (Audit Log)</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-branch-isolation"><i class="fa-solid fa-building-lock"></i><span class="toc-text">13. عزل البيانات بين الفروع</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-auth-security"><i class="fa-solid fa-key"></i><span class="toc-text">14. الدخول واستعادة كلمة المرور</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-notifications"><i class="fa-solid fa-bell"></i><span class="toc-text">15. الإشعارات والتنبيهات اللحظية</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-maintenance"><i class="fa-solid fa-terminal"></i><span class="toc-text">16. أوامر الصيانة والتشغيل الدوري</span></a>
                 </nav>
             </div>
         </div>
@@ -907,6 +942,123 @@
         </div>
 
 
+        {{-- الروابط المختصرة --}}
+        <div class="card border-0 shadow-sm mb-4" id="sec-short-links">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0 fw-bold text-primary">
+                    <i class="fa-solid fa-link me-2"></i> الروابط المختصرة والإحصائيات (Short Links)
+                    <span class="badge bg-label-success ms-1">جديد</span>
+                </h5>
+            </div>
+            <div class="card-body pt-4">
+
+                <p class="text-muted mb-4">
+                    تحويل أي رابط طويل إلى رابط قصير قابل للمشاركة، مع تتبّع كامل لعدد النقرات
+                    والزوار ومصادر الزيارات. الفائدة الأساسية: <strong>يمكنك تغيير وجهة الرابط
+                    لاحقاً دون تغيير الرابط المنشور</strong> — فلو نشرت رابطاً في حملة إعلانية
+                    ثم تغيّر عنوان الصفحة، تُعدّل الوجهة من النظام ويظل الرابط المنشور يعمل.
+                </p>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded h-100">
+                            <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> الكود المختصر</h6>
+                            <p class="small text-muted mb-2">
+                                يُولَّد كود عشوائي تلقائياً ويظهر جاهزاً في الحقل عند الإنشاء،
+                                ويمكنك تغييره أو الضغط على زر التوليد للحصول على غيره.
+                                الطول <span dir="ltr">{{ config('links.code_length', 7) }}</span> أحرف،
+                                والحروف المتشابهة (<span dir="ltr">0 O 1 l I</span>) مستبعدة
+                                لتفادي اللبس عند القراءة أو الكتابة اليدوية.
+                            </p>
+                            <p class="small text-muted mb-0">
+                                <strong>حسّاس لحالة الأحرف:</strong> <span dir="ltr">aB7xK9m</span>
+                                و<span dir="ltr">Ab7Xk9M</span> رابطان مختلفان تماماً.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded h-100">
+                            <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-shield-halved me-1"></i> قواعد التحكم</h6>
+                            <ul class="small text-muted mb-0 ps-3">
+                                <li><strong>تاريخ انتهاء:</strong> يتوقف الرابط تلقائياً بعده.</li>
+                                <li><strong>حد أقصى للنقرات:</strong> يتوقف بعد بلوغ العدد.</li>
+                                <li><strong>إيقاف مؤقت:</strong> دون حذف، ويمكن إعادة تفعيله.</li>
+                                <li>الرابط الموقوف أو المنتهي يعرض صفحة اعتذار للزائر، ولا يحوّل.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-primary d-flex align-items-start" role="alert">
+                    <i class="fa-solid fa-circle-info me-2 mt-1"></i>
+                    <div class="small">
+                        <strong>الوجهة محمية:</strong> لا يُقبل إلا رابط <span dir="ltr">http</span> أو
+                        <span dir="ltr">https</span> يشير لعنوان عام. الروابط الداخلية
+                        (<span dir="ltr">localhost</span> أو شبكة داخلية) مرفوضة، وكذلك اختصار
+                        رابط مختصر من النظام نفسه لتفادي الدوران اللانهائي.
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mt-4 mb-2"><i class="fa-solid fa-chart-line me-1 text-primary"></i> الإحصائيات وكيف تُحتسب</h6>
+
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width:28%">المؤشر</th>
+                                <th>كيف يُحتسب</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="small fw-semibold">النقرات</td>
+                                <td class="small">كل فتح فعلي للرابط من زائر حقيقي.</td>
+                            </tr>
+                            <tr>
+                                <td class="small fw-semibold">الزوار الفريدون</td>
+                                <td class="small">الزائر الواحد يُحتسب مرة واحدة في اليوم مهما كرّر الفتح.</td>
+                            </tr>
+                            <tr>
+                                <td class="small fw-semibold">زيارات البوتات</td>
+                                <td class="small">
+                                    معاينات واتساب وتيليجرام وفيسبوك ومحركات البحث. تُسجَّل في
+                                    خانة منفصلة و<strong>لا تُحتسب ضمن النقرات</strong> — فمجرد
+                                    إرسال الرابط في مجموعة واتساب يولّد عشرات المعاينات الوهمية.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="small fw-semibold">التوزيعات</td>
+                                <td class="small">الدول والأجهزة والمتصفحات ومصادر الزيارات — للزوار الحقيقيين فقط.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-warning d-flex align-items-start" role="alert">
+                    <i class="fa-solid fa-clock me-2 mt-1"></i>
+                    <div class="small">
+                        <strong>الأرقام لا تظهر لحظياً.</strong> لتبقى صفحة التحويل سريعة، تُسجَّل
+                        النقرة في الذاكرة المؤقتة ثم تُنقل لقاعدة البيانات كل 5 دقائق، ويُحدَّث
+                        تفصيل الإحصائيات بتلخيص يومي فجر اليوم التالي. لذلك قد تجد نقرة حديثة
+                        لم تنعكس بعد، وإحصائيات اليوم الجاري تظهر في اليوم التالي.
+                    </div>
+                </div>
+
+                <div class="alert alert-secondary d-flex align-items-start mb-0" role="alert">
+                    <i class="fa-solid fa-user-shield me-2 mt-1"></i>
+                    <div class="small">
+                        <strong>الخصوصية:</strong> لا يُخزَّن عنوان <span dir="ltr">IP</span> الزائر
+                        مطلقاً — يُحفظ مُشفَّراً فقط بما يكفي للتفرقة بين الزوار. تفاصيل النقرات
+                        تُحذف بعد <span dir="ltr">{{ config('links.clicks_retention', 90) }}</span>
+                        يوماً، بينما يبقى الملخّص اليومي دائماً فلا يضيع التاريخ.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
         {{-- البحث والفلترة في الجداول --}}
         <div class="card border-0 shadow-sm mb-4" id="sec-table-filters">
             <div class="card-header border-bottom d-flex justify-content-between align-items-center">
@@ -1400,6 +1552,18 @@ PUSHER_APP_CLUSTER=eu</pre>
                             <tr>
                                 <td><code class="small" dir="ltr">php artisan petty-cash:carry-over</code></td>
                                 <td class="small">ترحيل أرصدة العهدة للشهر الحالي (تلقائية أول كل شهر)</td>
+                            </tr>
+                            <tr>
+                                <td><code class="small" dir="ltr">php artisan links:flush</code></td>
+                                <td class="small">نقل نقرات الروابط المختصرة من الذاكرة المؤقتة لقاعدة البيانات (تلقائية كل 5 دقائق)</td>
+                            </tr>
+                            <tr>
+                                <td><code class="small" dir="ltr">php artisan links:aggregate</code></td>
+                                <td class="small">تلخيص نقرات الأمس في جدول الإحصائيات اليومي (تلقائية 3:15 صباحاً)</td>
+                            </tr>
+                            <tr>
+                                <td><code class="small" dir="ltr">php artisan links:prune</code></td>
+                                <td class="small">حذف تفاصيل النقرات الأقدم من {{ config('links.clicks_retention', 90) }} يوم — الملخّص اليومي يبقى دائماً (تلقائية 3:30 صباحاً)</td>
                             </tr>
                             <tr>
                                 <td><code class="small" dir="ltr">php artisan realtime:test</code></td>

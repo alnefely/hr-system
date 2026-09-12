@@ -137,4 +137,49 @@ class TranslationParityTest extends TestCase
             }
         }
     }
+
+    /**
+     * كل صلاحية ليها اسم معروض في شاشة الأدوار.
+     *
+     * RoleService::label() بيرجع المفتاح الخام لو مالقاش ترجمة،
+     * فالمستخدم بيشوف "role.action.link_stats" بدل اسم مفهوم.
+     */
+    public function test_every_permission_has_a_readable_label(): void
+    {
+        $service = app(\App\Services\Role\RoleService::class);
+
+        $method = new \ReflectionMethod($service, 'label');
+        $method->setAccessible(true);
+
+        $missing = [];
+
+        foreach (all_roles() as $permission) {
+            // الاسم اللي هيتعرض فعلاً — ممكن ييجي من لاحقة عامة
+            // (show/create/…) مش من مفتاح باسم الصلاحية كاملة.
+            $label = $method->invoke($service, $permission);
+
+            if (str_starts_with($label, 'role.action.')) {
+                $missing[] = $permission . ' (مفيش ترجمة خالص)';
+
+                continue;
+            }
+
+            // ولو الاسم جاي من مفتاح كامل، لازم يبقى موجود في اللغتين:
+            // Lang::has بـ fallback = false هو الفحص الوحيد اللي
+            // بيفرّق بين "موجود بالعربي" و"راجع للإنجليزي".
+            $exact = "role.action.{$permission}";
+
+            $inAr = \Illuminate\Support\Facades\Lang::has($exact, 'ar', false);
+            $inEn = \Illuminate\Support\Facades\Lang::has($exact, 'en', false);
+
+            if ($inAr !== $inEn) {
+                $missing[] = $permission . ($inAr ? ' (ناقص بالإنجليزي)' : ' (ناقص بالعربي)');
+            }
+        }
+
+        $this->assertEmpty(
+            $missing,
+            'صلاحيات مالهاش اسم معروض صحيح: ' . implode(' · ', $missing)
+        );
+    }
 }

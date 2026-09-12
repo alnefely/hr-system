@@ -56,3 +56,30 @@ Schedule::command('activity:prune --force')
     ->dailyAt('02:00')
     ->withoutOverlapping()
     ->onOneServer();
+
+// تفريغ نقرات الروابط من Redis لقاعدة البيانات كل ٥ دقايق.
+// مسار التحويل مابيكتبش في قاعدة البيانات خالص عشان يفضل سريع،
+// فالأمر ده هو اللي بينقل النقرات والعدّادات. من غيره الإحصائيات
+// بتقف — لكن التحويل نفسه بيفضل شغّال.
+Schedule::command('links:flush')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// تلخيص نقرات امبارح في الجدول التجميعي ٣:١٥ صباحاً.
+//
+// الترتيب مقصود: بعد آخر links:flush (بيشتغل كل ٥ دقايق) عشان
+// كل نقرات امبارح تكون وصلت، وقبل links:prune عشان التلخيص
+// يلاقي البيانات الخام لسه موجودة.
+Schedule::command('links:aggregate')
+    ->dailyAt('03:15')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// حذف النقرات القديمة يومياً ٣:٣٠ صباحاً.
+// المدة من config/links.php (افتراضي ٩٠ يوم).
+// الأرشيف الدائم في link_daily_stats فالتاريخ مابيضيعش.
+Schedule::command('links:prune')
+    ->dailyAt('03:30')
+    ->withoutOverlapping()
+    ->onOneServer();

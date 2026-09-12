@@ -363,6 +363,19 @@ class RoleService
                     'sale_force_delete',
                 ],
             ],
+            'link' => [
+                'label' => 'link.title',
+                'items' => [
+                    'link_show',
+                    'link_create',
+                    'link_update',
+                    'link_delete',
+                    'link_trash',
+                    'link_restore',
+                    'link_force_delete',
+                    'link_stats',
+                ],
+            ],
         ];
     }
 

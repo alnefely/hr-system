@@ -241,6 +241,15 @@
             </li>
         @endif
 
+        @if (admin_can('link_show'))
+            <li class="menu-item {{ request()->is('admin/links*') ? 'active' : '' }}">
+                <a href="{{ route('admin.links.index') }}" class="menu-link">
+                    <i class="fa-solid fa-link"></i>
+                    <div>{{ __('link.title') }}</div>
+                </a>
+            </li>
+        @endif
+
         @if (admin_can('report_employee_statement') || admin_can('report_salary_audit') || admin_can('report_financial_pl') || admin_can('report_documents'))
             <li class="menu-item {{ request()->is('admin/reports*') ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
