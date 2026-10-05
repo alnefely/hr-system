@@ -132,16 +132,50 @@ class LinkStatsTest extends TestCase
         $this->assertEquals(2, $stat->unique_clicks, 'الزوار الفريدون اتضخّموا');
     }
 
-    /** اليوم الجاري مابيتلخّصش — لسه بيتجمّع فيه نقرات. */
-    public function test_aggregate_skips_today_by_default(): void
+    /**
+     * اليوم الجاري بيتلخّص فوراً.
+     *
+     * التلخيص بيشتغل كل ٥ دقايق، فنقرة النهارده لازم تبان في
+     * الإحصائيات من غير ما المستخدم يستنى بكرة.
+     */
+    public function test_aggregate_includes_today(): void
     {
         $link = $this->link();
 
         $this->click($link, ['clicked_at' => now()]);
 
+        $this->artisan('links:aggregate')->assertSuccessful();
+
+        $stat = LinkDailyStat::where('date', now()->toDateString())->first();
+
+        $this->assertNotNull($stat, 'نقرة النهارده مااتلخّصتش');
+        $this->assertEquals(1, $stat->clicks);
+    }
+
+    /**
+     * وإعادة التشغيل بتصحّح صف النهارده مش بتكرره.
+     *
+     * دي الضمانة اللي بتخلي التشغيل كل ٥ دقايق آمن: نقرة جديدة
+     * بتتضاف للرقم، والصف بيفضل واحد.
+     */
+    public function test_repeated_runs_refresh_today_without_duplicating(): void
+    {
+        $link = $this->link();
+
+        $this->click($link, ['visitor_hash' => 'a', 'clicked_at' => now()]);
         $this->artisan('links:aggregate');
 
-        $this->assertEquals(0, LinkDailyStat::count(), 'اتلخّص اليوم الجاري الناقص');
+        // نقرة تانية وصلت بعد أول تلخيص
+        $this->click($link, ['visitor_hash' => 'b', 'clicked_at' => now()]);
+        $this->artisan('links:aggregate');
+        $this->artisan('links:aggregate');
+
+        $this->assertEquals(1, LinkDailyStat::count(), 'اتعمل صف مكرر لنفس اليوم');
+
+        $stat = LinkDailyStat::first();
+
+        $this->assertEquals(2, $stat->clicks, 'النقرة الجديدة ماظهرتش');
+        $this->assertEquals(2, $stat->unique_clicks);
     }
 
     /**

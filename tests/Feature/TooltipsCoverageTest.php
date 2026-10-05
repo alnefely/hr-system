@@ -215,7 +215,7 @@ class TooltipsCoverageTest extends TestCase
         $this->assertStringContainsString(__('link.title'), $html, 'اسم الموديول مش مذكور');
 
         // والنقط اللي المستخدم لازم يعرفها عشان مايستغربش
-        $this->assertStringContainsString('لا تظهر لحظياً', $html, 'تأخير الإحصائيات مش موثّق');
+        $this->assertStringContainsString('كل 5 دقائق', $html, 'دورة التحديث مش موثّقة');
         $this->assertStringContainsString('زيارات البوتات', $html, 'استبعاد البوتات مش موثّق');
 
         // وأوامر التشغيل الدوري
@@ -242,6 +242,9 @@ class TooltipsCoverageTest extends TestCase
             'من داخل الجدول مباشرة بنقرة'  => 'تعديل الحالة من الجدول اتشال',
             // قائمة تبديل العملة في رسم الاتجاه اتشالت
             'قائمة تبديل بين العملات'       => 'قائمة تبديل العملات اتشالت',
+            // التلخيص بقى كل ٥ دقائق مش يومي
+            'بتلخيص يومي فجر اليوم التالي'  => 'التلخيص بقى كل 5 دقائق',
+            'تظهر في اليوم التالي'          => 'إحصائيات اليوم الجاري بقت فورية',
         ];
 
         foreach ($stale as $needle => $why) {

@@ -1035,13 +1035,13 @@
                     </table>
                 </div>
 
-                <div class="alert alert-warning d-flex align-items-start" role="alert">
+                <div class="alert alert-info d-flex align-items-start" role="alert">
                     <i class="fa-solid fa-clock me-2 mt-1"></i>
                     <div class="small">
-                        <strong>الأرقام لا تظهر لحظياً.</strong> لتبقى صفحة التحويل سريعة، تُسجَّل
-                        النقرة في الذاكرة المؤقتة ثم تُنقل لقاعدة البيانات كل 5 دقائق، ويُحدَّث
-                        تفصيل الإحصائيات بتلخيص يومي فجر اليوم التالي. لذلك قد تجد نقرة حديثة
-                        لم تنعكس بعد، وإحصائيات اليوم الجاري تظهر في اليوم التالي.
+                        <strong>التحديث كل 5 دقائق.</strong> لتبقى صفحة التحويل سريعة، تُسجَّل
+                        النقرة في الذاكرة المؤقتة أولاً، ثم تُنقل لقاعدة البيانات وتُحدَّث كل
+                        الإحصائيات — بما فيها إحصائيات اليوم الجاري — كل 5 دقائق تلقائياً.
+                        فقد تجد نقرة في آخر دقيقتين لم تنعكس بعد، وتظهر في التحديث التالي.
                     </div>
                 </div>
 
@@ -1559,7 +1559,7 @@ PUSHER_APP_CLUSTER=eu</pre>
                             </tr>
                             <tr>
                                 <td><code class="small" dir="ltr">php artisan links:aggregate</code></td>
-                                <td class="small">تلخيص نقرات الأمس في جدول الإحصائيات اليومي (تلقائية 3:15 صباحاً)</td>
+                                <td class="small">تحديث جدول الإحصائيات لليوم الجاري وأمس (تلقائية كل 5 دقائق)</td>
                             </tr>
                             <tr>
                                 <td><code class="small" dir="ltr">php artisan links:prune</code></td>

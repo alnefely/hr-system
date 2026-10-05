@@ -59,8 +59,14 @@ class AggregateLinkStatsCommand extends Command
     /**
      * الأيام المطلوب تلخيصها.
      *
-     * الافتراضي امبارح مش النهارده: اليوم الجاري لسه بيتجمّع فيه
-     * نقرات، فتلخيصه بيدي رقم ناقص.
+     * الافتراضي: النهارده وامبارح.
+     *
+     * اليوم الجاري بيتلخّص عادي لأن الأمر بيشتغل كل ٥ دقايق،
+     * و updateOrCreate بيصحّح صف النهارده في كل تشغيلة بدل ما
+     * يكرره — فالرقم بيتحدّث باستمرار لحد ما اليوم يخلص.
+     *
+     * وامبارح معاه لأن نقرة الساعة 11:59 ممكن تتفرّغ من Redis بعد
+     * منتصف الليل، فتشغيلة أول النهار الجديد لازم تصحّح صف امبارح.
      */
     private function resolveDates(): array
     {
@@ -72,7 +78,7 @@ class AggregateLinkStatsCommand extends Command
             }
         }
 
-        $days = (int) ($this->option('days') ?: 1);
+        $days = (int) ($this->option('days') ?: 2);
 
         if ($days < 1) {
             return [];
@@ -80,7 +86,8 @@ class AggregateLinkStatsCommand extends Command
 
         $dates = [];
 
-        for ($i = 1; $i <= $days; $i++) {
+        // من النهارده ورا: --days=1 يعني النهارده بس
+        for ($i = 0; $i < $days; $i++) {
             $dates[] = now()->subDays($i)->startOfDay();
         }
 
