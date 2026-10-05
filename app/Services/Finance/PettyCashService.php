@@ -9,162 +9,136 @@ use Illuminate\Support\Facades\DB;
 /**
  * ترحيل رصيد العهدة النقدية من شهر لشهر.
  *
- * ملاحظة مهمة على الأداء: carryOverAll() كانت بتلف على الفروع وتعمل
- * 3 استعلامات لكل فرع — يعني 20 فرع = 60 استعلام على كل زيارة لصفحة
- * المصاريف. دلوقتي بتجمع كل البيانات في 3 استعلامات ثابتة مهما كان
- * عدد الفروع، والكتابة بتتم بـ upsert واحد.
+ * العهدة لكل فرع لوحده — دايماً. مفيش "عهدة عامة" بـ branch_id فاضي:
+ * المصروف لازم يتسجّل على فرع، والتخصيص لازم يتعمل لفرع، فأي رصيد
+ * مالوش فرع مستحيل يتصرف منه، وكان بيفضل يترحّل لوحده للأبد.
  *
- * الترحيل المفروض يتنفذ من الأمر المجدول (petty-cash:carry-over)
- * مش من داخل صفحة العرض — الكتابة في DB جوّه GET ممارسة سيئة.
+ * الترحيل بيتحسب كسلسلة من أول شهر للفرع:
+ *
+ *     مرحّل(شهر) = إجمالي(الشهر اللي قبله) − مصروف(الشهر اللي قبله)
+ *     إجمالي(شهر) = مخصص(شهر) + مرحّل(شهر)
+ *
+ * إعادة الحساب من الأول (مش شهر واحد بس) هي اللي بتخلي تعديل مصروف
+ * قديم يصحّح كل الشهور اللي بعده — قبل كده المرحّل كان بيتحسب مرة
+ * واحدة ويفضل قديم لو حد عدّل مصروف الشهر اللي فات.
+ *
+ * المصروف المحسوب = كل مصروفات الفرع في الشهر بكل طرق الدفع،
+ * نفس اللي بتعرضه بطاقة "المتبقي الفعلي" في شاشة المصاريف.
  */
 class PettyCashService
 {
     /**
-     * رحّل المتبقي من الشهر السابق لكل الفروع دفعة واحدة.
+     * إعادة حساب الترحيل لكل الفروع لحد الشهر المحدد.
      *
-     * بيرجع عدد السجلات اللي اتحدّثت فعلاً.
+     * بيرجع عدد الصفوف اللي اتغيّرت فعلاً.
      */
     public function carryOverAll(int $year, int $month): int
     {
-        [$prevYear, $prevMonth] = $this->previousPeriod($year, $month);
+        $branchIds = PettyCashBalance::whereNotNull('branch_id')
+            ->distinct()
+            ->pluck('branch_id');
 
-        // (1) أرصدة الشهر السابق لكل الفروع
-        $previousBalances = PettyCashBalance::where('year', $prevYear)
-            ->where('month', $prevMonth)
-            ->get()
-            ->keyBy(fn ($row) => $this->branchKey($row->branch_id));
+        $changed = 0;
 
-        if ($previousBalances->isEmpty()) {
-            return 0;
+        foreach ($branchIds as $branchId) {
+            $changed += $this->recalculateBranch((int) $branchId, $year, $month);
         }
 
-        // (2) المصروف في الشهر السابق مجمّعاً بالفرع — استعلام واحد
-        $spentByBranch = Expense::acrossAllBranches()
-            ->inMonth($prevYear, $prevMonth)
-            ->groupBy('branch_id')
-            ->selectRaw('branch_id, SUM(amount) as total')
-            ->get()
-            ->mapWithKeys(fn ($row) => [$this->branchKey($row->branch_id) => (float) $row->total]);
-
-        // (3) أرصدة الشهر الحالي — نعرف منها إيه اللي محتاج تحديث فعلاً
-        $currentBalances = PettyCashBalance::where('year', $year)
-            ->where('month', $month)
-            ->get()
-            ->keyBy(fn ($row) => $this->branchKey($row->branch_id));
-
-        $adminId = auth('admin')->id();
-        $now = now();
-        $toUpsert = [];
-
-        foreach ($previousBalances as $key => $previous) {
-            $previousTotal = (float) $previous->total_balance;
-
-            if ($previousTotal <= 0) {
-                continue;
-            }
-
-            $spent = (float) ($spentByBranch[$key] ?? 0);
-            $remaining = round(max(0, $previousTotal - $spent), 2);
-
-            if ($remaining <= 0) {
-                continue;
-            }
-
-            $current = $currentBalances->get($key);
-
-            // idempotent: مفيش كتابة لو الرصيد المرحّل مضبوط أصلاً
-            if ($current && round((float) $current->carried_over_amount, 2) === $remaining) {
-                continue;
-            }
-
-            $allocated = (float) ($current->allocated_amount ?? 0);
-
-            $toUpsert[] = [
-                'branch_id'           => $previous->branch_id,
-                'year'                => $year,
-                'month'               => $month,
-                'carried_over_amount' => $remaining,
-                'allocated_amount'    => $allocated,
-                'total_balance'       => round($allocated + $remaining, 2),
-                'created_by'          => $current->created_by ?? $adminId,
-                'created_at'          => $current->created_at ?? $now,
-                'updated_at'          => $now,
-            ];
-        }
-
-        if (empty($toUpsert)) {
-            return 0;
-        }
-
-        DB::transaction(function () use ($toUpsert) {
-            PettyCashBalance::upsert(
-                $toUpsert,
-                ['branch_id', 'year', 'month'],
-                ['carried_over_amount', 'total_balance', 'updated_at']
-            );
-        });
-
-        return count($toUpsert);
+        return $changed;
     }
 
     /**
-     * ترحيل فرع واحد — للاستدعاءات المحددة (شاشة فرع بعينه).
+     * إعادة حساب سلسلة الترحيل لفرع واحد من أول شهر ليه لحد الشهر المحدد.
+     *
+     * أول شهر للفرع مرحّله بيفضل زي ما هو (مفيش شهر قبله يتحسب منه).
+     * الشهر اللي مالوش صف بيتعمله صف بس لو فيه متبقي يترحّل.
+     *
+     * بيرجع عدد الصفوف اللي اتغيّرت فعلاً.
      */
-    public function carryOverForBranch(?int $branchId, int $year, int $month): ?PettyCashBalance
+    public function recalculateBranch(int $branchId, int $toYear, int $toMonth): int
     {
-        [$prevYear, $prevMonth] = $this->previousPeriod($year, $month);
+        $rows = PettyCashBalance::where('branch_id', $branchId)
+            ->orderBy('year')
+            ->orderBy('month')
+            ->get()
+            ->keyBy(fn ($row) => $this->periodKey($row->year, $row->month));
 
-        $previous = PettyCashBalance::where('year', $prevYear)
-            ->where('month', $prevMonth)
-            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId), fn ($q) => $q->whereNull('branch_id'))
-            ->first();
-
-        if (!$previous || (float) $previous->total_balance <= 0) {
-            return null;
+        if ($rows->isEmpty()) {
+            return 0;
         }
 
-        // acrossAllBranches بيوقف الـ Global Scope: الاستعلام بيفلتر بـ
-        // $branchId الصريح، ولو سيبنا العزل التلقائي يضيف فلتر تاني كان
-        // هيصفّر ترحيل العهدة العامة (branch_id = null).
-        $spent = (float) Expense::acrossAllBranches()
-            ->inMonth($prevYear, $prevMonth)
-            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId), fn ($q) => $q->whereNull('branch_id'))
-            ->sum('amount');
+        $first = $rows->first();
+        $last  = $rows->last();
+        [$year, $month] = [$first->year, $first->month];
 
-        $remaining = round(max(0, (float) $previous->total_balance - $spent), 2);
-
-        if ($remaining <= 0) {
-            return null;
+        // لو فيه شهر متخصص بعد الهدف (تخصيص الشهر الجاي مقدماً)،
+        // بنكمّل لحد عنده — وإلا مرحّله يفضل قديم.
+        if ($this->periodKey($last->year, $last->month) > $this->periodKey($toYear, $toMonth)) {
+            [$toYear, $toMonth] = [$last->year, $last->month];
         }
 
-        return DB::transaction(function () use ($branchId, $year, $month, $remaining) {
-            $current = PettyCashBalance::firstOrNew([
-                'branch_id' => $branchId,
-                'year'      => $year,
-                'month'     => $month,
-            ]);
+        // شهر الهدف قبل أول شهر للفرع: مفيش حاجة تتحسب
+        if ($this->periodKey($toYear, $toMonth) < $this->periodKey($year, $month)) {
+            return 0;
+        }
 
-            if (round((float) $current->carried_over_amount, 2) === $remaining) {
-                return $current->exists ? $current : null;
+        $previousTotal = (float) $first->allocated_amount + (float) $first->carried_over_amount;
+        $changed = 0;
+
+        DB::transaction(function () use ($branchId, $rows, &$year, &$month, $toYear, $toMonth, &$previousTotal, &$changed) {
+            while ($this->periodKey($year, $month) < $this->periodKey($toYear, $toMonth)) {
+                $spent = (float) Expense::acrossAllBranches()
+                    ->where('branch_id', $branchId)
+                    ->inMonth($year, $month)
+                    ->sum('amount');
+
+                $remaining = round(max(0, $previousTotal - $spent), 2);
+
+                [$year, $month] = $this->nextPeriod($year, $month);
+
+                $row = $rows->get($this->periodKey($year, $month));
+
+                if ($row) {
+                    if (round((float) $row->carried_over_amount, 2) !== $remaining) {
+                        $row->carried_over_amount = $remaining;
+                        $row->save();   // booted() بيحدّث total_balance
+                        $changed++;
+                    }
+
+                    $previousTotal = (float) $row->allocated_amount + $remaining;
+
+                    continue;
+                }
+
+                // مفيش صف للشهر ده: بنعمله بس لو فيه حاجة تترحّل
+                if ($remaining > 0) {
+                    PettyCashBalance::create([
+                        'branch_id'           => $branchId,
+                        'year'                => $year,
+                        'month'               => $month,
+                        'allocated_amount'    => 0,
+                        'carried_over_amount' => $remaining,
+                        'created_by'          => auth('admin')->id(),
+                    ]);
+                    $changed++;
+                }
+
+                $previousTotal = $remaining;
             }
-
-            $current->carried_over_amount = $remaining;
-            $current->created_by ??= auth('admin')->id();
-            $current->save();
-
-            return $current;
         });
+
+        return $changed;
     }
 
-    /** مفتاح موحّد للفرع — null بيبقى مفتاح ثابت عشان الـ keyBy يشتغل. */
-    private function branchKey(?int $branchId): string
+    /** مفتاح قابل للمقارنة: 2026-10 → 202610. */
+    private function periodKey(int $year, int $month): int
     {
-        return $branchId === null ? '_general' : (string) $branchId;
+        return $year * 100 + $month;
     }
 
     /** @return array{0:int,1:int} */
-    private function previousPeriod(int $year, int $month): array
+    private function nextPeriod(int $year, int $month): array
     {
-        return $month === 1 ? [$year - 1, 12] : [$year, $month - 1];
+        return $month === 12 ? [$year + 1, 1] : [$year, $month + 1];
     }
 }

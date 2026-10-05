@@ -344,7 +344,6 @@ use App\Http\Controllers\Admin\ExpenseCategoryController;
 // 13. مصاريف العهدة وإدارة الأرصدة النقدية (Custody & Expenses)
 Route::get('/expenses/get-custody-balance', [ExpenseController::class, 'getCustodyBalance'])->name('expenses.get-custody-balance')->middleware('AdminPermission:expense_balance_manage');
 Route::post('/expenses/update-balance', [ExpenseController::class, 'updateBalance'])->name('expenses.update-balance')->middleware('AdminPermission:expense_balance_manage');
-Route::post('/expenses/rollover-balance', [ExpenseController::class, 'rolloverBalance'])->name('expenses.rollover-balance')->middleware('AdminPermission:expense_balance_manage');
 
 Route::get('/expenses/trash', [ExpenseController::class, 'trash'])->name('expenses.trash')->middleware('AdminPermission:expense_trash');
 Route::post('/expenses/{id}/restore', [ExpenseController::class, 'restore'])->name('expenses.restore')->middleware('AdminPermission:expense_restore');

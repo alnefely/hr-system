@@ -51,6 +51,12 @@ class AppServiceProvider extends ServiceProvider
         // Broadcast::routes() مش مستخدمة عشان مانرجعش نسجّل المسار
         // الافتراضي تاني.
         $this->registerBroadcastChannels();
+
+        // الأوامر المجدولة والطابور مالهمش طلب متصفح، فلارافيل كان
+        // بياخد الدومين من APP_URL. بقى بياخد آخر دومين اتفتح منه النظام.
+        if ($this->app->runningInConsole()) {
+            \App\Support\RootUrl::applyToConsole();
+        }
     }
 
     /**

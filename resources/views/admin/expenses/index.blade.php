@@ -55,6 +55,10 @@
                 @if($custodyBalance && $custodyBalance->carried_over_amount > 0)
                     <small class="text-success d-block mt-1" data-bs-toggle="tooltip" title="فائض مرحل تلقائياً من إغلاق الشهر السابق"><i class="fa-solid fa-arrow-right-to-bracket me-1"></i> يتضمن مرحل: <span dir="ltr">{{ number_format($custodyBalance->carried_over_amount, 2) }}</span> {{ $branchCurrency }}</small>
                 @endif
+
+                <a href="#" class="small text-info d-inline-block mt-2" data-bs-toggle="modal" data-bs-target="#carryExplainerModal">
+                    <i class="fa-solid fa-circle-info me-1"></i>{{ __('expense.carry.how') }}
+                </a>
             </div>
         </div>
     </div>
@@ -237,6 +241,7 @@
             </div>
         </div>
     @endif
+
 </div>
 
 <div class="card mb-4 shadow-sm">
@@ -261,11 +266,6 @@
                 <button type="button" class="btn btn-label-success waves-effect" data-bs-toggle="modal" data-bs-target="#manageCustodyBalanceModal">
                     <i class="fa-solid fa-coins me-1"></i> {{ __('expense.actions.manage_balance') }}
                 </button>
-                @if($remainingBalance > 0)
-                    <button type="button" class="btn btn-label-info waves-effect" data-bs-toggle="modal" data-bs-target="#rolloverCustodyModal">
-                        <i class="fa-solid fa-share me-1"></i> {{ __('expense.actions.rollover') }}
-                    </button>
-                @endif
             @endif
             @if(admin_can('expense_category_show'))
                 <a href="{{ route('admin.expense-categories.index') }}" class="btn btn-label-secondary waves-effect">
@@ -471,46 +471,94 @@
         </div>
     </div>
 
-    {{-- Modal: Rollover Remaining Custody Balance --}}
-    @if($remainingBalance > 0)
-        @php
-            $nextMonthNum = $month == 12 ? 1 : $month + 1;
-            $nextYearNum  = $month == 12 ? $year + 1 : $year;
-        @endphp
-        <div class="modal fade" id="rolloverCustodyModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <form action="{{ route('admin.expenses.rollover-balance') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="year" value="{{ $year }}" />
-                        <input type="hidden" name="month" value="{{ $month }}" />
-                        <input type="hidden" name="branch_id" value="{{ request('branch_id') }}" />
 
-                        <div class="modal-header border-bottom">
-                            <h5 class="modal-title fw-bold text-info">
-                                <i class="fa-solid fa-share me-2"></i> {{ __('expense.actions.rollover') }}
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+@endif
+
+    {{--
+        شرح الترحيل التلقائي بأرقام الشهر المعروض — بيفتح من الرابط
+        اللي في بطاقة الرصيد المخصص.
+
+        الأرقام من carryBreakdown (كل مصروفات الشهر) مش من البطاقات —
+        البطاقات بتتأثر بالفلاتر، والترحيل لأ.
+    --}}
+    @unless($usingCustomRange)
+        @php
+            $prevLabel = \Carbon\Carbon::create($year, $month, 1)->subMonth()->format('m/Y');
+            $nextLabel = \Carbon\Carbon::create($year, $month, 1)->addMonth()->format('m/Y');
+        @endphp
+        <div class="modal fade" id="carryExplainerModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header border-bottom">
+                        <h5 class="modal-title fw-bold text-info">
+                            <i class="fa-solid fa-share me-2"></i>{{ __('expense.carry.title') }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body pt-4">
+                        <p class="text-muted mb-3">{{ __('expense.carry.intro') }}</p>
+
+                    @forelse ($carryBreakdown as $currency => $row)
+                        <div class="d-flex flex-wrap align-items-center gap-2 small mb-2">
+                            <span class="badge bg-label-primary">
+                                {{ __('expense.carry.allocated') }}
+                                <strong dir="ltr">{{ number_format($row['allocated'], 2) }}</strong>
+                            </span>
+                            <span class="text-muted">+</span>
+                            <span class="badge bg-label-info">
+                                {{ __('expense.carry.carried_in', ['month' => $prevLabel]) }}
+                                <strong dir="ltr">{{ number_format($row['carried'], 2) }}</strong>
+                            </span>
+                            <span class="text-muted">=</span>
+                            <span class="badge bg-label-secondary">
+                                {{ __('expense.carry.total') }}
+                                <strong dir="ltr">{{ number_format($row['total'], 2) }}</strong>
+                            </span>
+                            <span class="text-muted">−</span>
+                            <span class="badge bg-label-warning">
+                                {{ __('expense.carry.spent') }}
+                                <strong dir="ltr">{{ number_format($row['spent'], 2) }}</strong>
+                            </span>
+                            <span class="text-muted">=</span>
+                            <span class="badge bg-label-{{ $row['remaining'] > 0 ? 'success' : ($row['remaining'] < 0 ? 'danger' : 'secondary') }}">
+                                {{ __('expense.carry.remaining') }}
+                                <strong dir="ltr">{{ number_format($row['remaining'], 2) }}</strong>
+                                {{ $currency }}
+                            </span>
+
+                            <i class="fa-solid {{ app()->getLocale() === 'ar' ? 'fa-arrow-left' : 'fa-arrow-right' }} text-muted mx-1"></i>
+
+                            @if ($row['remaining'] > 0)
+                                <span class="text-success fw-semibold">
+                                    {{ __('expense.carry.goes_to', ['month' => $nextLabel]) }}
+                                </span>
+                            @elseif ($row['remaining'] < 0)
+                                <span class="text-danger fw-semibold">
+                                    {{ __('expense.carry.deficit', ['month' => $nextLabel]) }}
+                                </span>
+                            @else
+                                <span class="text-muted">{{ __('expense.carry.nothing') }}</span>
+                            @endif
                         </div>
-                        <div class="modal-body pt-4 text-center">
-                            <div class="avatar avatar-xl rounded-circle bg-label-info mx-auto mb-3 d-flex align-items-center justify-content-center">
-                                <i class="fa-solid fa-arrows-rotate fs-2"></i>
-                            </div>
-                            <h5 class="fw-bold mb-2">هل ترغب في ترحيل المتبقي من العهدة؟</h5>
-                            <p class="text-muted mb-3">
-                                سيتم نقل المبلغ المتبقي الحالي وقدره <strong class="text-success fs-5"><span dir="ltr">{{ number_format($remainingBalance, 2) }}</span> {{ $branchCurrency }}</strong> تلقائياً إلى رصيد عهدة شهر <strong class="text-primary">{{ $nextMonthNum }}/{{ $nextYearNum }}</strong>.
-                            </p>
-                        </div>
-                        <div class="modal-footer justify-content-center">
-                            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">{{ __('global.cancel') }}</button>
-                            <button type="submit" class="btn btn-info"><i class="fa-solid fa-check me-1"></i> تأكيد الترحيل لشهر {{ $nextMonthNum }}/{{ $nextYearNum }}</button>
-                        </div>
-                    </form>
+                    @empty
+                        <p class="small text-muted mb-2">
+                            <i class="fa-solid fa-circle-info me-1"></i>{{ __('expense.carry.no_balance') }}
+                        </p>
+                    @endforelse
+
+                    <ul class="small text-muted mb-0 ps-3">
+                        <li>{{ __('expense.carry.rule_all_expenses') }}</li>
+                        <li>{{ __('expense.carry.rule_live') }}</li>
+                        <li>{{ __('expense.carry.rule_branch') }}</li>
+                    </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">{{ __('global.close') }}</button>
+                    </div>
                 </div>
             </div>
         </div>
-    @endif
-@endif
+    @endunless
 @endsection
 
 @push('js')

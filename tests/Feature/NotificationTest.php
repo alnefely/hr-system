@@ -345,4 +345,141 @@ class NotificationTest extends TestCase
         $this->post(route('admin.notifications.read', $notification->id))
             ->assertRedirect(route('admin.notifications.index'));
     }
+
+    // ========================================================
+    //  روابط الإشعارات
+    // ========================================================
+
+    /**
+     * الإشعار اللي اتعمل من أمر مجدول بياخد دومين APP_URL — لو كان
+     * localhost، الضغط كان بيودّي على localhost. الرابط بقى نسبي.
+     */
+    private function notificationWithUrl(string $url): \App\Models\AdminNotification
+    {
+        // كتابة مباشرة بالرابط الكامل زي الصفوف القديمة اللي في قاعدة البيانات
+        $id = \Illuminate\Support\Facades\DB::table('admin_notifications')->insertGetId([
+            'admin_id'   => $this->mainAdmin->id,
+            'type'       => 'petty_cash_low',
+            'title'      => 'تنبيه',
+            'url'        => $url,
+            'level'      => 'danger',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return \App\Models\AdminNotification::find($id);
+    }
+
+    public function test_stored_absolute_url_is_served_as_relative(): void
+    {
+        $notification = $this->notificationWithUrl('http://localhost/admin/expenses?branch_id=1&month=9');
+
+        $this->assertEquals('/admin/expenses?branch_id=1&month=9', $notification->url);
+        $this->assertEquals('/admin/expenses?branch_id=1&month=9', $notification->toPayload()['url'], 'الجرس لسه بياخد الرابط الكامل');
+    }
+
+    /** الضغط من شاشة الإشعارات بيحوّل على نفس الدومين اللي المستخدم فاتح عليه. */
+    public function test_reading_redirects_to_current_host_not_stored_host(): void
+    {
+        $notification = $this->notificationWithUrl('http://localhost/admin/expenses?branch_id=1');
+
+        $this->actingAs($this->mainAdmin, 'admin');
+
+        $response = $this->post(route('admin.notifications.read', $notification->id));
+
+        $location = $response->headers->get('Location');
+
+        $this->assertStringNotContainsString('localhost', $location, 'لسه بيحوّل على localhost');
+        $this->assertStringEndsWith('/admin/expenses?branch_id=1', $location);
+    }
+
+    /** والإشعارات الجديدة بتتخزّن نسبي من الأول. */
+    public function test_new_notifications_store_relative_urls(): void
+    {
+        config(['app.url' => 'http://localhost']);
+
+        $notification = app(NotificationService::class)->send(
+            $this->mainAdmin->id,
+            \App\Enums\NotificationType::PettyCashLow,
+            'تنبيه',
+            null,
+            'http://localhost/admin/sales/5',
+        );
+
+        $this->assertEquals(
+            '/admin/sales/5',
+            \Illuminate\Support\Facades\DB::table('admin_notifications')->where('id', $notification->id)->value('url'),
+            'الرابط اتخزّن بالدومين'
+        );
+    }
+
+    /** البث فوري — مايستناش worker مش موجود. */
+    public function test_broadcast_does_not_wait_for_a_queue_worker(): void
+    {
+        $this->assertInstanceOf(
+            \Illuminate\Contracts\Broadcasting\ShouldBroadcastNow::class,
+            new AdminNotificationCreated($this->notificationWithUrl('/admin')),
+            'البث لسه بيعدّي على الطابور'
+        );
+    }
+
+    // ========================================================
+    //  حذف الإشعارات القديمة
+    // ========================================================
+
+    private function aged(int $daysAgo, bool $read): int
+    {
+        return \Illuminate\Support\Facades\DB::table('admin_notifications')->insertGetId([
+            'admin_id'   => $this->mainAdmin->id,
+            'type'       => 'petty_cash_low',
+            'title'      => "{$daysAgo}d " . ($read ? 'read' : 'unread'),
+            'level'      => 'info',
+            'read_at'    => $read ? now()->subDays($daysAgo) : null,
+            'created_at' => now()->subDays($daysAgo),
+            'updated_at' => now()->subDays($daysAgo),
+        ]);
+    }
+
+    /**
+     * المقروء بيتحذف بعد ٣٠ يوم، وأي إشعار بعد ٩٠.
+     */
+    public function test_prune_respects_read_and_overall_retention(): void
+    {
+        $readOld     = $this->aged(40, true);    // مقروء وأقدم من ٣٠ ← يتحذف
+        $readNew     = $this->aged(10, true);    // مقروء وحديث ← يفضل
+        $unreadMid   = $this->aged(40, false);   // ماتقراش، أقل من ٩٠ ← يفضل
+        $unreadOld   = $this->aged(100, false);  // ماتقراش وأقدم من ٩٠ ← يتحذف
+
+        $this->artisan('notifications:prune')->assertSuccessful();
+
+        $remaining = \App\Models\AdminNotification::pluck('id')->all();
+
+        $this->assertNotContains($readOld, $remaining, 'المقروء القديم مااتحذفش');
+        $this->assertNotContains($unreadOld, $remaining, 'غير المقروء الأقدم من ٩٠ يوم مااتحذفش');
+        $this->assertContains($readNew, $remaining, 'اتحذف مقروء حديث');
+        $this->assertContains($unreadMid, $remaining, 'اتحذف غير مقروء لسه في المدة');
+    }
+
+    /** المعاينة مابتحذفش. */
+    public function test_prune_dry_run_deletes_nothing(): void
+    {
+        $this->aged(100, false);
+        $before = \App\Models\AdminNotification::count();
+
+        $this->artisan('notifications:prune --dry-run')->assertSuccessful();
+
+        $this->assertEquals($before, \App\Models\AdminNotification::count());
+    }
+
+    /** ومتجدول يومياً. */
+    public function test_prune_is_scheduled(): void
+    {
+        $events = collect(app(\Illuminate\Console\Scheduling\Schedule::class)->events())
+            ->map(fn ($e) => $e->command);
+
+        $this->assertTrue(
+            $events->contains(fn ($c) => str_contains((string) $c, 'notifications:prune')),
+            'حذف الإشعارات مش متجدول'
+        );
+    }
 }

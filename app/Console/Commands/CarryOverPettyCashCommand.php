@@ -21,7 +21,7 @@ class CarryOverPettyCashCommand extends Command
         {--year= : السنة المستهدفة (الافتراضي: السنة الحالية)}
         {--month= : الشهر المستهدف (الافتراضي: الشهر الحالي)}';
 
-    protected $description = 'ترحيل المتبقي من عهدة الشهر السابق لرصيد الشهر الحالي لكل الفروع';
+    protected $description = 'إعادة حساب ترحيل العهدة لكل فرع من أول شهر ليه لحد الشهر الحالي';
 
     public function handle(PettyCashService $service): int
     {
@@ -44,7 +44,8 @@ class CarryOverPettyCashCommand extends Command
             return self::SUCCESS;
         }
 
-        $this->info("تم ترحيل الرصيد لـ {$carried} فرع. ✔");
+        // الرقم عدد الصفوف اللي اتصححت (ممكن أكتر من شهر للفرع الواحد)
+        $this->info("تم تحديث الترحيل في {$carried} شهر. ✔");
 
         return self::SUCCESS;
     }

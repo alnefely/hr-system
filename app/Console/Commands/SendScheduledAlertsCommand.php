@@ -102,7 +102,10 @@ class SendScheduledAlertsCommand extends Command
     {
         $threshold = (float) $this->option('threshold');
 
+        // صفوف بدون فرع (بقايا الترحيل القديم) مالهاش مصروف ولا اسم
+        // فرع يتعرض في التنبيه — بنتجاهلها زي شاشة المصاريف.
         $balances = PettyCashBalance::with('branch:id,name,currency')
+            ->whereNotNull('branch_id')
             ->where('year', now()->year)
             ->where('month', now()->month)
             ->where('total_balance', '>', 0)

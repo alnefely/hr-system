@@ -218,6 +218,10 @@ class TooltipsCoverageTest extends TestCase
         $this->assertStringContainsString('كل 5 دقائق', $html, 'دورة التحديث مش موثّقة');
         $this->assertStringContainsString('زيارات البوتات', $html, 'استبعاد البوتات مش موثّق');
 
+        // ترحيل العهدة: لكل فرع لوحده وبيتحدّث فوراً
+        $this->assertStringContainsString('ترحيل المتبقي للشهر التالي', $html, 'الترحيل مش موثّق');
+        $this->assertStringContainsString('كل فرع لوحده', $html, 'الترحيل لكل فرع مش موثّق');
+
         // وأوامر التشغيل الدوري
         foreach (['links:flush', 'links:aggregate', 'links:prune'] as $command) {
             $this->assertStringContainsString($command, $html, "الأمر {$command} مش موثّق");

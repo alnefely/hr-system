@@ -49,7 +49,6 @@ return [
         'allocated_amount'     => 'Custody Budget for this Month',
         'carried_over_amount'  => 'Carried Over From Previous Month',
         'total_balance'        => 'Total Available Custody Balance',
-        'rollover_target_month'=> 'Rollover Remaining to Month',
             'currency' => 'Currency',
 ],
 
@@ -62,7 +61,6 @@ return [
     'actions' => [
         'add_new'         => 'Record New Expense',
         'manage_balance'  => 'Set Custody Budget',
-        'rollover'        => 'Rollover Remaining to Next Month',
         'back_to_list'    => 'Back to List',
     ],
 
@@ -72,8 +70,6 @@ return [
         'deleted'               => 'Expense deleted successfully',
         'cant_backdate'         => 'You do not have permission to record or edit expenses for past months.',
         'balance_updated'       => 'Custody budget for :month updated successfully.',
-        'rollover_success'      => 'Remaining custody balance (:amount EGP) rolled over to :next_month successfully.',
-        'no_remaining_rollover' => 'Notice: No remaining balance to rollover to next month.',
             'restored' => 'Record restored successfully',
         'force_deleted' => 'Permanently deleted successfully',
 ],
@@ -107,5 +103,23 @@ return [
         'payment_method'=> 'How the expense was paid',
         'attachment'    => 'An image or PDF of the invoice. Required for approval and review',
         'notes'         => 'Any extra detail about this expense',
+    ],
+
+    'carry' => [
+        'how'        => 'Carry-over is automatic — how is it calculated?',
+        'title'      => 'Custody carry-over is automatic',
+        'intro'      => 'No action needed: the remaining custody of each branch carries over to the next month on its own and is added to its allocation.',
+        'allocated'  => 'Allocated',
+        'carried_in' => 'Carried from :month',
+        'total'      => 'Total',
+        'spent'      => 'Spent all month',
+        'remaining'  => 'Remaining',
+        'goes_to'    => 'Carries over automatically to :month',
+        'deficit'    => 'Deficit — not carried; :month starts with its allocation only',
+        'nothing'    => 'Nothing to carry over',
+        'no_balance' => 'No custody balance has been set for this month yet.',
+        'rule_all_expenses' => 'Calculated on all expenses of the month, every payment method — regardless of the selected filters.',
+        'rule_live'  => 'Updates instantly whenever an expense is recorded, edited or deleted — even in a past month.',
+        'rule_branch'=> 'Each branch carries over to itself — there is no balance shared between branches.',
     ],
 ];

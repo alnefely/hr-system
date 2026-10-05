@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'AdminPermission' => App\Http\Middleware\AdminPermission::class,
         ]);
+
+        // دومين النظام للأوامر المجدولة والطابور بدل APP_URL
+        $middleware->web(append: [
+            App\Http\Middleware\RememberRootUrl::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

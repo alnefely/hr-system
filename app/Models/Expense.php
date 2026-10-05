@@ -37,6 +37,33 @@ class Expense extends Model
         'expense_date' => 'date',
     ];
 
+    /**
+     * أي تغيير في مصروف بيعيد حساب ترحيل العهدة للفرع فوراً.
+     *
+     * المرحّل = إجمالي الشهر اللي فات − مصروفه، فتعديل مصروف قديم
+     * بيغيّر كل الشهور اللي بعده. من غير ده كان بيفضل غلط لحد ما
+     * الأمر الشهري يشتغل أول الشهر الجاي.
+     */
+    protected static function booted(): void
+    {
+        $recalculate = function (Expense $expense) {
+            $branches = array_filter(array_unique([
+                $expense->branch_id,
+                $expense->getOriginal('branch_id'),   // لو الفرع نفسه اتغيّر
+            ]));
+
+            $service = app(\App\Services\Finance\PettyCashService::class);
+
+            foreach ($branches as $branchId) {
+                $service->recalculateBranch((int) $branchId, now()->year, now()->month);
+            }
+        };
+
+        static::saved($recalculate);
+        static::deleted($recalculate);
+        static::restored($recalculate);
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');

@@ -48,7 +48,8 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // نسبي: المتصفح بيكمّله على الدومين الحالي — مش APP_URL
+            'url' => '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Services\Export\ExcelExportService;
+use App\Services\Finance\PettyCashService;
 
 class ExpenseController extends Controller
 {
@@ -198,11 +199,14 @@ class ExpenseController extends Controller
             $allocatedBalance = $custodyBalance ? (float) $custodyBalance->total_balance : 0.00;
             $allocatedByCurrency[$branchCurrency] = $allocatedBalance;
         } else {
+            // صفوف بدون فرع مالهاش مصروف يتخصم منها — دخولها في الجمع
+            // كان بيضيف رصيد وهمي على "جميع الفروع".
             $allBalances = PettyCashBalance::with('branch:id,name,currency')
+                ->whereNotNull('branch_id')
                 ->where('year', $year)
                 ->where('month', $month)
                 ->get();
-            $custodyBalance = $allBalances->whereNull('branch_id')->first() ?? $allBalances->first();
+            $custodyBalance = $allBalances->first();
             $allocatedBalance = 0.00;
             foreach ($allBalances as $b) {
                 $c = $b->branch?->currency ?? 'EGP';
@@ -249,6 +253,8 @@ class ExpenseController extends Controller
             ? ($remainingByCurrency[$branchCurrency] ?? 0.00) 
             : ($allocatedBalance - $cashExpensesTotal);
 
+        $carryBreakdown = $this->carryBreakdown($year, $month, $selectedBranch);
+
         $spentPeriodLabel = __('expense.filters.period_label', [
             'from' => $dateFrom,
             'to'   => $dateTo,
@@ -271,6 +277,7 @@ class ExpenseController extends Controller
             'remainingByCurrency',
             'allCurrencies',
             'remainingBalance',
+            'carryBreakdown',
             'custodyBalance',
             'year',
             'month',
@@ -396,6 +403,53 @@ class ExpenseController extends Controller
     }
 
     /**
+     * تفصيل ترحيل العهدة لشهر واحد، لكل عملة.
+     *
+     * بيتحسب على كل مصروفات الشهر بكل طرق الدفع — مش على الفلاتر —
+     * لأن ده بالظبط اللي PettyCashService بيرحّله. بطاقة "المتبقي"
+     * بتتأثر بالفلاتر، فلو اعتمدنا عليها الشرح هيقول رقم والترحيل رقم تاني.
+     *
+     * @return array<string, array{allocated: float, carried: float, total: float, spent: float, remaining: float}>
+     */
+    private function carryBreakdown(int $year, int $month, ?Branch $branch): array
+    {
+        $balances = PettyCashBalance::with('branch:id,currency')
+            ->whereNotNull('branch_id')
+            ->where('year', $year)
+            ->where('month', $month)
+            ->when($branch, fn ($q) => $q->where('branch_id', $branch->id))
+            ->get();
+
+        $spent = Expense::visibleTo()
+            ->inMonth($year, $month)
+            ->when($branch, fn ($q) => $q->where('branch_id', $branch->id))
+            ->selectRaw('currency, SUM(amount) as total')
+            ->groupBy('currency')
+            ->pluck('total', 'currency');
+
+        $rows = [];
+
+        foreach ($balances as $b) {
+            $c = $b->branch?->currency ?? 'EGP';
+            $rows[$c]['allocated'] = ($rows[$c]['allocated'] ?? 0) + (float) $b->allocated_amount;
+            $rows[$c]['carried']   = ($rows[$c]['carried'] ?? 0) + (float) $b->carried_over_amount;
+        }
+
+        foreach ($rows as $c => $r) {
+            $total = $r['allocated'] + $r['carried'];
+            $used  = (float) ($spent[$c] ?? 0);
+
+            $rows[$c] += [
+                'total'     => round($total, 2),
+                'spent'     => round($used, 2),
+                'remaining' => round($total - $used, 2),
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
      * Update or set allocated petty cash balance for a month.
      */
     public function updateBalance(Request $request)
@@ -423,76 +477,12 @@ class ExpenseController extends Controller
             ]
         );
 
+        // مخصص شهر بيغيّر المرحّل لكل الشهور اللي بعده
+        app(PettyCashService::class)->recalculateBranch($branch->id, now()->year, now()->month);
+
         return redirect()->back()->with('success', __('expense.messages.balance_updated', ['month' => $request->month . '/' . $request->year]) . " ({$branch->name} - {$branch->currency})");
     }
 
-    /**
-     * Rollover remaining custody balance to the next month.
-     */
-    public function rolloverBalance(Request $request)
-    {
-        $request->validate([
-            'branch_id' => ['nullable', 'exists:branches,id'],
-            'year'      => ['required', 'integer', 'min:2020', 'max:2100'],
-            'month'     => ['required', 'integer', 'min:1', 'max:12'],
-        ]);
-
-        $branchId = $request->branch_id ?: null;
-        $year     = (int) $request->year;
-        $month    = (int) $request->month;
-
-        // Current month total custody balance calculation (unified with index logic)
-        if ($branchId) {
-            $custodyBalance = PettyCashBalance::where('branch_id', $branchId)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
-            $currentTotalAvailable = $custodyBalance ? (float) $custodyBalance->total_balance : 0.00;
-        } else {
-            $custodyBalance = PettyCashBalance::whereNull('branch_id')
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
-            if ($custodyBalance && (float) $custodyBalance->total_balance > 0) {
-                $currentTotalAvailable = (float) $custodyBalance->total_balance;
-            } else {
-                $currentTotalAvailable = (float) PettyCashBalance::where('year', $year)
-                    ->where('month', $month)
-                    ->sum(DB::raw('allocated_amount + carried_over_amount'));
-            }
-        }
-
-        // Total expenses spent in current month
-        $cashSpent = (float) Expense::inMonth($year, $month)
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
-            ->sum('amount');
-
-        $remainingAmount = max(0, $currentTotalAvailable - $cashSpent);
-
-        if ($remainingAmount <= 0) {
-            return redirect()->back()->with('error', __('expense.messages.no_remaining_rollover'));
-        }
-
-        // Calculate Next Month and Year
-        $nextMonth = $month == 12 ? 1 : $month + 1;
-        $nextYear  = $month == 12 ? $year + 1 : $year;
-
-        // Update or create next month balance with carried_over_amount
-        $nextBalanceObj = PettyCashBalance::firstOrNew([
-            'branch_id' => $branchId,
-            'year'      => $nextYear,
-            'month'     => $nextMonth,
-        ]);
-
-        $nextBalanceObj->carried_over_amount = $remainingAmount;
-        $nextBalanceObj->created_by          = auth('admin')->id();
-        $nextBalanceObj->save();
-
-        return redirect()->back()->with('success', __('expense.messages.rollover_success', [
-            'amount'     => number_format($remainingAmount, 2),
-            'next_month' => $nextMonth . '/' . $nextYear,
-        ]));
-    }
     public function trash(Request $request)
     {
         if ($request->ajax()) {

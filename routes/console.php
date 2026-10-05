@@ -43,10 +43,23 @@ Schedule::command('backup:run')
     ->withoutOverlapping()
     ->onOneServer();
 
-// ترحيل أرصدة العهدة النقدية أول كل شهر الساعة 1 صباحاً.
-// كان بيتنفذ داخل صفحة المصاريف مع كل زيارة — بقى مرة واحدة شهرياً.
+// ترحيل أرصدة العهدة النقدية — أوتوماتيك بالكامل، مفيش زر في الشاشة.
+//
+// الترحيل بيتحسب فوراً مع أي تسجيل/تعديل/حذف لمصروف أو تعديل مخصص
+// (Expense::booted و updateBalance). الأمر ده دوره:
+//   1) يفتح الشهر الجديد بمرحّله من أول يوم، حتى لو لسه ماحدّش سجّل حاجة.
+//   2) شبكة أمان للتعديلات اللي مابتطلقش أحداث الموديل (حذف جماعي،
+//      تعديل مباشر في قاعدة البيانات، استيراد).
+// آمن لو اتشغّل أكتر من مرة — لو الأرقام مضبوطة مابيغيّرش حاجة.
 Schedule::command('petty-cash:carry-over')
     ->monthlyOn(1, '01:00')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// حذف الإشعارات القديمة يومياً ٢:٣٠ صباحاً.
+// المقروء بعد ٣٠ يوم، وأي إشعار بعد ٩٠ — المدد من config/notifications.php
+Schedule::command('notifications:prune')
+    ->dailyAt('02:30')
     ->withoutOverlapping()
     ->onOneServer();
 
@@ -84,5 +97,15 @@ Schedule::command('links:aggregate')
 // الأرشيف الدائم في link_daily_stats فالتاريخ مابيضيعش.
 Schedule::command('links:prune')
     ->dailyAt('03:30')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// معالجة الطابور من الـ Schedule — مفيش worker شغال طول الوقت.
+//
+// كل دقيقة بيشتغل، يخلّص اللي في الطابور (الإيميلات بالذات: AppMail
+// بيتبعت في الخلفية) ويقفل لوحده. --max-time أقل من دقيقة عشان
+// مايتداخلش مع التشغيلة اللي بعده.
+Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')
+    ->everyMinute()
     ->withoutOverlapping()
     ->onOneServer();

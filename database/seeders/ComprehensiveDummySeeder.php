@@ -867,15 +867,15 @@ class ComprehensiveDummySeeder extends Seeder
 
         // 13. Petty Cash Balances
         PettyCashBalance::query()->delete();
+        // العهدة لكل فرع لوحده — مفيش صفوف "عامة" بدون فرع: المصروف
+        // لازم يكون على فرع، فالرصيد اللي مالوش فرع مايتصرفش منه أبداً.
+        // المرحّل بيتحسب تحت بعد المصروفات (petty-cash:carry-over).
         $pettyBalances = [
-            // Company-wide / Cairo
-            ['branch_id' => null,                   'year' => 2026, 'month' => 7, 'allocated' => 30000, 'carried' => 0,    'total' => 30000, 'notes' => 'ميزانية العهدة النقدية لشهر يوليو'],
-            ['branch_id' => null,                   'year' => 2026, 'month' => 8, 'allocated' => 25000, 'carried' => 6450, 'total' => 31450, 'notes' => 'ميزانية العهدة النقدية لشهر أغسطس مع الترحيل'],
-            ['branch_id' => null,                   'year' => 2026, 'month' => 9, 'allocated' => 25000, 'carried' => 4120, 'total' => 29120, 'notes' => 'ميزانية العهدة النقدية لشهر سبتمبر الحالي'],
-            // Branch specific
-            ['branch_id' => $branches['EG-01']->id, 'year' => 2026, 'month' => 8, 'allocated' => 15000, 'carried' => 3000, 'total' => 18000, 'notes' => 'عهدة فرع القاهرة'],
-            ['branch_id' => $branches['SA-01']->id, 'year' => 2026, 'month' => 8, 'allocated' => 6000,  'carried' => 1200, 'total' => 7200,  'notes' => 'عهدة فرع الرياض'],
-            ['branch_id' => $branches['OM-01']->id, 'year' => 2026, 'month' => 8, 'allocated' => 600,   'carried' => 100,  'total' => 700,   'notes' => 'عهدة فرع مسقط'],
+            ['branch_id' => $branches['EG-01']->id, 'year' => 2026, 'month' => 7, 'allocated' => 30000, 'carried' => 0, 'total' => 30000, 'notes' => 'عهدة فرع القاهرة لشهر يوليو'],
+            ['branch_id' => $branches['EG-01']->id, 'year' => 2026, 'month' => 8, 'allocated' => 25000, 'carried' => 0, 'total' => 25000, 'notes' => 'عهدة فرع القاهرة لشهر أغسطس'],
+            ['branch_id' => $branches['EG-01']->id, 'year' => 2026, 'month' => 9, 'allocated' => 25000, 'carried' => 0, 'total' => 25000, 'notes' => 'عهدة فرع القاهرة لشهر سبتمبر'],
+            ['branch_id' => $branches['SA-01']->id, 'year' => 2026, 'month' => 8, 'allocated' => 6000,  'carried' => 0, 'total' => 6000,  'notes' => 'عهدة فرع الرياض'],
+            ['branch_id' => $branches['OM-01']->id, 'year' => 2026, 'month' => 8, 'allocated' => 600,   'carried' => 0, 'total' => 600,   'notes' => 'عهدة فرع مسقط'],
         ];
 
         foreach ($pettyBalances as $pb) {
@@ -937,6 +937,10 @@ class ComprehensiveDummySeeder extends Seeder
                 'created_by'          => $admin->id,
             ]);
         }
+
+        // المرحّل من المصروفات الفعلية — نفس حساب الأمر الشهري،
+        // بدل أرقام مكتوبة باليد مش متسقة مع المصروفات.
+        app(\App\Services\Finance\PettyCashService::class)->carryOverAll(2026, 9);
 
         // 15. Clean old dummy records for re-seeding
         SaleItem::query()->forceDelete();

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\NotificationType;
 use App\Models\Concerns\HasDateRangeScopes;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -96,6 +97,47 @@ class AdminNotification extends Model
         }
 
         return $this->forceFill(['read_at' => now()])->save();
+    }
+
+    /**
+     * الرابط مسار نسبي دايماً — في الكتابة وفي القراءة.
+     *
+     * الرابط الكامل بيحمل دومين وقت إنشاء الإشعار: من الأوامر المجدولة
+     * بيبقى دومين APP_URL (ممكن localhost)، ولو قاعدة البيانات اتنقلت
+     * بين بيئتين بيبقى دومين البيئة القديمة. المسار النسبي بيتكمّل على
+     * الدومين اللي المستخدم فاتح عليه فعلاً.
+     *
+     * الإشعارات روابطها داخلية دايماً (route())، فشيل الدومين آمن.
+     */
+    protected function url(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value) => static::relativeUrl($value),
+            set: fn (?string $value) => static::relativeUrl($value),
+        );
+    }
+
+    /** https://host/admin/x?a=1#b → /admin/x?a=1#b */
+    public static function relativeUrl(?string $url): ?string
+    {
+        if ($url === null || trim($url) === '') {
+            return null;
+        }
+
+        $parts = parse_url($url);
+
+        if ($parts === false) {
+            return null;
+        }
+
+        // مسار نسبي أصلاً
+        if (empty($parts['host'])) {
+            return '/' . ltrim($url, '/');
+        }
+
+        return ($parts['path'] ?? '/')
+            . (isset($parts['query']) ? '?' . $parts['query'] : '')
+            . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
     }
 
     public function typeEnum(): ?NotificationType

@@ -938,6 +938,30 @@
                         </div>
                     </div>
                 </div>
+
+                <h6 class="fw-bold mt-4 mb-2"><i class="fa-solid fa-share me-1 text-primary"></i> ترحيل المتبقي للشهر التالي</h6>
+                <p class="small text-muted mb-2">
+                    المتبقي من عهدة كل فرع يُرحَّل <strong>تلقائياً بالكامل</strong> للشهر التالي ويُضاف لمخصصه —
+                    لا يوجد زر ترحيل يدوي ولا تحتاج لأي إجراء:
+                </p>
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered align-middle small mb-0">
+                        <thead>
+                            <tr><th>الشهر</th><th>المخصص</th><th>المرحّل</th><th>الإجمالي</th><th>المصروف</th><th>المتبقي</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>أغسطس</td><td dir="ltr">6,305</td><td dir="ltr">0</td><td dir="ltr">6,305</td><td dir="ltr">5,014</td><td dir="ltr"><strong>1,291</strong></td></tr>
+                            <tr><td>سبتمبر</td><td dir="ltr">5,000</td><td dir="ltr">1,291</td><td dir="ltr">6,291</td><td dir="ltr">5,873</td><td dir="ltr"><strong>418</strong></td></tr>
+                            <tr><td>أكتوبر</td><td dir="ltr">5,000</td><td dir="ltr">418</td><td dir="ltr"><strong>5,418</strong></td><td dir="ltr">—</td><td dir="ltr">—</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <ul class="small text-muted mb-0 ps-3">
+                    <li><strong>كل فرع لوحده:</strong> مع اختيار "جميع الفروع" يُرحَّل متبقي كل فرع لنفس الفرع، ولا يُجمع في رصيد مشترك.</li>
+                    <li><strong>كل طرق الدفع:</strong> المصروف المخصوم يشمل النقدي والتحويل البنكي والبطاقة — نفس رقم بطاقة "المتبقي الفعلي".</li>
+                    <li><strong>تحديث فوري:</strong> تسجيل أو تعديل أو حذف مصروف في شهر سابق يُصحّح ترحيل كل الشهور التالية مباشرة.</li>
+                    <li><strong>العجز لا يُرحَّل:</strong> لو المصروف تجاوز الإجمالي يبدأ الشهر التالي بمخصصه فقط.</li>
+                </ul>
             </div>
         </div>
 
@@ -1551,7 +1575,11 @@ PUSHER_APP_CLUSTER=eu</pre>
                             </tr>
                             <tr>
                                 <td><code class="small" dir="ltr">php artisan petty-cash:carry-over</code></td>
-                                <td class="small">ترحيل أرصدة العهدة للشهر الحالي (تلقائية أول كل شهر)</td>
+                                <td class="small">إعادة حساب ترحيل العهدة لكل فرع من أول شهر له (تلقائية أول كل شهر — والترحيل يُحدَّث فوراً أيضاً مع أي تعديل في المصروفات)</td>
+                            </tr>
+                            <tr>
+                                <td><code class="small" dir="ltr">php artisan notifications:prune</code></td>
+                                <td class="small">حذف الإشعارات المقروءة الأقدم من {{ config('notifications.read_retention_days', 30) }} يوماً، وأي إشعار أقدم من {{ config('notifications.retention_days', 90) }} يوماً (تلقائية يومياً 2:30 صباحاً — <code dir="ltr">--dry-run</code> للمعاينة)</td>
                             </tr>
                             <tr>
                                 <td><code class="small" dir="ltr">php artisan links:flush</code></td>
@@ -1575,7 +1603,7 @@ PUSHER_APP_CLUSTER=eu</pre>
                             </tr>
                             <tr>
                                 <td><code class="small" dir="ltr">php artisan queue:work</code></td>
-                                <td class="small">تشغيل معالج الطوابير — مطلوب لإرسال البريد وتسجيل الحركات في الخلفية</td>
+                                <td class="small">معالجة الطابور (إرسال البريد) — تلقائية كل دقيقة من الجدولة، لا تحتاج تشغيلها يدوياً</td>
                             </tr>
                             <tr>
                                 <td><code class="small" dir="ltr">php artisan lang:check-missing</code></td>

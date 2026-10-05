@@ -63,7 +63,8 @@ class SafeUrl implements ValidationRule
     /** الرابط بيشاور على نفس النظام؟ */
     private function isSelfHost(string $host, string $path): bool
     {
-        $appHost = strtolower((string) parse_url(config('app.url'), PHP_URL_HOST));
+        // من الطلب الحالي مش APP_URL
+        $appHost = strtolower((string) parse_url(\App\Support\RootUrl::current(), PHP_URL_HOST));
 
         if ($appHost === '' || $host !== $appHost) {
             return false;

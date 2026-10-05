@@ -5,7 +5,7 @@ namespace App\Events;
 use App\Models\AdminNotification;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
@@ -15,8 +15,13 @@ use Illuminate\Queue\SerializesModels;
  * القناة خاصة بالمشرف (admin.{id}) مش بالفرع — الفرع بيتحدد وقت إنشاء
  * الإشعار في NotificationService، فوقت البث بنبعت للمستلم مباشرة.
  * ده أأمن: مفيش احتمال إن مشرف يشترك في قناة فرع ويشوف إشعارات غيره.
+ *
+ * ShouldBroadcastNow مش ShouldBroadcast: السيرفر مافيهوش worker شغال
+ * طول الوقت (معتمد على Schedule بس)، فالبث عبر الطابور كان بيتأخر لحد
+ * دقيقة أو مايوصلش. البث المباشر بياخد جزء من الثانية، وأي فشل في
+ * Pusher بيتمسك في NotificationService::broadcast ومابيوقّعش الطلب.
  */
-class AdminNotificationCreated implements ShouldBroadcast
+class AdminNotificationCreated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
