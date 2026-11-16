@@ -68,30 +68,33 @@
             <div class="card-body p-2" style="max-height: calc(100vh - 190px); overflow-y: auto;">
                 <nav class="nav nav-pills flex-column gap-1" id="guideToc">
                     <a class="nav-link py-2 px-3" href="#sec-dashboard"><i class="fa-solid fa-gauge-high"></i><span class="toc-text">لوحة التحكم والمؤشرات</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-formula"><i class="fa-solid fa-calculator"></i><span class="toc-text">1. معادلة صافي الراتب والشرح بالعربي</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-employees"><i class="fa-solid fa-users"></i><span class="toc-text">الموظفون والفروع والمسميات</span><span class="badge bg-label-success ms-1">جديد</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-formula"><i class="fa-solid fa-calculator"></i><span class="toc-text">1. معادلة صافي الراتب والشرح بالعربي</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-example"><i class="fa-solid fa-receipt"></i><span class="toc-text">2. مثال عملي رقمي خطوة بخطوة</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-permissions"><i class="fa-solid fa-clock"></i><span class="toc-text">3. الأذونات والاستئذان وحساب الساعات</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-leaves"><i class="fa-solid fa-calendar-check"></i><span class="toc-text">4. الإجازات، الأرصدة، وسلة المحذوفات</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-advances"><i class="fa-solid fa-hand-holding-dollar"></i><span class="toc-text">5. السلف والقروض والإسقاط الإداري</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-permissions"><i class="fa-solid fa-clock"></i><span class="toc-text">3. الأذونات والاستئذان وحساب الساعات</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-leaves"><i class="fa-solid fa-calendar-check"></i><span class="toc-text">4. الإجازات، الأرصدة، وسلة المحذوفات</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-advances"><i class="fa-solid fa-hand-holding-dollar"></i><span class="toc-text">5. السلف والقروض والإسقاط الإداري</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-rewards-allowances"><i class="fa-solid fa-award"></i><span class="toc-text">6. البدلات الثابتة vs المكافآت الاستثنائية</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-approval-cycle"><i class="fa-solid fa-user-check"></i><span class="toc-text">دورة اعتماد الجزاءات والمكافآت</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-approval-cycle"><i class="fa-solid fa-user-check"></i><span class="toc-text">دورة اعتماد الجزاءات والمكافآت</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-penalties"><i class="fa-solid fa-gavel"></i><span class="toc-text">7. الجزاءات وحساب سعر يوم العمل</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-payroll-lifecycle"><i class="fa-solid fa-money-check-dollar"></i><span class="toc-text">8. مسير الرواتب ودورة الاعتماد والصرف</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-sales-channels-customers"><i class="fa-solid fa-cart-shopping"></i><span class="toc-text">9. المبيعات، الفواتير، وقنوات البيع</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-customer-sources"><i class="fa-solid fa-share-nodes"></i><span class="toc-text">مصادر العملاء</span><span class="badge bg-label-success ms-1">جديد</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-payroll-lifecycle"><i class="fa-solid fa-money-check-dollar"></i><span class="toc-text">8. مسير الرواتب ودورة الاعتماد والصرف</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-sales-channels-customers"><i class="fa-solid fa-cart-shopping"></i><span class="toc-text">9. المبيعات، الفواتير، وقنوات البيع</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-customer-sources"><i class="fa-solid fa-share-nodes"></i><span class="toc-text">مصادر العملاء</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-vendors-subscriptions"><i class="fa-solid fa-repeat"></i><span class="toc-text">10. الموردين والاشتراكات الدورية</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-expenses-petty-cash"><i class="fa-solid fa-wallet"></i><span class="toc-text">11. العهد النقدية وتعدد العملات</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-short-links"><i class="fa-solid fa-link"></i><span class="toc-text">الروابط المختصرة والإحصائيات</span><span class="badge bg-label-success ms-1">جديد</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-expenses-petty-cash"><i class="fa-solid fa-wallet"></i><span class="toc-text">11. العهد النقدية وتعدد العملات</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-short-links"><i class="fa-solid fa-link"></i><span class="toc-text">الروابط المختصرة والإحصائيات</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-reports"><i class="fa-solid fa-chart-pie"></i><span class="toc-text">التقارير</span><span class="badge bg-label-success ms-1">جديد</span></a>
 
                     <hr class="my-2">
                     <div class="px-3 pb-1"><small class="text-muted fw-bold">الحوكمة والأمان</small></div>
 
+                    <a class="nav-link py-2 px-3" href="#sec-roles"><i class="fa-solid fa-user-shield"></i><span class="toc-text">الأدوار والصلاحيات حسب التخصص</span><span class="badge bg-label-success ms-1">جديد</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-table-filters"><i class="fa-solid fa-filter"></i><span class="toc-text">البحث والفلترة في الجداول</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-activity-log"><i class="fa-solid fa-shield-halved"></i><span class="toc-text">12. سجل حركات النظام (Audit Log)</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-branch-isolation"><i class="fa-solid fa-building-lock"></i><span class="toc-text">13. عزل البيانات بين الفروع</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-auth-security"><i class="fa-solid fa-key"></i><span class="toc-text">14. الدخول واستعادة كلمة المرور</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-notifications"><i class="fa-solid fa-bell"></i><span class="toc-text">15. الإشعارات والتنبيهات اللحظية</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-maintenance"><i class="fa-solid fa-terminal"></i><span class="toc-text">16. أوامر الصيانة والتشغيل الدوري</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-branch-isolation"><i class="fa-solid fa-building-lock"></i><span class="toc-text">13. عزل البيانات بين الفروع</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-auth-security"><i class="fa-solid fa-key"></i><span class="toc-text">14. الدخول واستعادة كلمة المرور</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-notifications"><i class="fa-solid fa-bell"></i><span class="toc-text">15. الإشعارات والتنبيهات اللحظية</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-maintenance"><i class="fa-solid fa-terminal"></i><span class="toc-text">16. أوامر الصيانة والتشغيل الدوري</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
                 </nav>
             </div>
         </div>
@@ -215,6 +218,114 @@
             </div>
         </div>
 
+        {{-- الموظفون والفروع والمسميات --}}
+        <div class="card border-0 shadow-sm mb-4" id="sec-employees">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold text-primary">
+                    <i class="fa-solid fa-users me-2"></i> الموظفون والفروع والمسميات الوظيفية
+                </h5>
+                <span class="badge bg-label-success font-monospace">جديد</span>
+            </div>
+            <div class="card-body pt-4">
+
+                <p class="text-muted mb-4">
+                    ملف الموظف هو أساس كل وحدات الموارد البشرية والرواتب: منه يُحسب سعر اليوم والساعة،
+                    وعليه تُسجَّل الإجازات والأذونات والجزاءات والمكافآت والسلف، ومنه يُبنى المسير.
+                </p>
+
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr><th style="width:28%">الجزء</th><th>ماذا يحتوي وكيف يعمل</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">البيانات الوظيفية</td>
+                                <td class="small">
+                                    الفرع، المسمى الوظيفي، المدير المباشر، تاريخ التعيين ونهاية الاختبار، نوع العقد، والحالة
+                                    (<span class="badge bg-label-success">نشط</span>
+                                    <span class="badge bg-label-warning">في إجازة</span>
+                                    <span class="badge bg-label-danger">ترك العمل</span>).
+                                    <strong>المسير يشمل الموظفين النشطين فقط.</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">الكود الوظيفي</td>
+                                <td class="small">
+                                    يُولَّد تلقائياً لو تُرك فارغاً بصيغة <span dir="ltr">رمز الفرع-0001</span>،
+                                    والرقم التالي = <strong>أكبر رقم مستخدم + 1</strong> — فلا يتكرر الكود حتى لو
+                                    انتقل موظف لفرع آخر أو حُذف.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">الراتب والأسعار الخاصة</td>
+                                <td class="small">
+                                    الراتب الأساسي، ساعات العمل اليومية (الافتراضي 8)، حد الاستئذان الشهري (الافتراضي 4 ساعات)،
+                                    ورصيد الإجازة السنوية. ويمكن تحديد <strong>سعر يوم خاص</strong> أو <strong>سعر ساعة خاص</strong>
+                                    للموظف بدل الحساب من الراتب — <a href="#sec-penalties">راجع المعادلات</a>.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">سجل الرواتب</td>
+                                <td class="small">
+                                    أي تغيير في الراتب يُسجَّل كقيد بتاريخ سريان، فيبقى تاريخ الزيادات محفوظاً،
+                                    والراتب الأساسي يتحدّث لأحدث قيد بدأ سريانه.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">البدلات الثابتة</td>
+                                <td class="small">سكن، انتقال، اتصالات... تُضاف شهرياً للمسير تلقائياً — <a href="#sec-rewards-allowances">الفرق بينها وبين المكافآت</a>.</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">المستندات</td>
+                                <td class="small">
+                                    الهوية والعقود والشهادات مع تاريخ الانتهاء. المستند الذي ينتهي خلال
+                                    <strong>30 يوماً</strong> يظهر كـ «قارب على الانتهاء» في
+                                    <a href="#sec-reports">تقرير متابعة المستندات</a>، ويمكن توثيق المستند (تم التحقق).
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">المهارات</td>
+                                <td class="small">مهارات الموظف ومستواها، للعرض في ملفه.</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">حساب الدخول</td>
+                                <td class="small">
+                                    عند إضافة الموظف يمكن إنشاء حساب دخول له مباشرة واختيار
+                                    <a href="#sec-roles">دوره</a>. الحساب يُربط بالموظف، فيرى بيانات
+                                    <a href="#sec-branch-isolation">فرعه فقط</a>.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="alert alert-warning mb-0 h-100">
+                            <h6 class="alert-heading fw-bold"><i class="fa-solid fa-eye-slash me-1"></i> بيانات حساسة بصلاحية منفصلة</h6>
+                            <p class="small mb-0">
+                                الراتب يظهر فقط لمن لديه <code dir="ltr">employee_salary_view</code>،
+                                والبيانات البنكية لمن لديه <code dir="ltr">employee_bank_view</code> —
+                                فأخصائي الموارد البشرية يُدخل بيانات الموظفين دون أن يرى رواتبهم.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-info mb-0 h-100">
+                            <h6 class="alert-heading fw-bold"><i class="fa-solid fa-building me-1"></i> الفروع والمسميات</h6>
+                            <p class="small mb-0">
+                                لكل فرع <strong>عملته</strong> (تُستخدم في رواتبه ومصروفاته وفواتيره) ورمزه
+                                (يُولَّد تلقائياً من الدولة: <span dir="ltr">EG-01</span>، <span dir="ltr">SA-01</span>...).
+                                الفرع أو المسمى المرتبط بموظفين لا يُحذف.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         <div class="card border-0 shadow-sm mb-4" id="sec-formula">
             <div class="card-header border-bottom d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0 fw-bold text-primary">
@@ -268,7 +379,7 @@
                             <div class="card-body p-3">
                                 <div class="mb-3 border-bottom pb-2">
                                     <strong class="text-dark d-block">1. الجزاءات والخصومات الإدارية (Approved Penalties):</strong>
-                                    <small class="text-muted">تشمل: خصم الأيام (عدد الأيام &times; سعر يوم العمل) بالإضافة إلى أي خصومات نقدية مباشرة معتمدة خلال الشهر.</small>
+                                    <small class="text-muted">تشمل: خصم الأيام (عدد الأيام &times; سعر يوم العمل) بالإضافة إلى أي خصومات نقدية مباشرة. <strong>المعتمد فقط</strong> يدخل المسير، و<strong>بالمبلغ المثبَّت وقت التسجيل</strong> — المعلّق والمرفوض لا يُخصمان.</small>
                                 </div>
                                 <div class="mb-3 border-bottom pb-2">
                                     <strong class="text-dark d-block">2. أقساط السلف والقروض (Advances Installments):</strong>
@@ -276,7 +387,7 @@
                                 </div>
                                 <div class="mb-3 border-bottom pb-2">
                                     <strong class="text-dark d-block">3. خصم الإجازات بدون راتب (Unpaid Leaves):</strong>
-                                    <small class="text-muted">إجمالي أيام الإجازات غير المدفوعة خلال الشهر &times; سعر يوم العمل للموظف.</small>
+                                    <small class="text-muted">أيام الإجازات غير المدفوعة المعتمدة الواقعة داخل الشهر &times; سعر يوم العمل. الإجازة التي تمتد بين شهرين <strong>تُوزَّع عليهما</strong> حسب أيام كل شهر — <a href="#sec-leaves">مثال</a>.</small>
                                 </div>
                                 <div>
                                     <strong class="text-dark d-block">4. خصم ساعات الاستئذان المتجاوزة (Excess Permission Hours):</strong>
@@ -287,9 +398,16 @@
                     </div>
                 </div>
 
+                <div class="alert alert-success border-0 small">
+                    <i class="fa-solid fa-equals me-2"></i>
+                    <strong>نفس الأرقام في كل مكان:</strong> المسير وتقرير كشف حساب الموظف وتقرير تدقيق الراتب
+                    يحسبون بنفس القواعد بالظبط (المعتمد فقط، المبلغ المثبَّت، توزيع الإجازة على الشهور، نفس سعر الساعة) —
+                    فالرقم الذي يظهر في التدقيق هو نفسه الذي سيُصرف.
+                </div>
+
                 <div class="alert alert-primary border-0 small mb-0">
                     <i class="fa-solid fa-shield-check me-2"></i>
-                    <strong>قاعدة حماية الصافي:</strong> يضمن النظام ألا يصبح صافي الراتب قيمة سالبة؛ فإذا كانت الاستقطاعات أكبر من الاستحقاقات، يكون الناتج <span dir="ltr">0.00</span> ويتم ترحيل المتبقي كمديونية أو معالجته إدارياً وفق لائحة العمل.
+                    <strong>قاعدة حماية الصافي:</strong> يضمن النظام ألا يصبح صافي الراتب قيمة سالبة؛ فإذا كانت الاستقطاعات أكبر من الاستحقاقات، يكون الناتج <span dir="ltr">0.00</span>. الفرق <strong>لا يُرحَّل تلقائياً</strong> للشهر التالي — يُعالَج إدارياً وفق لائحة العمل (مثلاً بتسجيل سلفة أو جزاء في الشهر التالي).
                 </div>
             </div>
         </div>
@@ -405,7 +523,9 @@
                         <div class="p-3 border rounded h-100">
                             <h6 class="fw-bold mb-2 text-primary"><i class="fa-solid fa-stopwatch me-1"></i> دقة احتساب الساعات العشرية</h6>
                             <p class="small text-muted mb-0">
-                                يدعم النظام كتابة وحساب الساعات بدقة (مثل 1.25 ساعة = ساعة و15 دقيقة، 0.5 ساعة = 30 دقيقة). يتم احتساب فارق الدقائق بين وقت الخروج والعودة وقسمته على 60 تلقائياً.
+                                يدعم النظام الساعات بدقة (1.25 ساعة = ساعة و15 دقيقة، 0.5 = 30 دقيقة).
+                                <strong>عدد الساعات يُحسب من وقت الخروج والعودة</strong> وليس مما يكتبه المستخدم —
+                                فلا يمكن تسجيل إذن من 9 إلى 10 بعدد 8 ساعات.
                             </p>
                         </div>
                     </div>
@@ -413,7 +533,7 @@
                         <div class="p-3 border rounded h-100">
                             <h6 class="fw-bold mb-2 text-warning"><i class="fa-solid fa-gauge-high me-1"></i> الرصيد الشهري وعداد التجاوز</h6>
                             <p class="small text-muted mb-0">
-                                يمتلك كل موظف رصيد استئذان شهري مسموح (افتراضياً ساعتان أو 4 ساعات وفق سياسة الفرع). يوضح الفلتر العلوي فوراً مجموع الساعات المستهلكة، والمتبقي، وما إذا كان الموظف قد تجاوز الحد المسموح.
+                                لكل موظف حد استئذان شهري يُحدَّد في ملفه (<strong>الافتراضي 4 ساعات</strong>). عند اختيار موظف في الشاشة يظهر فوراً مجموع ساعاته المعتمدة في الشهر، والمتبقي، وما إذا كان قد تجاوز الحد.
                             </p>
                         </div>
                     </div>
@@ -421,6 +541,9 @@
                 <div class="alert alert-secondary border-0 small mb-0">
                     <strong><i class="fa-solid fa-info-circle me-1"></i> الأثر في المسير:</strong>
                     إذا بلغ مجموع ساعات الاستئذان المعتمدة 5 ساعات، والحد المسموح 4 ساعات: يتم خصم ساعة واحدة متجاوزة في مسير الرواتب بحساب <span dir="ltr">1 &times; Hourly Rate</span>.
+                    <br>
+                    <strong>دورة الطلب:</strong> يُسجَّل معلّقاً ← يُعتمد أو يُرفض. الإذن المعتمد يمكن رفضه لاحقاً (إلغاؤه)
+                    فيخرج من حساب الساعات، والمعلّق والمرفوض لا يُحتسبان في الحد.
                 </div>
             </div>
         </div>
@@ -438,10 +561,11 @@
                         <div class="p-3 border rounded h-100">
                             <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-umbrella-beach me-1"></i> الإجازات مدفوعة الأجر (Paid Leaves)</h6>
                             <ul class="small text-muted mb-0 ps-3">
-                                <li><strong>الإجازة السنوية:</strong> 21 يوماً سنوياً (أو 30 يوماً لمن تجاوزت خدمته 10 سنوات أو تجاوز سن الخمسين).</li>
-                                <li><strong>الإجازة العارضة:</strong> 7 أيام كحد أقصى خلال العام (بحد أقصى يومين في المرة الواحدة).</li>
-                                <li><strong>الإجازة المرضية:</strong> 14 يوماً وفق التقرير الطبي المعتمد.</li>
-                                <li><strong>الأثر المالي:</strong> لا يخصم أي مليم من الراتب؛ فقط يُخصم عدد الأيام من رصيد الموظف التراكمي.</li>
+                                <li><strong>الإجازة السنوية:</strong> حسب الرصيد المسجّل في ملف الموظف (الافتراضي 21 يوماً).</li>
+                                <li><strong>الإجازة العارضة:</strong> 7 أيام سنوياً افتراضياً.</li>
+                                <li><strong>الإجازة المرضية:</strong> 14 يوماً سنوياً افتراضياً.</li>
+                                <li><strong>تعديل الأرصدة:</strong> من شاشة «أرصدة الإجازات» لمن لديه صلاحية إدارة الأرصدة — لتطبيق أي سياسة خاصة (مثل 30 يوماً لمن تجاوزت خدمته 10 سنوات).</li>
+                                <li><strong>الأثر المالي:</strong> لا يخصم أي مليم من الراتب؛ فقط يُخصم عدد الأيام من رصيد الموظف للسنة.</li>
                             </ul>
                         </div>
                     </div>
@@ -455,6 +579,41 @@
                             </ul>
                         </div>
                     </div>
+                </div>
+
+                <h6 class="fw-bold mb-2"><i class="fa-solid fa-list-check me-1 text-primary"></i> قواعد تُطبَّق تلقائياً</h6>
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered align-middle small mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold" style="width:30%">لا تداخل</td>
+                                <td>لا يُقبل طلب يتداخل مع إجازة أخرى معلّقة أو معتمدة لنفس الموظف.</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">عدد الأيام منطقي</td>
+                                <td>عدد الأيام المطلوب لا يتجاوز عدد أيام الفترة من تاريخ البداية للنهاية.</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">الرصيد يكفي</td>
+                                <td>عند الاعتماد يتحقق النظام أن المتبقي من رصيد النوع (سنوية/عارضة/مرضية) يكفي، وإلا يرفض الاعتماد برسالة توضح المتبقي.</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">رفض المعتمد</td>
+                                <td>رفض إجازة سبق اعتمادها (إلغاؤها) يُرجع أيامها لرصيد الموظف فوراً.</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">الرصيد يُحسب ولا يُطرح</td>
+                                <td>المستهلك يُعاد حسابه دائماً من الإجازات المعتمدة نفسها، فأي حذف أو استرجاع أو رفض يعطي الرقم الصحيح.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info small">
+                    <i class="fa-solid fa-calendar-days me-1"></i>
+                    <strong>إجازة بدون أجر تمتد بين شهرين:</strong> إجازة من 28 أكتوبر إلى 5 نوفمبر (9 أيام) —
+                    يُخصم في مسير <strong>أكتوبر 4 أيام</strong> وفي مسير <strong>نوفمبر 5 أيام</strong>،
+                    وليس الـ 9 كلها في شهر البداية. ونفس التوزيع يظهر في تقارير الموظف.
                 </div>
 
                 <div class="p-3 border rounded" style="background-color: rgba(115, 103, 240, 0.05);">
@@ -512,6 +671,37 @@
                     الاعتماد والرفض متاحين للسلفة <strong>في حالة «في انتظار الاعتماد» فقط</strong> —
                     فسلفة اتصرفت واتسدّد جزء منها ما ينفعش ترجع مرفوضة وتضيّع تتبّع فلوس اتحصّلت.
                 </div>
+
+                <div class="table-responsive mt-3">
+                    <table class="table table-bordered align-middle small mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold" style="width:30%">السداد والإعفاء للمعتمدة فقط</td>
+                                <td>
+                                    السداد النقدي المباشر والإسقاط الإداري يُسجَّلان على سلفة <strong>معتمدة</strong> فقط
+                                    (صلاحية <code dir="ltr">advance_update</code> — دور المحاسب).
+                                    السلفة المعلّقة أو المرفوضة ترفض أي سداد، حتى لا تتحول «مسددة» دون أن يعتمدها أحد.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">لا يتجاوز المتبقي</td>
+                                <td>أي سداد أو إعفاء أكبر من الرصيد المتبقي يُرفض برسالة توضح المتبقي.</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">الحالة تُحسب تلقائياً</td>
+                                <td>عند وصول المتبقي لصفر تتحول السلفة <span class="badge bg-label-success">مسددة</span> تلقائياً، وتعود <span class="badge bg-label-info">معتمدة</span> لو حُذف سداد وأصبح عليها رصيد.</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">لا حذف بعد السداد</td>
+                                <td>السلفة التي عليها سداد أو إعفاء لا تُحذف — حذفها كان يُخفي تاريخ خصومات اتسجّلت على الموظف.</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">ملخّص الموظف</td>
+                                <td>إجمالي السلف والمسدد والمتبقي في رأس الشاشة <strong>يستبعد المرفوضة</strong>.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -552,6 +742,11 @@
                                 <td><strong>حالة الصرف</strong></td>
                                 <td>تعتبر جزءاً من الراتب الشهري التعاقدي</td>
                                 <td>تتطلب موافقة المدير أولاً ثم تتحول إلى "مدفوعة" عند صرف المسير</td>
+                            </tr>
+                            <tr>
+                                <td><strong>الحذف</strong></td>
+                                <td>من ملف الموظف</td>
+                                <td>مسموح وهي معلّقة أو مرفوضة فقط — بعد الاعتماد أو الصرف أصبحت جزءاً من المسير فلا تُحذف</td>
                             </tr>
                         </tbody>
                     </table>
@@ -671,11 +866,12 @@
                 </div>
 
                 <div class="alert alert-info mb-0">
-                    <h6 class="alert-heading fw-bold"><i class="fa-solid fa-gear me-1"></i> ملاحظة إدارية</h6>
+                    <h6 class="alert-heading fw-bold"><i class="fa-solid fa-gear me-1"></i> مَن يعتمد؟</h6>
                     <p class="small mb-0">
-                        صلاحيات الاعتماد الأربع <strong>غير ممنوحة لأي دور تلقائياً</strong>.
-                        افتح شاشة الأدوار وامنحها للمسؤولين المخوّلين فقط —
-                        ويُفضَّل ألا تُمنح لنفس الدور الذي يملك صلاحية التسجيل، حتى يبقى فصل المهام فعّالاً.
+                        في <a href="#sec-roles">الأدوار الجاهزة</a>: <strong>أخصائي الموارد البشرية ومدير الفرع</strong>
+                        يسجّلون الجزاءات والمكافآت، و<strong>مدير الموارد البشرية</strong> (والمدير العام) يعتمدها.
+                        لو عدّلت الأدوار يدوياً، يُفضَّل ألا تُجمع صلاحية التسجيل والاعتماد في دور واحد —
+                        ومع ذلك يمنع النظام أي شخص من اعتماد حركة سجّلها بنفسه.
                     </p>
                 </div>
 
@@ -713,6 +909,7 @@
                             <div class="font-monospace fw-bold text-dark fs-6" dir="ltr">Daily Rate = Basic Salary / 30</div>
                             <small class="text-muted mt-1 d-block">
                                 يقسم الراتب الأساسي على 30 يوماً شهرياً. عند تطبيق خصم يوم أو يومين، يحسب المبلغ تلقائياً فور اختيار اسم الموظف.
+                                <strong>لو للموظف سعر يوم خاص</strong> في ملفه يُستخدم بدلاً من المعادلة.
                             </small>
                         </div>
                     </div>
@@ -721,7 +918,9 @@
                             <h6 class="fw-bold text-info mb-2">معادلة سعر الساعة (Hourly Rate Formula)</h6>
                             <div class="font-monospace fw-bold text-dark fs-6" dir="ltr">Hourly Rate = Daily Rate / 8 Working Hours</div>
                             <small class="text-muted mt-1 d-block">
-                                يقسم سعر اليوم على 8 ساعات عمل يومية (أو عدد الساعات المسجل للموظف) لاستخدامه في خصم ساعات الاستئذان أو حساب الإضافي.
+                                يقسم سعر اليوم على 8 ساعات عمل يومية (أو عدد الساعات المسجل للموظف) لاستخدامه في خصم ساعات الاستئذان.
+                                <strong>لو للموظف سعر ساعة خاص</strong> يُستخدم مباشرة، ولو له سعر يوم خاص فقط تُحسب الساعة منه
+                                (مثال: سعر يوم خاص 160 &divide; 8 = 20 للساعة).
                             </small>
                         </div>
                     </div>
@@ -739,29 +938,89 @@
             <div class="card-body pt-4">
                 <div class="row g-3 text-center mb-3">
                     <div class="col-md-3">
-                        <div class="p-3 border rounded">
+                        <div class="p-3 border rounded h-100">
                             <span class="badge bg-warning mb-2">1. مسودة (Draft)</span>
-                            <p class="small text-muted mb-0">يتم توليد الكشف آلياً وسحب كافة استحقاقات وخصومات وسلف الشهر. يمكن التعديل أو الحذف.</p>
+                            <p class="small text-muted mb-0">يتم توليد الكشف آلياً وسحب كافة استحقاقات وخصومات وسلف الشهر. <strong>التعديل والحذف في المسودة فقط.</strong></p>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="p-3 border rounded">
+                        <div class="p-3 border rounded h-100">
                             <span class="badge bg-info mb-2">2. معتمد (Approved)</span>
-                            <p class="small text-muted mb-0">اعتماد الكشف من المدير المالي أو صاحب العمل؛ يتم قفل التعديل تمهيداً لبدء التحويلات المالية.</p>
+                            <p class="small text-muted mb-0">يُقفَل التعديل تمهيداً للصرف. إلغاء الاعتماد ممكن (بسبب مكتوب) طالما لم يُصرف، فيرجع مسودة.</p>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="p-3 border rounded">
+                        <div class="p-3 border rounded h-100">
                             <span class="badge bg-success mb-2">3. مدفوع (Paid)</span>
-                            <p class="small text-muted mb-0">تم تحويل الرواتب للموظفين نقداً أو عبر البنك، ويتم فورياً تسجيل سداد أقساط السلف والمكافآت.</p>
+                            <p class="small text-muted mb-0">حالة نهائية — لا رجوع منها. تُسجَّل أقساط السلف وتُصرف المكافآت تلقائياً.</p>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="p-3 border rounded">
+                        <div class="p-3 border rounded h-100">
                             <span class="badge bg-danger mb-2">4. مرفوض (Rejected)</span>
-                            <p class="small text-muted mb-0">في حال وجود ملاحظات جوهرية مع تسجيل سبب الرفض كتابياً للرجوع إليه.</p>
+                            <p class="small text-muted mb-0">بسبب مكتوب (3 أحرف على الأقل). يمكن إعادة تقديمه فيرجع مسودة للتصحيح.</p>
                         </div>
                     </div>
+                </div>
+
+                <h6 class="fw-bold mt-4 mb-2"><i class="fa-solid fa-people-arrows me-1 text-primary"></i> مَن يفعل ماذا (فصل المهام)</h6>
+                <div class="p-3 border rounded mb-3 text-center" style="background: rgba(115, 103, 240, 0.06);">
+                    <span class="badge bg-label-primary px-3 py-2">مدير الموارد البشرية: يُصدر ويعدّل</span>
+                    <i class="fa-solid fa-arrow-left mx-2 text-muted"></i>
+                    <span class="badge bg-label-info px-3 py-2">المدير العام: يعتمد أو يرفض</span>
+                    <i class="fa-solid fa-arrow-left mx-2 text-muted"></i>
+                    <span class="badge bg-label-success px-3 py-2">المحاسب: يصرف</span>
+                    <div class="small text-muted mt-2">
+                        حسب <a href="#sec-roles">الأدوار الجاهزة</a> — لا يوجد دور (غير المدير العام) يستطيع الإصدار والاعتماد والصرف وحده.
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered align-middle small mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold" style="width:30%">الإصدار</td>
+                                <td>
+                                    اختيار السنة والشهر والفرع. <strong>بدون فرع</strong> = كشف مستقل لكل فرع فيه موظفون نشطون
+                                    (كل فرع بعملته)، والفروع التي لها كشف بالفعل تُتخطّى مع ذكر أسمائها.
+                                    لا يمكن إصدار كشفين لنفس الفرع والشهر.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">ما يدخل الكشف</td>
+                                <td>
+                                    الموظفون <strong>النشطون</strong> فقط، وكل بند يجمع: الأساسي + البدلات الثابتة + المكافآت المعتمدة
+                                    − الجزاءات المعتمدة − أيام الإجازة بدون أجر في الشهر − الاستئذان الزائد − قسط كل سلفة معتمدة بدأ سدادها
+                                    (<a href="#sec-formula">المعادلة</a>). طريقة الصرف الافتراضية تحويل بنكي لمن له حساب بنكي، ونقدي لغيره.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">التعديل في المسودة</td>
+                                <td>تعديل البدلات والخصومات وطريقة الصرف لكل بند، أو تفاصيله سطراً سطراً. الإجماليات تُعاد حسابها تلقائياً.</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">الصرف</td>
+                                <td>
+                                    صرف <strong>بند واحد</strong> أو <strong>بنود محددة</strong> أو <strong>الكشف كله</strong>.
+                                    البند المصروف لا يُصرف مرتين ولا يُخصم قسط سلفته مرتين حتى لو ضُغط الزر مرتين.
+                                    عند صرف آخر بند يتحول الكشف تلقائياً إلى <span class="badge bg-label-success">مدفوع</span>.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">ما يحدث عند الصرف</td>
+                                <td>
+                                    يُسجَّل سداد قسط كل سلفة في سجل سداداتها ويقل المتبقي، وتتحول المكافآت المصروفة إلى
+                                    <span class="badge bg-label-info">تم الصرف مع الراتب</span>، وتصبح قسائم الرواتب جاهزة للطباعة
+                                    (فردية أو مجمّعة).
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info small mb-0">
+                    <i class="fa-solid fa-bell me-1"></i>
+                    عند إصدار أي كشف يصل <a href="#sec-notifications">إشعار</a> لمن لديهم صلاحية الرواتب في نفس الفرع بأن كشفاً بانتظار المراجعة.
                 </div>
             </div>
         </div>
@@ -800,6 +1059,47 @@
                             </p>
                         </div>
                     </div>
+                </div>
+
+                <div class="table-responsive mt-4">
+                    <table class="table table-bordered align-middle small mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold" style="width:30%">ترقيم الفواتير</td>
+                                <td>
+                                    تلقائي بصيغة <span dir="ltr">INV-YYYYMM-0001</span> ويبدأ من جديد كل شهر.
+                                    الرقم فريد على مستوى الشركة كلها، والرقم التالي = أكبر رقم مستخدم في الشهر + 1 في كل الفروع.
+                                    وأكواد العملاء بنفس الطريقة (<span dir="ltr">CUST-0001</span>).
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">المبالغ تُحسب على السيرفر</td>
+                                <td>
+                                    إجمالي كل بند = الكمية &times; السعر، والإجمالي الفرعي = مجموع البنود،
+                                    والإجمالي = الفرعي + الضريبة − الخصم. هذه الأرقام يحسبها النظام عند الحفظ
+                                    ولا تُؤخذ جاهزة من الشاشة، فلا يمكن حفظ فاتورة بنودها لا تساوي إجماليها.
+                                    الفاتورة بدون بنود تحتفظ بالإجمالي الفرعي المُدخل يدوياً.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">حالة الدفع والتحصيل</td>
+                                <td>
+                                    <span class="badge bg-label-success">مدفوعة</span>
+                                    <span class="badge bg-label-warning">مدفوعة جزئياً</span>
+                                    <span class="badge bg-label-danger">غير مدفوعة</span> —
+                                    تُسجَّل الدفعات على الفاتورة من شاشتها، ولا تُقبل دفعة أكبر من المستحق،
+                                    والمدفوع والمستحق والحالة تُعاد حسابها من الدفعات نفسها.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">الفاتورة المتأخرة</td>
+                                <td>
+                                    غير مدفوعة أو مدفوعة جزئياً وعليها مستحق، ومرّ على تاريخها أكثر من <strong>30 يوماً</strong>.
+                                    زر «فواتير متأخرة» في لوحة التحكم يفتح قائمة المبيعات مفلترة عليها بنفس التعريف.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -880,6 +1180,13 @@
                     </div>
                 </div>
 
+                <div class="alert alert-secondary small mt-3 mb-0">
+                    <i class="fa-solid fa-key me-1"></i>
+                    <strong>صلاحية لكل إجراء:</strong> العرض والإضافة والتعديل والحذف صلاحيات منفصلة
+                    (<code dir="ltr">customer_source_show / _create / _update / _delete</code>) —
+                    مَن له صلاحية العرض فقط لا يستطيع التعديل.
+                </div>
+
             </div>
         </div>
 
@@ -909,6 +1216,12 @@
                         </div>
                     </div>
                 </div>
+
+                <ul class="small text-muted mt-3 mb-0 ps-3">
+                    <li><strong>معزولة بالفرع:</strong> مدير الفرع يرى ويعدّل اشتراكات فرعه فقط، ولا يستطيع تسجيل اشتراك لفرع آخر. الاشتراك العام (بدون فرع) يديره المدير العام.</li>
+                    <li><strong>تسجيل دفعة:</strong> من شاشة الاشتراك، مع إمكانية تحديد تاريخ التجديد التالي في نفس الخطوة.</li>
+                    <li><strong>الحذف بتأكيد:</strong> حذف مورد أو اشتراك يطلب تأكيداً أولاً، والمورد المرتبط باشتراكات لا يُحذف.</li>
+                </ul>
             </div>
         </div>
 
@@ -962,6 +1275,37 @@
                     <li><strong>تحديث فوري:</strong> تسجيل أو تعديل أو حذف مصروف في شهر سابق يُصحّح ترحيل كل الشهور التالية مباشرة.</li>
                     <li><strong>العجز لا يُرحَّل:</strong> لو المصروف تجاوز الإجمالي يبدأ الشهر التالي بمخصصه فقط.</li>
                 </ul>
+
+                <h6 class="fw-bold mt-4 mb-2"><i class="fa-solid fa-user-lock me-1 text-primary"></i> الصلاحيات والرقابة</h6>
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered align-middle small mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold" style="width:30%">تحديد المخصص الشهري</td>
+                                <td>صلاحية منفصلة <code dir="ltr">expense_balance_manage</code> (دور المحاسب) — مسؤول العهدة يسجّل المصروفات لكنه لا يحدد مخصصه.</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">مصروف بتاريخ شهر سابق</td>
+                                <td>
+                                    تسجيل أو تعديل مصروف في شهر <strong>قبل الشهر الحالي</strong> يحتاج صلاحية
+                                    <code dir="ltr">expense_backdate</code> — لأنه يغيّر ترحيل كل الشهور التالية.
+                                    الشهر الحالي متاح لأي مَن له صلاحية الإضافة.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">عزل الفروع</td>
+                                <td>
+                                    مسؤول العهدة ومدير الفرع يريان مصروفات وأرصدة عهدة <strong>فرعهم فقط</strong>،
+                                    ولا يستطيعان تسجيل مصروف أو تحديد مخصص لفرع آخر.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">تنبيه نقص الرصيد</td>
+                                <td>يومياً، لو المتبقي من عهدة الفرع نزل تحت 20% يصل <a href="#sec-notifications">إشعار</a> لمن لديه صلاحية المصروفات في الفرع.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -1066,6 +1410,9 @@
                         النقرة في الذاكرة المؤقتة أولاً، ثم تُنقل لقاعدة البيانات وتُحدَّث كل
                         الإحصائيات — بما فيها إحصائيات اليوم الجاري — كل 5 دقائق تلقائياً.
                         فقد تجد نقرة في آخر دقيقتين لم تنعكس بعد، وتظهر في التحديث التالي.
+                        <br>
+                        <strong>لو الذاكرة المؤقتة (Redis) غير متاحة على السيرفر</strong> تُكتب النقرة في قاعدة البيانات
+                        مباشرة وتظهر فوراً — أبطأ قليلاً لكن لا تضيع أي نقرة، والزائر يُحوَّل في كل الأحوال.
                     </div>
                 </div>
 
@@ -1082,6 +1429,181 @@
             </div>
         </div>
 
+
+        {{-- التقارير --}}
+        <div class="card border-0 shadow-sm mb-4" id="sec-reports">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold text-primary">
+                    <i class="fa-solid fa-chart-pie me-2"></i> التقارير
+                </h5>
+                <span class="badge bg-label-success font-monospace">جديد</span>
+            </div>
+            <div class="card-body pt-4">
+
+                <p class="text-muted mb-4">
+                    كل تقرير له صلاحية مستقلة، ويحترم <a href="#sec-branch-isolation">عزل الفروع</a>:
+                    مدير الفرع يرى أرقام فرعه فقط.
+                </p>
+
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr><th style="width:26%">التقرير</th><th>ماذا يعرض</th><th style="width:22%">الصلاحية</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">كشف حساب الموظف</td>
+                                <td class="small">
+                                    لموظف وفترة: أيام الإجازات بأنواعها، ساعات الاستئذان والزائد عن الحد، الجزاءات،
+                                    وتكلفة الخصومات المتوقعة — مع سجل زمني لكل الطلبات <strong>بحالتها الحقيقية</strong>
+                                    (المعلّق والمرفوض يظهران بدون تكلفة).
+                                </td>
+                                <td class="small"><code dir="ltr">report_employee_statement</code></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">تدقيق الراتب</td>
+                                <td class="small">
+                                    تفصيل الراتب المتوقع لموظف في فترة: الأساسي والبدلات والمكافآت، والجزاءات المعتمدة
+                                    والاستئذان الزائد والإجازات بدون أجر وأقساط السلف المسددة —
+                                    <strong>بنفس قواعد المسير بالظبط</strong>، فيطابق ما سيُصرف.
+                                </td>
+                                <td class="small"><code dir="ltr">report_salary_audit</code></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">الأرباح والخسائر</td>
+                                <td class="small">
+                                    لفترة وفرع: الإيرادات − (المصروفات + مدفوعات الموردين + الرواتب المصروفة)،
+                                    <strong>مفصولة لكل عملة</strong> مع هامش الربح، وآخر الفواتير والمصروفات.
+                                </td>
+                                <td class="small"><code dir="ltr">report_financial_pl</code></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">متابعة المستندات</td>
+                                <td class="small">
+                                    مستندات الموظفين المنتهية، والتي تنتهي خلال 30 يوماً، وغير الموثّقة —
+                                    لتجديد الإقامات والعقود قبل فوات موعدها.
+                                </td>
+                                <td class="small"><code dir="ltr">report_documents</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info small mb-0">
+                    <i class="fa-solid fa-file-excel me-1"></i>
+                    شاشات الجزاءات والمكافآت والسلف والمصروفات فيها زر <strong>تصدير Excel</strong> بنفس الفلاتر المختارة.
+                </div>
+
+            </div>
+        </div>
+
+        {{-- الأدوار والصلاحيات --}}
+        @php($rolePresets = \App\Services\Role\RolePresets::all())
+        <div class="card border-0 shadow-sm mb-4" id="sec-roles">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold text-primary">
+                    <i class="fa-solid fa-user-shield me-2"></i> الأدوار والصلاحيات حسب التخصص
+                </h5>
+                <span class="badge bg-label-success font-monospace">جديد</span>
+            </div>
+            <div class="card-body pt-4">
+
+                <p class="text-muted mb-4">
+                    كل مشرف له <strong>دور</strong> يحدد الشاشات والأزرار المتاحة له. النظام يأتي بأدوار جاهزة
+                    لكل تخصص، ويمكن تعديلها أو إنشاء أدوار جديدة من شاشة <strong>الأدوار</strong>.
+                    الزر الذي لا يملك المستخدم صلاحيته لا يظهر له أصلاً، ومحاولة فتح رابطه مباشرة تُرفض.
+                </p>
+
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr><th style="width:22%">الدور</th><th>المسؤوليات</th><th style="width:12%" class="text-center">الصلاحيات</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">صلاحية كاملة</td>
+                                <td class="small">كل شيء بدون استثناء، بما فيه إدارة المشرفين والأدوار والإعدادات والحذف النهائي. لمسؤول النظام فقط.</td>
+                                <td class="text-center"><span class="badge bg-label-dark">{{ count(all_roles()) }}</span></td>
+                            </tr>
+                            @foreach ($rolePresets as $preset)
+                                <tr>
+                                    <td class="fw-bold">{{ $preset['name'] }}</td>
+                                    <td class="small">{{ $preset['description'] }}</td>
+                                    <td class="text-center"><span class="badge bg-label-primary">{{ count($preset['permissions']) }}</span></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-scale-balanced me-2 text-primary"></i> فصل المهام — لا أحد يُنهي حركة مالية وحده:</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered align-middle small">
+                        <thead>
+                            <tr><th style="width:22%">الحركة</th><th>يسجّل</th><th>يعتمد</th><th>ينفّذ</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">مسير الرواتب</td>
+                                <td>مدير الموارد البشرية</td>
+                                <td>المدير العام</td>
+                                <td>المحاسب (الصرف)</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">جزاء / مكافأة</td>
+                                <td>أخصائي الموارد البشرية · مدير الفرع</td>
+                                <td>مدير الموارد البشرية</td>
+                                <td>يدخل المسير تلقائياً</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">سلفة</td>
+                                <td>أخصائي الموارد البشرية · مدير الفرع</td>
+                                <td>مدير الموارد البشرية</td>
+                                <td>المحاسب (سداد/إعفاء) · المسير (الأقساط)</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">إجازة / إذن</td>
+                                <td>أخصائي الموارد البشرية · مدير الفرع</td>
+                                <td>مدير الفرع · مدير الموارد البشرية</td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">مصروف عهدة</td>
+                                <td>مسؤول العهدة</td>
+                                <td>—</td>
+                                <td>المحاسب يحدد المخصص الشهري ويسجّل بأثر رجعي</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="alert alert-warning mb-0 h-100">
+                            <h6 class="alert-heading fw-bold"><i class="fa-solid fa-building-lock me-1"></i> الدور شيء والفرع شيء آخر</h6>
+                            <p class="small mb-0">
+                                الدور يحدد <strong>ماذا</strong> يفعل المستخدم، أما <strong>على أي فرع</strong> فيحدده ربط حسابه بموظف:
+                                اربط حسابات <strong>مدير الفرع ومسؤول العهدة</strong> بموظف في فرعهم، و<strong>لا تربط</strong>
+                                حسابات المدير العام ومدير الموارد البشرية والمحاسب والمراجع بموظف — وإلا سيرون فرعاً واحداً.
+                                <a href="#sec-branch-isolation">التفاصيل</a>.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-info mb-0 h-100">
+                            <h6 class="alert-heading fw-bold"><i class="fa-solid fa-shield-halved me-1"></i> قواعد ثابتة</h6>
+                            <ul class="small mb-0 ps-3">
+                                <li>لا يوجد دور جاهز يملك <strong>الحذف النهائي</strong> أو إدارة المشرفين والأدوار والإعدادات.</li>
+                                <li>لا يعتمد أحد حركة سجّلها بنفسه، حتى لو يملك الصلاحيتين.</li>
+                                <li>حذف دور ينقل مشرفيه تلقائياً لـ «صلاحية احتياطية» (عرض اللوحة فقط).</li>
+                                <li>بعد تعديل دور يُطبَّق على مشرفيه فوراً.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
 
         {{-- البحث والفلترة في الجداول --}}
         <div class="card border-0 shadow-sm mb-4" id="sec-table-filters">
@@ -1230,7 +1752,7 @@
                 </div>
 
                 <div class="p-3 border rounded mb-4" style="background: rgba(115, 103, 240, 0.06);">
-                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-layer-group me-1"></i> الموديولات الخاضعة للتسجيل (17 موديول)</h6>
+                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-layer-group me-1"></i> الموديولات الخاضعة للتسجيل ({{ count(activity_subjects()) }} موديول)</h6>
                     <div class="d-flex flex-wrap gap-2">
                         @foreach (activity_subjects() as $subjectLabel)
                             <span class="badge bg-label-secondary">{{ $subjectLabel }}</span>
@@ -1322,8 +1844,9 @@
                                 <ul class="small text-muted mb-0 ps-3">
                                     <li>القوائم تعرض <strong>سجلات فرعه فقط</strong></li>
                                     <li>محاولة فتح سجل فرع آخر ترجع صفحة غير موجودة</li>
+                                    <li><strong>لا يستطيع إنشاء</strong> سجل لفرع آخر أو لموظف في فرع آخر، ولا نقل موظف لفرع آخر</li>
+                                    <li>قوائم اختيار الفرع في الشاشات تعرض فرعه فقط</li>
                                     <li>التقارير المالية محصورة بأرقام فرعه</li>
-                                    <li>فلتر الفروع يعرض فرعه فقط</li>
                                 </ul>
                             </div>
                         </div>
@@ -1331,21 +1854,36 @@
                 </div>
 
                 <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-table-list me-2 text-primary"></i> الموديولات المشمولة بالعزل:</h6>
-                <div class="d-flex flex-wrap gap-2 mb-4">
+                <div class="d-flex flex-wrap gap-2 mb-2">
                     <span class="badge bg-label-primary">الموظفون</span>
-                    <span class="badge bg-label-primary">فواتير المبيعات</span>
-                    <span class="badge bg-label-primary">المصروفات والعهد</span>
-                    <span class="badge bg-label-primary">الإجازات</span>
+                    <span class="badge bg-label-primary">الرواتب والمستندات والمهارات</span>
+                    <span class="badge bg-label-primary">الإجازات وأرصدتها</span>
+                    <span class="badge bg-label-primary">الأذونات</span>
+                    <span class="badge bg-label-primary">الجزاءات</span>
+                    <span class="badge bg-label-primary">المكافآت</span>
                     <span class="badge bg-label-primary">السلف</span>
-                    <span class="badge bg-label-secondary">التقارير المالية</span>
+                    <span class="badge bg-label-primary">مسيرات الرواتب وبنودها</span>
+                    <span class="badge bg-label-primary">المصروفات</span>
+                    <span class="badge bg-label-primary">أرصدة العهد</span>
+                    <span class="badge bg-label-primary">فواتير المبيعات</span>
+                    <span class="badge bg-label-primary">اشتراكات الموردين</span>
+                    <span class="badge bg-label-primary">الروابط المختصرة</span>
+                    <span class="badge bg-label-secondary">لوحة التحكم والتقارير</span>
+                    <span class="badge bg-label-secondary">الإشعارات</span>
                 </div>
+                <p class="small text-muted mb-4">
+                    سجلات الموظف (إجازاته وجزاءاته وسلفه...) تتبع فرع الموظف نفسه. أما العملاء والموردون
+                    وقنوات البيع ومصادر العملاء والتصنيفات فمشتركة بين كل الفروع.
+                </p>
 
                 <div class="alert alert-info mb-0">
                     <h6 class="alert-heading fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i> ملاحظة إدارية مهمة</h6>
                     <p class="small mb-0">
-                        لكي يعمل العزل بشكل صحيح، يجب <strong>ربط حساب كل مشرف بملف موظف</strong> له فرع محدد.
-                        أما المشرف غير المرتبط بموظف، فسيرى كل البيانات — لذا يجب مراجعة حسابات المشرفين
-                        والتأكد من ضبط علامة <span class="badge bg-label-primary">مدير عام</span> بدقة.
+                        العزل يعمل على أي مشرف <strong>مرتبط بملف موظف</strong> له فرع، أياً كان دوره.
+                        فاربط حسابات <strong>مدير الفرع ومسؤول العهدة</strong> بموظف في فرعهم،
+                        واترك حسابات من يحتاج رؤية الشركة كلها (المدير العام، الموارد البشرية، المحاسب، المراجع)
+                        <strong>غير مرتبطة بموظف</strong> — <a href="#sec-roles">راجع الأدوار</a>.
+                        والمشرف المعلَّم <span class="badge bg-label-primary">مدير عام</span> يرى كل الفروع في كل الأحوال.
                     </p>
                 </div>
 
@@ -1370,6 +1908,8 @@
                                 <li>الحد الأقصى <strong>5 محاولات فاشلة</strong> ثم إيقاف مؤقت 5 دقائق</li>
                                 <li>الإيقاف محسوب لكل بريد إلكتروني وكل عنوان <span dir="ltr">IP</span> على حدة</li>
                                 <li>تجديد جلسة الدخول عند كل تسجيل ناجح</li>
+                                <li><strong>تسجيل الخروج</strong> يُنهي الجلسة بالكامل، ولا يمكن تنفيذه من رابط أو صورة في صفحة خارجية</li>
+                                <li>حد للطلبات: <strong>300 طلب في الدقيقة لكل مستخدم</strong> بعد الدخول (60 لكل <span dir="ltr">IP</span> قبله) — فموظفو مكتب واحد خلف نفس الإنترنت لا يعطّلون بعضهم</li>
                             </ul>
                         </div>
                     </div>
@@ -1431,42 +1971,45 @@
                             <tr>
                                 <td><span class="badge bg-label-info">طلب إجازة جديد</span></td>
                                 <td class="small">فور تسجيل طلب إجازة</td>
-                                <td class="small">من له صلاحية الإجازات في نفس الفرع</td>
+                                <td class="small">من له صلاحية عرض الإجازات في نفس الفرع</td>
                             </tr>
                             <tr>
                                 <td><span class="badge bg-label-success">نتيجة طلب الإجازة</span></td>
                                 <td class="small">عند الاعتماد أو الرفض</td>
-                                <td class="small">مقدّم الطلب</td>
+                                <td class="small">الموظف صاحب الإجازة (لو له حساب دخول)</td>
                             </tr>
                             <tr>
                                 <td><span class="badge bg-label-info">طلب سلفة جديد</span></td>
                                 <td class="small">فور تسجيل طلب سلفة</td>
-                                <td class="small">من له صلاحية السلف في نفس الفرع</td>
+                                <td class="small">من له صلاحية عرض السلف في نفس الفرع</td>
                             </tr>
                             <tr>
                                 <td><span class="badge bg-label-success">نتيجة طلب السلفة</span></td>
                                 <td class="small">عند الاعتماد أو الرفض</td>
-                                <td class="small">مقدّم الطلب</td>
+                                <td class="small">الموظف صاحب السلفة (لو له حساب دخول)</td>
                             </tr>
                             <tr>
                                 <td><span class="badge bg-label-info">مسير بانتظار الاعتماد</span></td>
                                 <td class="small">فور إصدار مسير رواتب</td>
-                                <td class="small">من له صلاحية اعتماد الرواتب</td>
+                                <td class="small">من له صلاحية عرض الرواتب في نفس الفرع</td>
                             </tr>
                             <tr>
                                 <td><span class="badge bg-label-warning">اشتراك يقترب من التجديد</span></td>
                                 <td class="small">يومياً — خلال 7 أيام من الاستحقاق</td>
-                                <td class="small">المسؤول المالي للفرع</td>
+                                <td class="small">من له صلاحية عرض الاشتراكات في فرع الاشتراك</td>
                             </tr>
                             <tr>
                                 <td><span class="badge bg-label-danger">رصيد عهدة منخفض</span></td>
                                 <td class="small">يومياً — عند نزول المتبقي تحت 20%</td>
-                                <td class="small">مدير الفرع</td>
+                                <td class="small">من له صلاحية عرض المصروفات في نفس الفرع</td>
                             </tr>
                             <tr>
-                                <td><span class="badge bg-label-danger">فاتورة متأخرة</span></td>
-                                <td class="small">يومياً — بعد 30 يوماً من تاريخ الفاتورة</td>
-                                <td class="small">مسؤول المبيعات</td>
+                                <td><span class="badge bg-label-danger">فواتير متأخرة</span></td>
+                                <td class="small">
+                                    يومياً — <strong>ملخّص واحد لكل فرع</strong>: عدد الفواتير المتأخرة أكثر من 30 يوماً
+                                    وإجمالي المستحق لكل عملة، مع رابط للقائمة مفلترة عليها
+                                </td>
+                                <td class="small">من له صلاحية عرض المبيعات في نفس الفرع</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1493,10 +2036,11 @@
                     </div>
                     <div class="col-md-4">
                         <div class="alert alert-success mb-0 h-100">
-                            <h6 class="alert-heading fw-bold"><i class="fa-solid fa-shield-halved me-1"></i> لا يعطّل العمل</h6>
+                            <h6 class="alert-heading fw-bold"><i class="fa-solid fa-shield-halved me-1"></i> لا يعطّل العمل ولا يتكرر</h6>
                             <p class="small mb-0">
                                 فشل إرسال الإشعار لا يوقف العملية الأصلية — طلب الإجازة يُسجَّل
-                                حتى لو تعذّر إرسال التنبيه.
+                                حتى لو تعذّر إرسال التنبيه. والتنبيهات اليومية لا تتكرر لنفس الشيء في نفس اليوم
+                                حتى لو شُغّل الأمر أكثر من مرة. ولا يصل للشخص إشعار بفعل قام به هو.
                             </p>
                         </div>
                     </div>
@@ -1603,7 +2147,26 @@ PUSHER_APP_CLUSTER=eu</pre>
                             </tr>
                             <tr>
                                 <td><code class="small" dir="ltr">php artisan queue:work</code></td>
-                                <td class="small">معالجة الطابور (إرسال البريد) — تلقائية كل دقيقة من الجدولة، لا تحتاج تشغيلها يدوياً</td>
+                                <td class="small">
+                                    معالجة الطابور (إرسال البريد) — تلقائية كل دقيقة من الجدولة، لا تحتاج تشغيلها يدوياً.
+                                    لو ركّبت worker دائماً عبر Supervisor (<code dir="ltr">deploy/supervisor/hr-queue-worker.conf</code>)
+                                    ضع <code dir="ltr">QUEUE_SUPERVISED=true</code> في <code dir="ltr">.env</code> فتتوقف النسخة المجدولة.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code class="small" dir="ltr">php artisan optimize:clear</code></td>
+                                <td class="small">مسح كل الكاش (الإعدادات والمسارات والواجهات) — <strong>مطلوب بعد رفع أي تحديث</strong> للسيرفر</td>
+                            </tr>
+                            <tr>
+                                <td><code class="small" dir="ltr">php artisan db:seed --class=RoleSeeder</code></td>
+                                <td class="small">إضافة <a href="#sec-roles">الأدوار الجاهزة</a> الناقصة فقط — لا يكرر دوراً موجوداً ولا يلغي أي تعديل عليه</td>
+                            </tr>
+                            <tr>
+                                <td><code class="small" dir="ltr">php artisan db:seed</code></td>
+                                <td class="small">
+                                    <strong>بيئة التطوير فقط:</strong> بيانات تجريبية كاملة (فروع وموظفين وفواتير).
+                                    التنصيب الجديد يضيف تلقائياً الإعدادات والأدوار والمشرف الرئيسي فقط — بدون بيانات تجريبية.
+                                </td>
                             </tr>
                             <tr>
                                 <td><code class="small" dir="ltr">php artisan lang:check-missing</code></td>
@@ -1620,8 +2183,9 @@ PUSHER_APP_CLUSTER=eu</pre>
                 <div class="alert alert-warning mb-0">
                     <h6 class="alert-heading fw-bold"><i class="fa-solid fa-clock me-1"></i> إعداد المهام المجدولة (مطلوب مرة واحدة)</h6>
                     <p class="small mb-2">
-                        لكي يعمل التنظيف التلقائي لسجل الحركات كل ليلة، يجب إضافة هذا السطر لجدول
-                        <span dir="ltr">Cron</span> على السيرفر:
+                        كل المهام التلقائية في الجدول أعلاه (التنبيهات، النسخ الاحتياطي، ترحيل العهدة، الروابط،
+                        التنظيف، ومعالجة الطابور) تعتمد على سطر واحد في جدول
+                        <span dir="ltr">Cron</span> على السيرفر يعمل كل دقيقة:
                     </p>
                     <pre class="small mb-0 p-2 rounded" dir="ltr" style="background: rgba(0,0,0,0.05);">* * * * * cd /path-to-project &amp;&amp; php artisan schedule:run &gt;&gt; /dev/null 2&gt;&amp;1</pre>
                 </div>

@@ -76,6 +76,47 @@ class SystemGuideTest extends TestCase
             ->assertSee('120', false);
     }
 
+    public function test_guide_covers_every_module_section(): void
+    {
+        $response = $this->actingAs($this->admin, 'admin')
+            ->get(route('admin.system-guide'))
+            ->assertOk();
+
+        foreach (['sec-employees', 'sec-reports', 'sec-roles', 'sec-payroll-lifecycle', 'sec-expenses-petty-cash'] as $section) {
+            $response->assertSee('id="' . $section . '"', false);
+        }
+    }
+
+    /** جدول الأدوار مبني من RolePresets — أي دور جديد يظهر تلقائياً بعدد صلاحياته. */
+    public function test_guide_lists_role_presets_dynamically(): void
+    {
+        $response = $this->actingAs($this->admin, 'admin')
+            ->get(route('admin.system-guide'))
+            ->assertOk();
+
+        foreach (\App\Services\Role\RolePresets::all() as $preset) {
+            $response->assertSee($preset['name'], false);
+        }
+    }
+
+    /** كل رابط في فهرس الدليل لازم يودّي لقسم موجود فعلاً. */
+    public function test_every_toc_link_points_to_an_existing_section(): void
+    {
+        $html = $this->actingAs($this->admin, 'admin')
+            ->get(route('admin.system-guide'))
+            ->assertOk()
+            ->getContent();
+
+        preg_match('/<nav[^>]*id="guideToc"[^>]*>(.*?)<\/nav>/s', $html, $toc);
+        preg_match_all('/href="#([^"]+)"/', $toc[1] ?? '', $links);
+
+        $this->assertNotEmpty($links[1]);
+
+        foreach ($links[1] as $id) {
+            $this->assertStringContainsString('id="' . $id . '"', $html, "رابط الفهرس #{$id} مالوش قسم");
+        }
+    }
+
     public function test_guide_requires_permission(): void
     {
         $limitedRole = Role::create(['name' => 'Limited', 'roles' => []]);
