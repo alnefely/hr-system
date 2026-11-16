@@ -2,6 +2,12 @@
 
 namespace App\Services\HR;
 
+use App\Enums\ApprovalStatus;
+use App\Enums\AdvanceStatus;
+use App\Enums\LeaveStatus;
+use App\Enums\PayrollItemStatus;
+use App\Enums\PayrollStatus;
+use App\Enums\RewardStatus;
 use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
@@ -43,7 +49,7 @@ class PayrollGenerator
                 'year'       => $year,
                 'month'      => $month,
                 'branch_id'  => $branchId,
-                'status'     => 'draft',
+                'status'     => PayrollStatus::Draft->value,
                 'created_by' => $createdBy ?? admin()?->id,
                 'notes'      => $notes,
             ]);
@@ -149,7 +155,7 @@ class PayrollGenerator
 
         return [
             'rewards' => EmployeeReward::whereIn('employee_id', $employeeIds)
-                ->where('status', 'approved')
+                ->where('status', RewardStatus::Approved->value)
                 ->inMonth($year, $month)
                 ->get()
                 ->groupBy('employee_id'),
@@ -157,7 +163,7 @@ class PayrollGenerator
             // المعتمد بس: الجزاء خصم من الراتب فلازم يعدّي دورة الاعتماد
             // قبل ما يدخل المسير — زي المكافآت بالظبط.
             'penalties' => EmployeePenalty::whereIn('employee_id', $employeeIds)
-                ->where('status', 'approved')
+                ->whereIn('status', PayrollRules::DEDUCTIBLE_PENALTY_STATUSES)
                 ->inMonth($year, $month)
                 ->get()
                 ->groupBy('employee_id'),
@@ -166,7 +172,7 @@ class PayrollGenerator
             // في شهر البداية — عشان كده بنجيب كل اللي بيتقاطع مع الشهر.
             'unpaidLeaveDays' => PayrollRules::overlapping(
                     EmployeeLeave::whereIn('employee_id', $employeeIds)
-                        ->where('status', 'approved')
+                        ->where('status', LeaveStatus::Approved->value)
                         ->where('leave_type', 'unpaid'),
                     $monthStart,
                     $monthEnd
@@ -178,14 +184,14 @@ class PayrollGenerator
                 ), 2)),
 
             'permissionHours' => EmployeePermission::whereIn('employee_id', $employeeIds)
-                ->where('status', 'approved')
+                ->where('status', ApprovalStatus::Approved->value)
                 ->inMonth($year, $month)
                 ->groupBy('employee_id')
                 ->selectRaw('employee_id, SUM(hours_count) as total_hours')
                 ->pluck('total_hours', 'employee_id'),
 
             'advances' => EmployeeAdvance::whereIn('employee_id', $employeeIds)
-                ->where('status', 'approved')
+                ->where('status', AdvanceStatus::Approved->value)
                 ->where('remaining_amount', '>', 0)
                 ->where('start_date', '<=', $lastDayOfMonth)
                 ->get()
@@ -212,7 +218,7 @@ class PayrollGenerator
             'deductions'        => $totalDeductions,
             'deduction_details' => json_encode($deductionDetails, JSON_UNESCAPED_UNICODE),
             'net_salary'        => max(0, round($basicSalary + $totalAllowances - $totalDeductions, 2)),
-            'status'            => 'pending',
+            'status'            => PayrollItemStatus::Pending->value,
             'payment_method'    => !empty($employee->bank_account_number) ? 'bank_transfer' : 'cash',
             'created_at'        => $now,
             'updated_at'        => $now,

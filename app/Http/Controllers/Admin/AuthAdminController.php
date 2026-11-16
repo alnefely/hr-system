@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Auth\ForgotPasswordRequest;
+use App\Http\Requests\Admin\Auth\LoginRequest;
+use App\Http\Requests\Admin\Auth\ResetPasswordRequest;
 use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class AuthAdminController extends Controller
 {
@@ -24,14 +26,9 @@ class AuthAdminController extends Controller
     }
 
     // ckeck login
-    public function checkLogin(Request $request)
+    public function checkLogin(LoginRequest $request)
     {
-        $request->validate([
-            'email'    => 'required|email:filter',
-            'password' => 'required|string',
-        ]);
-
-        $throttleKey = Str::transliterate(Str::lower($request->input('email')) . '|' . $request->ip());
+        $throttleKey = $request->throttleKey();
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
@@ -53,9 +50,14 @@ class AuthAdminController extends Controller
     }
 
     // logout
-    public function logout()
+    public function logout(Request $request)
     {
         auth()->guard($this->guard)->logout();
+
+        // من غيرهم الجلسة القديمة وتوكن CSRF بيفضلوا صالحين بعد الخروج
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect()->route('admin.login')->with('success', __('auth.done_logout'));
     }
 
@@ -77,12 +79,8 @@ class AuthAdminController extends Controller
      *
      * الرد دايماً واحد سواء الإيميل موجود أو لأ، عشان مايتسربش مين مسجّل عندنا.
      */
-    public function sendPassword(Request $request)
+    public function sendPassword(ForgotPasswordRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email:filter|max:100',
-        ]);
-
         $status = Password::broker('admins')->sendResetLink(
             $request->only('email')
         );
@@ -111,14 +109,8 @@ class AuthAdminController extends Controller
     }
 
     /** حفظ كلمة المرور الجديدة بعد التحقق من التوكن. */
-    public function resetPassword(Request $request)
+    public function resetPassword(ResetPasswordRequest $request)
     {
-        $request->validate([
-            'token'    => ['required'],
-            'email'    => ['required', 'email:filter'],
-            'password' => ['required', 'confirmed', PasswordRule::min(8)->letters()->numbers()],
-        ]);
-
         $status = Password::broker('admins')->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function (Admin $admin, string $password) {

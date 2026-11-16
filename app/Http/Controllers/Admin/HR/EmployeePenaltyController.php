@@ -2,15 +2,28 @@
 
 namespace App\Http\Controllers\Admin\HR;
 
-use App\Rules\AccessibleEmployee;
+use App\Enums\ApprovalStatus;
+use App\Http\Controllers\Concerns\RespondsToStateActions;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Penalty\StorePenaltyRequest;
+use App\Http\Requests\Admin\StrictRejectionRequest;
 use App\Models\Employee;
 use App\Models\EmployeePenalty;
 use App\Services\Export\ExcelExportService;
+use App\Services\HR\ApprovalService;
 use Illuminate\Http\Request;
 
+/**
+ * الجزاءات الإدارية. الاعتماد والرفض عبر ApprovalService (مع فصل المهام).
+ */
 class EmployeePenaltyController extends Controller
 {
+    use RespondsToStateActions;
+
+    public function __construct(
+        private ApprovalService $approvals,
+    ) {}
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -56,70 +69,13 @@ class EmployeePenaltyController extends Controller
                 })
                 ->addColumn('formatted_date', fn($row) => $row->penalty_date ? $row->penalty_date->format('Y-m-d') : '-')
                 ->addColumn('creator_name', fn($row) => $row->creator?->name ?? '-')
-                ->addColumn('status_badge', function ($row) {
-                    $status = $row->statusEnum();
-
-                    if (!$status) {
-                        return '<span class="badge bg-label-secondary">' . e($row->status) . '</span>';
-                    }
-
-                    $html = '<span class="badge ' . $status->badge() . '">'
-                          . '<i class="' . $status->icon() . ' me-1"></i>'
-                          . e($status->label()) . '</span>';
-
-                    if ($row->rejection_reason) {
-                        $html .= '<i class="fa-solid fa-circle-info text-danger ms-1" data-bs-toggle="tooltip" title="'
-                              . e($row->rejection_reason) . '"></i>';
-                    }
-
-                    return $html;
-                })
-                ->addColumn('actions', function ($row) {
-                    $html = '<div class="d-inline-flex gap-1">';
-
-                    // الاعتماد والرفض للمعلق بس
-                    if ($row->isPending()) {
-                        if (admin_can('penalty_approve')) {
-                            $html .= '<form action="' . route('admin.penalties.approve', $row->id) . '" method="POST" class="d-inline">
-                                ' . csrf_field() . '
-                                <button type="button" class="btn btn-sm btn-icon btn-label-success btn-swal-confirm"
-                                    title="' . __('global.approve') . '"
-                                    data-title="اعتماد الجزاء"
-                                    data-text="' . __('penalty.messages.confirm_approve') . '"
-                                    data-icon="question"
-                                    data-btn-text="' . __('global.approve') . '"
-                                    data-btn-class="btn-success">
-                                    <i class="fa-solid fa-check"></i>
-                                </button>
-                            </form>';
-                        }
-
-                        if (admin_can('penalty_reject')) {
-                            $html .= '<button type="button" class="btn btn-sm btn-icon btn-label-danger reject-btn"
-                                data-id="' . $row->id . '" title="' . __('global.reject') . '">
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>';
-                        }
-                    }
-
-                    // الحذف ممنوع بعد الاعتماد — الحركة بقت في المسير
-                    if (admin_can('penalty_delete') && $row->isEditable()) {
-                        $html .= '<form action="' . route('admin.penalties.destroy', $row->id) . '" method="POST" class="d-inline">
-                            ' . csrf_field() . method_field('DELETE') . '
-                            <button type="button" class="btn btn-sm btn-icon btn-label-secondary btn-swal-confirm" title="' . __('global.delete') . '"
-                                data-title="' . __('global.confirm_delete') . '"
-                                data-text="' . __('global.confirm_delete') . '"
-                                data-icon="warning"
-                                data-btn-text="' . __('global.delete') . '"
-                                data-btn-class="btn-danger">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>';
-                    }
-
-                    $html .= '</div>';
-                    return $html;
-                })
+                ->addColumn('status_badge', fn ($row) => view('admin.hr.partials.approval-status', ['row' => $row])->render())
+                ->addColumn('actions', fn ($row) => view('admin.hr.partials.approval-actions', [
+                    'row'          => $row,
+                    'module'       => 'penalty',
+                    'routes'       => 'admin.penalties',
+                    'approveTitle' => 'اعتماد الجزاء',
+                ])->render())
                 ->rawColumns(['status_badge', 'type_badge', 'deduction_summary', 'actions'])
                 ->make(true);
         }
@@ -217,37 +173,13 @@ class EmployeePenaltyController extends Controller
         ));
     }
 
-    public function store(Request $request)
+    public function store(StorePenaltyRequest $request)
     {
-        $data = $request->validate([
-            'employee_id'      => ['required', new AccessibleEmployee],
-            'penalty_type'     => ['required', 'in:days_deduction,amount_deduction,warning'],
-            'days_count'       => ['nullable', 'numeric', 'min:0'],
-            'deduction_amount' => ['nullable', 'numeric', 'min:0'],
-            'penalty_date'     => ['required', 'date'],
-            'reason'           => ['required', 'string', 'max:1000'],
-            'notes'            => ['nullable', 'string', 'max:1000'],
-        ]);
-
-        if ($data['penalty_type'] === 'days_deduction') {
-            $data['days_count'] = $data['days_count'] ?? 1;
-            $emp = Employee::find($data['employee_id']);
-            $dailyRate = $emp?->daily_rate ?: ($emp?->basic_salary ? round($emp->basic_salary / 30, 2) : 0);
-            $data['deduction_amount'] = round($dailyRate * $data['days_count'], 2);
-        } elseif ($data['penalty_type'] === 'amount_deduction') {
-            $data['days_count'] = 0;
-            $data['deduction_amount'] = $data['deduction_amount'] ?? 0;
-        } else {
-            $data['days_count'] = 0;
-            $data['deduction_amount'] = 0;
-        }
-
-        $data['created_by'] = admin()?->id;
-
         // الجزاء بيبدأ قيد الاعتماد: مايدخلش المسير غير بعد المراجعة.
-        $data['status'] = 'pending';
-
-        EmployeePenalty::create($data);
+        EmployeePenalty::create([
+            'created_by' => admin()?->id,
+            'status'     => ApprovalStatus::Pending->value,
+        ] + $request->penaltyData());
 
         return redirect()->route('admin.penalties.index')->with('success', __('penalty.messages.created'));
     }
@@ -302,41 +234,18 @@ class EmployeePenaltyController extends Controller
      */
     public function approve(EmployeePenalty $penalty)
     {
-        if (!$penalty->isPending()) {
-            return redirect()->back()->with('error', __('penalty.messages.not_pending'));
-        }
-
-        if ($penalty->created_by && $penalty->created_by === admin()?->id && !admin()?->main) {
-            return redirect()->back()->with('error', __('penalty.messages.cannot_self_approve'));
-        }
-
-        $penalty->update([
-            'status'      => 'approved',
-            'approved_by' => admin()?->id,
-            'approved_at' => now(),
-        ]);
-
-        return redirect()->back()->with('success', __('penalty.messages.approved'));
+        return $this->attempt(
+            fn () => $this->approvals->approve($penalty, 'penalty', separateDuties: true),
+            'penalty.messages.approved'
+        );
     }
 
-    /** رفض الحركة مع توثيق السبب. */
-    public function reject(Request $request, EmployeePenalty $penalty)
+    /** رفض الحركة مع توثيق السبب — المعلّق بس. */
+    public function reject(StrictRejectionRequest $request, EmployeePenalty $penalty)
     {
-        $request->validate([
-            'rejection_reason' => ['required', 'string', 'min:3', 'max:500'],
-        ]);
-
-        if (!$penalty->isPending()) {
-            return redirect()->back()->with('error', __('penalty.messages.not_pending'));
-        }
-
-        $penalty->update([
-            'status'           => 'rejected',
-            'rejection_reason' => $request->rejection_reason,
-            'approved_by'      => admin()?->id,
-            'approved_at'      => now(),
-        ]);
-
-        return redirect()->back()->with('success', __('penalty.messages.rejected'));
+        return $this->attempt(
+            fn () => $this->approvals->reject($penalty, $request->reason(), 'penalty'),
+            'penalty.messages.rejected'
+        );
     }
 }

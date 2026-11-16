@@ -128,21 +128,34 @@ class AggregateLinkStatsCommand extends Command
             'by_referrer' => $this->distribution($start, $end, 'referrer_domain'),
         ];
 
-        foreach ($totals as $row) {
+        // upsert واحد لكل دفعة بدل updateOrCreate لكل رابط (SELECT + INSERT/UPDATE).
+        // upsert مابيطبّقش الـ casts: التاريخ بيتكتب Y-m-d (نفس اللي كان
+        // بيتخزّن قبل كده ونفس اللي الشاشات بتدوّر بيه)، والتوزيعات JSON يدوياً.
+        $date  = $start->toDateString();
+        $json  = fn (?array $v) => $v === null ? null : json_encode($v, JSON_UNESCAPED_UNICODE);
+
+        $rows = $totals->map(function ($row) use ($distributions, $date, $json) {
             $linkId = (int) $row->link_id;
 
-            LinkDailyStat::updateOrCreate(
-                ['link_id' => $linkId, 'date' => $start->toDateString()],
-                [
-                    // النقرات البشرية بس — البوتات في عمودها
-                    'clicks'        => (int) $row->total - (int) $row->bots,
-                    'unique_clicks' => (int) $row->uniques,
-                    'bot_clicks'    => (int) $row->bots,
-                    'by_country'    => $distributions['by_country'][$linkId] ?? null,
-                    'by_device'     => $distributions['by_device'][$linkId] ?? null,
-                    'by_browser'    => $distributions['by_browser'][$linkId] ?? null,
-                    'by_referrer'   => $distributions['by_referrer'][$linkId] ?? null,
-                ]
+            return [
+                'link_id'       => $linkId,
+                'date'          => $date,
+                // النقرات البشرية بس — البوتات في عمودها
+                'clicks'        => (int) $row->total - (int) $row->bots,
+                'unique_clicks' => (int) $row->uniques,
+                'bot_clicks'    => (int) $row->bots,
+                'by_country'    => $json($distributions['by_country'][$linkId] ?? null),
+                'by_device'     => $json($distributions['by_device'][$linkId] ?? null),
+                'by_browser'    => $json($distributions['by_browser'][$linkId] ?? null),
+                'by_referrer'   => $json($distributions['by_referrer'][$linkId] ?? null),
+            ];
+        })->all();
+
+        foreach (array_chunk($rows, 500) as $chunk) {
+            LinkDailyStat::upsert(
+                $chunk,
+                ['link_id', 'date'],
+                ['clicks', 'unique_clicks', 'bot_clicks', 'by_country', 'by_device', 'by_browser', 'by_referrer']
             );
         }
 

@@ -2,15 +2,28 @@
 
 namespace App\Http\Controllers\Admin\HR;
 
-use App\Rules\AccessibleEmployee;
+use App\Enums\RewardStatus;
+use App\Http\Controllers\Concerns\RespondsToStateActions;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Reward\StoreRewardRequest;
+use App\Http\Requests\Admin\StrictRejectionRequest;
 use App\Models\Employee;
 use App\Models\EmployeeReward;
 use App\Services\Export\ExcelExportService;
+use App\Services\HR\ApprovalService;
 use Illuminate\Http\Request;
 
+/**
+ * المكافآت. الاعتماد والرفض عبر ApprovalService (مع فصل المهام).
+ */
 class EmployeeRewardController extends Controller
 {
+    use RespondsToStateActions;
+
+    public function __construct(
+        private ApprovalService $approvals,
+    ) {}
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -50,83 +63,15 @@ class EmployeeRewardController extends Controller
                     $curr = $row->employee?->branch?->currency ?? 'EGP';
                     return '<span class="text-success fw-bold"><span dir="ltr">+' . number_format($row->amount, 2) . '</span> ' . $curr . '</span>';
                 })
-                ->addColumn('status_badge', function ($row) {
-                    $statuses = [
-                        'approved' => 'bg-label-success',
-                        'pending'  => 'bg-label-warning',
-                        'rejected' => 'bg-label-danger',
-                        'paid'     => 'bg-label-info',
-                    ];
-                    $badge = $statuses[$row->status] ?? 'bg-label-secondary';
-                    $lbl = __('reward.status_enums.' . $row->status) ?? $row->status;
-                    return '<span class="badge ' . $badge . '">' . $lbl . '</span>';
-                })
-                ->addColumn('formatted_date', fn($row) => $row->reward_date ? $row->reward_date->format('Y-m-d') : '-')
-                ->addColumn('creator_name', fn($row) => $row->creator?->name ?? '-')
-                ->addColumn('status_badge', function ($row) {
-                    $status = $row->statusEnum();
-
-                    if (!$status) {
-                        return '<span class="badge bg-label-secondary">' . e($row->status) . '</span>';
-                    }
-
-                    $html = '<span class="badge ' . $status->badge() . '">'
-                          . '<i class="' . $status->icon() . ' me-1"></i>'
-                          . e($status->label()) . '</span>';
-
-                    if ($row->rejection_reason) {
-                        $html .= '<i class="fa-solid fa-circle-info text-danger ms-1" data-bs-toggle="tooltip" title="'
-                              . e($row->rejection_reason) . '"></i>';
-                    }
-
-                    return $html;
-                })
-                ->addColumn('actions', function ($row) {
-                    $html = '<div class="d-inline-flex gap-1">';
-
-                    // الاعتماد والرفض للمعلق بس
-                    if ($row->isPending()) {
-                        if (admin_can('reward_approve')) {
-                            $html .= '<form action="' . route('admin.rewards.approve', $row->id) . '" method="POST" class="d-inline">
-                                ' . csrf_field() . '
-                                <button type="button" class="btn btn-sm btn-icon btn-label-success btn-swal-confirm"
-                                    title="' . __('global.approve') . '"
-                                    data-title="اعتماد المكافأة"
-                                    data-text="' . __('reward.messages.confirm_approve') . '"
-                                    data-icon="question"
-                                    data-btn-text="' . __('global.approve') . '"
-                                    data-btn-class="btn-success">
-                                    <i class="fa-solid fa-check"></i>
-                                </button>
-                            </form>';
-                        }
-
-                        if (admin_can('reward_reject')) {
-                            $html .= '<button type="button" class="btn btn-sm btn-icon btn-label-danger reject-btn"
-                                data-id="' . $row->id . '" title="' . __('global.reject') . '">
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>';
-                        }
-                    }
-
-                    // الحذف ممنوع بعد الاعتماد — الحركة بقت في المسير
-                    if (admin_can('reward_delete') && $row->isEditable()) {
-                        $html .= '<form action="' . route('admin.rewards.destroy', $row->id) . '" method="POST" class="d-inline">
-                            ' . csrf_field() . method_field('DELETE') . '
-                            <button type="button" class="btn btn-sm btn-icon btn-label-secondary btn-swal-confirm" title="' . __('global.delete') . '"
-                                data-title="' . __('global.confirm_delete') . '"
-                                data-text="' . __('global.confirm_delete') . '"
-                                data-icon="warning"
-                                data-btn-text="' . __('global.delete') . '"
-                                data-btn-class="btn-danger">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>';
-                    }
-
-                    $html .= '</div>';
-                    return $html;
-                })
+                ->addColumn('formatted_date', fn ($row) => $row->reward_date?->format('Y-m-d') ?? '-')
+                ->addColumn('creator_name', fn ($row) => $row->creator?->name ?? '-')
+                ->addColumn('status_badge', fn ($row) => view('admin.hr.partials.approval-status', ['row' => $row])->render())
+                ->addColumn('actions', fn ($row) => view('admin.hr.partials.approval-actions', [
+                    'row'          => $row,
+                    'module'       => 'reward',
+                    'routes'       => 'admin.rewards',
+                    'approveTitle' => 'اعتماد المكافأة',
+                ])->render())
                 ->rawColumns(['type_badge', 'formatted_amount', 'status_badge', 'actions'])
                 ->make(true);
         }
@@ -203,7 +148,7 @@ class EmployeeRewardController extends Controller
             if ($selectedEmployee) {
                 $totalRewards = EmployeeReward::where('employee_id', $selectedEmployeeId)->count();
                 $totalAmount  = (float) EmployeeReward::where('employee_id', $selectedEmployeeId)
-                    ->whereIn('status', ['approved', 'paid'])
+                    ->whereIn('status', [RewardStatus::Approved->value, RewardStatus::Paid->value])
                     ->sum('amount');
 
                 $rewardStats = [
@@ -224,34 +169,30 @@ class EmployeeRewardController extends Controller
         ));
     }
 
-    public function store(Request $request)
+    public function store(StoreRewardRequest $request)
     {
-        $data = $request->validate([
-            'employee_id' => ['required', new AccessibleEmployee],
-            'reward_type' => ['required', 'in:bonus,incentive,allowance,appreciation'],
-            'title'       => ['required', 'string', 'max:255'],
-            'amount'      => ['required', 'numeric', 'min:0.01'],
-            'reward_date' => ['required', 'date'],
-            'reason'      => ['nullable', 'string', 'max:1000'],
-            'notes'       => ['nullable', 'string', 'max:1000'],
-        ]);
-
-        $data['created_by'] = admin()?->id;
-
         // المكافأة بتبدأ قيد الاعتماد: صرف مبلغ للموظف لازم يراجعه
-        // شخص تاني قبل ما يدخل المسير — كان بيتعمد ذاتياً قبل كده.
-        $data['status'] = 'pending';
-
-        EmployeeReward::create($data);
+        // شخص تاني قبل ما يدخل المسير.
+        EmployeeReward::create([
+            'created_by' => admin()?->id,
+            'status'     => RewardStatus::Pending->value,
+        ] + $request->validated());
 
         return redirect()->route('admin.rewards.index')->with('success', __('reward.messages.created'));
     }
 
     public function destroy(EmployeeReward $reward)
     {
+        // بعد الاعتماد أو الصرف المكافأة بقت جزء من المسير، فالحذف بيكسر التطابق.
+        if (! $reward->isEditable()) {
+            return redirect()->back()->with('error', __('reward.messages.cannot_modify_approved'));
+        }
+
         $reward->delete();
+
         return redirect()->back()->with('success', __('reward.messages.deleted'));
     }
+
     public function trash(Request $request)
     {
         if ($request->ajax()) {
@@ -263,16 +204,10 @@ class EmployeeRewardController extends Controller
                     $curr = $row->employee?->branch?->currency ?? 'EGP';
                     return '<span class="fw-bold text-success" dir="ltr">' . number_format($row->amount, 2) . ' ' . $curr . '</span>';
                 })
-                ->addColumn('reward_type_badge', function ($row) {
-                    $types = [
-                        'bonus'      => ['label' => 'مكافأة تميز', 'class' => 'bg-label-success'],
-                        'allowance'  => ['label' => 'بدل إضافي', 'class' => 'bg-label-info'],
-                        'commission' => ['label' => 'عمولة مبيعات', 'class' => 'bg-label-primary'],
-                        'overtime'   => ['label' => 'عمل إضافي', 'class' => 'bg-label-warning'],
-                    ];
-                    $t = $types[$row->reward_type] ?? ['label' => $row->reward_type, 'class' => 'bg-label-secondary'];
-                    return '<span class="badge ' . $t['class'] . '">' . $t['label'] . '</span>';
-                })
+                // الأنواع والأسماء من ملف الترجمة — الخريطة القديمة كانت فيها
+                // أنواع مش موجودة (commission, overtime) وناقصها incentive.
+                ->addColumn('reward_type_badge', fn ($row) => '<span class="badge bg-label-secondary">'
+                    . e(__('reward.type_enums.' . $row->reward_type)) . '</span>')
                 ->addColumn('deleted_at', fn($row) => $row->deleted_at ? $row->deleted_at->format('Y-m-d H:i') : '-')
                 ->rawColumns(['formatted_amount', 'reward_type_badge'])
                 ->make(true);
@@ -306,41 +241,18 @@ class EmployeeRewardController extends Controller
      */
     public function approve(EmployeeReward $reward)
     {
-        if (!$reward->isPending()) {
-            return redirect()->back()->with('error', __('reward.messages.not_pending'));
-        }
-
-        if ($reward->created_by && $reward->created_by === admin()?->id && !admin()?->main) {
-            return redirect()->back()->with('error', __('reward.messages.cannot_self_approve'));
-        }
-
-        $reward->update([
-            'status'      => 'approved',
-            'approved_by' => admin()?->id,
-            'approved_at' => now(),
-        ]);
-
-        return redirect()->back()->with('success', __('reward.messages.approved'));
+        return $this->attempt(
+            fn () => $this->approvals->approve($reward, 'reward', separateDuties: true),
+            'reward.messages.approved'
+        );
     }
 
-    /** رفض الحركة مع توثيق السبب. */
-    public function reject(Request $request, EmployeeReward $reward)
+    /** رفض الحركة مع توثيق السبب — المعلّق بس. */
+    public function reject(StrictRejectionRequest $request, EmployeeReward $reward)
     {
-        $request->validate([
-            'rejection_reason' => ['required', 'string', 'min:3', 'max:500'],
-        ]);
-
-        if (!$reward->isPending()) {
-            return redirect()->back()->with('error', __('reward.messages.not_pending'));
-        }
-
-        $reward->update([
-            'status'           => 'rejected',
-            'rejection_reason' => $request->rejection_reason,
-            'approved_by'      => admin()?->id,
-            'approved_at'      => now(),
-        ]);
-
-        return redirect()->back()->with('success', __('reward.messages.rejected'));
+        return $this->attempt(
+            fn () => $this->approvals->reject($reward, $request->reason(), 'reward'),
+            'reward.messages.rejected'
+        );
     }
 }

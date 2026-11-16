@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RoleRequest;
 use App\Models\Role;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class RoleController extends Controller
 {
@@ -32,9 +31,9 @@ class RoleController extends Controller
     /**
      * حفظ دور جديد
      */
-    public function store(Request $request)
+    public function store(RoleRequest $request)
     {
-        $data = $this->validated($request);
+        $data = $request->validated();
 
         Role::create([
             'name'        => $data['name'],
@@ -64,14 +63,14 @@ class RoleController extends Controller
     /**
      * تحديث دور
      */
-    public function update(Request $request, Role $role)
+    public function update(RoleRequest $request, Role $role)
     {
         if ($role->main) {
             return redirect()->route('admin.roles')
                 ->with('error', __('role.alert_update', ['name' => $role->name]));
         }
 
-        $data = $this->validated($request, $role);
+        $data = $request->validated();
 
         // الدور الاحتياطي (2) اسمه ثابت — الصلاحيات بس اللي بتتعدّل
         if ($role->id != 2) {
@@ -98,26 +97,5 @@ class RoleController extends Controller
         $role->delete();
 
         return redirect()->route('admin.roles')->with('success', __('alert.done_delete'));
-    }
-
-    /**
-     * قواعد التحقق — مشتركة بين الإضافة والتعديل.
-     *
-     * permissions.* مقيّدة بالصلاحيات المعرّفة في RoleService، عشان
-     * حد ميبعتش صلاحية مخترعة من الـ DevTools.
-     */
-    protected function validated(Request $request, ?Role $role = null): array
-    {
-        return $request->validate([
-            'name' => [
-                'required', 'string', 'max:100',
-                Rule::unique('roles', 'name')->ignore($role?->id),
-            ],
-            'description'   => ['nullable', 'string', 'max:255'],
-            'permissions'   => ['required', 'array', 'min:1'],
-            'permissions.*' => ['string', Rule::in(all_roles())],
-        ], [
-            'permissions.required' => __('role.permissions_required'),
-        ]);
     }
 }

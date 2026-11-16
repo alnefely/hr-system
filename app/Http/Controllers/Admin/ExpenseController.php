@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Rules\AccessibleBranch;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Expense\StoreExpenseRequest;
 use App\Http\Requests\Admin\Expense\UpdateExpenseRequest;
 use App\Models\Branch;
 use App\Models\Employee;
+use App\Http\Requests\Admin\Expense\UpdatePettyCashBalanceRequest;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\PettyCashBalance;
@@ -102,26 +102,7 @@ class ExpenseController extends Controller
                     $query->where('expenses.payment_method', $keyword);
                 })
                 ->addColumn('attachment_url', fn($row) => $row->attachment ? (str_starts_with($row->attachment, 'http') ? $row->attachment : Storage::url($row->attachment)) : null)
-                ->addColumn('actions', function ($row) {
-                    $html = '<div class="d-flex gap-1 justify-content-center">';
-                    if (admin_can('expense_update')) {
-                        $html .= '<a href="' . route('admin.expenses.edit', $row->id) . '" class="btn btn-sm btn-icon btn-label-primary waves-effect" title="' . __('global.edit') . '"><i class="fa-solid fa-pen-to-square"></i></a>';
-                    }
-                    if (admin_can('expense_delete')) {
-                        $html .= '<form action="' . route('admin.expenses.destroy', $row->id) . '" method="POST" class="d-inline">';
-                        $html .= csrf_field();
-                        $html .= method_field('DELETE');
-                        $html .= '<button type="button" class="btn btn-sm btn-icon btn-label-danger waves-effect btn-swal-confirm" title="' . __('global.delete') . '"
-                            data-title="' . __('global.confirm_delete') . '"
-                            data-text="' . __('global.confirm_delete') . '"
-                            data-icon="warning"
-                            data-btn-text="' . __('global.delete') . '"
-                            data-btn-class="btn-danger"><i class="fa-solid fa-trash"></i></button>';
-                        $html .= '</form>';
-                    }
-                    $html .= '</div>';
-                    return $html;
-                })
+                ->addColumn('actions', fn ($row) => view('admin.partials.table-actions.crud', ['row' => $row, 'routes' => 'admin.expenses', 'can' => 'expense'])->render())
                 ->rawColumns(['formatted_amount', 'actions'])
                 ->make(true);
         }
@@ -301,7 +282,7 @@ class ExpenseController extends Controller
     {
         $categories = ExpenseCategory::where('is_active', true)->get(['id', 'name']);
         $branches   = Branch::accessible()->where('is_active', true)->get(['id', 'name', 'currency']);
-        $employees  = Employee::where('status', 'active')->get(['id', 'name', 'employee_code']);
+        $employees  = Employee::active()->get(['id', 'name', 'employee_code']);
 
         return view('admin.expenses.create', compact('categories', 'branches', 'employees'));
     }
@@ -338,7 +319,7 @@ class ExpenseController extends Controller
     {
         $categories = ExpenseCategory::where('is_active', true)->get(['id', 'name']);
         $branches   = Branch::accessible()->where('is_active', true)->get(['id', 'name', 'currency']);
-        $employees  = Employee::where('status', 'active')->get(['id', 'name', 'employee_code']);
+        $employees  = Employee::active()->get(['id', 'name', 'employee_code']);
 
         return view('admin.expenses.edit', compact('expense', 'categories', 'branches', 'employees'));
     }
@@ -453,16 +434,8 @@ class ExpenseController extends Controller
     /**
      * Update or set allocated petty cash balance for a month.
      */
-    public function updateBalance(Request $request)
+    public function updateBalance(UpdatePettyCashBalanceRequest $request)
     {
-        $request->validate([
-            'branch_id'        => ['required', 'exists:branches,id', new AccessibleBranch],
-            'year'             => ['required', 'integer', 'min:2020', 'max:2100'],
-            'month'            => ['required', 'integer', 'min:1', 'max:12'],
-            'allocated_amount' => ['required', 'numeric', 'min:0'],
-            'notes'            => ['nullable', 'string', 'max:1000'],
-        ]);
-
         $branch = Branch::findOrFail($request->branch_id);
 
         PettyCashBalance::updateOrCreate(

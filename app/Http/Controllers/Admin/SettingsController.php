@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Role;
+use App\Http\Requests\Admin\UpdateSettingsRequest;
 use App\Models\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -25,41 +26,9 @@ class SettingsController extends Controller
     /**
      * تحديث الإعدادات
      */
-    public function update(Request $request)
+    public function update(UpdateSettingsRequest $request)
     {
-        $settings = Settings::whereNotNull('key')->get()->keyBy('key');
-
-        $rules = [];
-        foreach ($settings as $key => $setting) {
-            $rule = [];
-
-            // sometimes → لو الحقل مش موجود في الـ request خالص تجاهله
-            $rule[] = 'sometimes';
-            $rule[] = $setting->is_required ? 'required' : 'nullable';
-
-            match ($setting->type) {
-                'email'          => $rule[] = 'email',
-                'url'            => $rule[] = 'url',   // ← سامبتايمز + nullable كفاية
-                'number'         => $rule[] = 'numeric',
-                'checkbox'       => $rule[] = 'boolean',
-                'date'           => $rule[] = 'date',
-                'time'           => $rule[] = 'date_format:H:i',
-                'datetime-local' => $rule[] = 'date_format:Y-m-d\TH:i',
-                'file'           => $rule[] = 'string',
-                'select'         => !empty($setting->options) ? (function() use ($setting, &$rule) {
-                    $first    = array_key_first($setting->options);
-                    $inValues = is_int($first)
-                        ? array_values($setting->options)
-                        : array_keys($setting->options);
-                    $rule[] = 'in:' . implode(',', $inValues);
-                })() : null,
-                default => null,
-            };
-
-            $rules["settings.{$key}"] = array_filter($rule);
-        }
-
-        $request->validate($rules);
+        $settings = $request->definitions();
 
         foreach ($request->input('settings', []) as $key => $value) {
             if (!$settings->has($key)) continue;

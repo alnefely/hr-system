@@ -56,6 +56,25 @@ trait HasEnumHelpers
         return '<span class="badge ' . $this->badge() . '">' . e($this->label()) . '</span>';
     }
 
+    /**
+     * بادج لقيمة خام مع اسم من ملف ترجمة الموديول.
+     *
+     * لما الحالة مشتركة (ApprovalStatus) لكن كل موديول له تسميته:
+     *   ApprovalStatus::badgeFor($row->status, 'permission.status_enums')
+     *
+     * القيمة المجهولة بتظهر بلون محايد بدل ما الجدول يقع.
+     */
+    public static function badgeFor(?string $value, ?string $labelPrefix = null): string
+    {
+        $case = self::fromValue($value);
+
+        $label = $labelPrefix && __("{$labelPrefix}.{$value}") !== "{$labelPrefix}.{$value}"
+            ? __("{$labelPrefix}.{$value}")
+            : ($case?->label() ?? (string) $value);
+
+        return '<span class="badge ' . ($case?->badge() ?? 'bg-label-secondary') . '">' . e($label) . '</span>';
+    }
+
     public function is(self ...$cases): bool
     {
         return in_array($this, $cases, true);

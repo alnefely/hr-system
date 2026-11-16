@@ -2,20 +2,29 @@
 
 namespace App\Http\Controllers\Admin\HR;
 
-use App\Rules\AccessibleEmployee;
 use App\Enums\AdvanceStatus;
-use App\Enums\NotificationType;
-use App\Services\Notification\NotificationService;
+use App\Http\Controllers\Concerns\RespondsToStateActions;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Advance\RecordAdvancePaymentRequest;
+use App\Http\Requests\Admin\Advance\StoreAdvanceRequest;
+use App\Http\Requests\Admin\Advance\WaiveAdvanceRequest;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
 use App\Services\Export\ExcelExportService;
-use Exception;
+use App\Services\HR\AdvanceService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
+/**
+ * شاشات السلف. الاعتماد والسداد والإعفاء في AdvanceService.
+ */
 class EmployeeAdvanceController extends Controller
 {
+    use RespondsToStateActions;
+
+    public function __construct(
+        private AdvanceService $advances,
+    ) {}
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -58,81 +67,11 @@ class EmployeeAdvanceController extends Controller
                 })
                 ->addColumn('formatted_advance_date', fn($row) => $row->advance_date ? $row->advance_date->format('Y-m-d') : '-')
                 ->addColumn('formatted_start_date', fn($row) => $row->start_date ? $row->start_date->format('Y-m-d') : '-')
-                ->addColumn('status_badge', function ($row) {
-                    // الحالة للعرض بس. التغيير بيتم من أزرار الاعتماد
-                    // والرفض عشان يحترم الصلاحيات ودورة الموافقة.
-                    $badges = [
-                        'pending'  => 'warning',
-                        'approved' => 'info',
-                        'paid'     => 'success',
-                        'rejected' => 'danger',
-                    ];
-
-                    $colour = $badges[$row->status] ?? 'secondary';
-                    $key    = 'advance.status_enums.' . $row->status;
-                    $label  = __($key) === $key ? $row->status : __($key);
-
-                    return '<span class="badge bg-label-' . $colour . '">' . e($label) . '</span>';
-                })
+                // الحالة للعرض بس. التغيير بيتم من أزرار الاعتماد والرفض
+                // عشان يحترم الصلاحيات ودورة الموافقة.
+                ->addColumn('status_badge', fn ($row) => AdvanceStatus::badgeFor($row->status, 'advance.status_enums'))
                 ->addColumn('approver_name', fn($row) => $row->approver?->name ?? '-')
-                ->addColumn('actions', function ($row) {
-                    $curr = $row->employee?->branch?->currency ?? 'EGP';
-                    $html = '<div class="d-inline-flex gap-1">';
-                    
-                    // Repayments history & payment modal button
-                    $html .= '<button type="button" class="btn btn-sm btn-icon btn-label-info view-repayments-btn" 
-                        data-id="' . $row->id . '" 
-                        data-employee="' . e($row->employee?->name) . '"
-                        data-total="' . $row->amount . '"
-                        data-paid="' . $row->paid_amount . '"
-                        data-waived="' . $row->waived_amount . '"
-                        data-remaining="' . $row->remaining_amount . '"
-                        data-currency="' . $curr . '"
-                        title="سجل الدفعات وسداد دفعة">
-                        <i class="fa-solid fa-receipt"></i>
-                    </button>';
-
-                    // Manager waiver button
-                    if ($row->remaining_amount > 0 && $row->status !== 'rejected') {
-                        $html .= '<button type="button" class="btn btn-sm btn-icon btn-label-warning waive-advance-btn" 
-                            data-id="' . $row->id . '" 
-                            data-employee="' . e($row->employee?->name) . '"
-                            data-remaining="' . $row->remaining_amount . '"
-                            data-currency="' . $curr . '"
-                            title="إسقاط / إعفاء سلفة للموظف">
-                            <i class="fa-solid fa-hand-holding-heart"></i>
-                        </button>';
-                    }
-
-                    if ($row->status === 'pending') {
-                        if (admin_can('advance_approve')) {
-                            $html .= '<form action="' . route('admin.advances.approve', $row->id) . '" method="POST" class="d-inline">
-                                ' . csrf_field() . '
-                                <button type="button" class="btn btn-sm btn-icon btn-label-success btn-swal-confirm" title="' . __('advance.approve') . '" data-title="اعتماد السلفة" data-text="هل أنت متأكد من اعتماد السلفة؟" data-icon="question" data-btn-text="نعم، اعتمد" data-btn-class="btn-success">
-                                    <i class="fa-solid fa-check"></i>
-                                </button>
-                            </form>';
-                        }
-                        if (admin_can('advance_reject')) {
-                            $html .= '<form action="' . route('admin.advances.reject', $row->id) . '" method="POST" class="d-inline">
-                                ' . csrf_field() . '
-                                <button type="button" class="btn btn-sm btn-icon btn-label-danger btn-swal-confirm" title="' . __('advance.reject') . '" data-title="رفض السلفة" data-text="هل أنت متأكد من رفض طلب السلفة؟" data-icon="warning" data-btn-text="نعم، ارفض" data-btn-class="btn-danger">
-                                    <i class="fa-solid fa-xmark"></i>
-                                </button>
-                            </form>';
-                        }
-                    }
-                    if (admin_can('advance_delete')) {
-                        $html .= '<form action="' . route('admin.advances.destroy', $row->id) . '" method="POST" class="d-inline">
-                            ' . csrf_field() . method_field('DELETE') . '
-                            <button type="button" class="btn btn-sm btn-icon btn-label-secondary btn-swal-confirm" title="' . __('global.delete') . '" data-title="تأكيد الحذف" data-text="هل أنت متأكد من حذف هذا السجل؟" data-icon="warning" data-btn-text="نعم، احذف" data-btn-class="btn-danger">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>';
-                    }
-                    $html .= '</div>';
-                    return $html;
-                })
+                ->addColumn('actions', fn ($row) => view('admin.hr.advances.partials.actions', ['row' => $row])->render())
                 ->rawColumns(['formatted_amount', 'formatted_installment', 'formatted_remaining', 'status_badge', 'actions'])
                 ->make(true);
         }
@@ -146,16 +85,18 @@ class EmployeeAdvanceController extends Controller
         if ($selectedEmployeeId) {
             $selectedEmployee = Employee::with('branch:id,name,currency')->find($selectedEmployeeId);
             if ($selectedEmployee) {
-                $totalAdvances  = (float) EmployeeAdvance::where('employee_id', $selectedEmployeeId)->where('status', '!=', 'rejected')->sum('amount');
-                $totalPaid      = (float) EmployeeAdvance::where('employee_id', $selectedEmployeeId)->sum('paid_amount');
-                $totalWaived    = (float) EmployeeAdvance::where('employee_id', $selectedEmployeeId)->sum('waived_amount');
-                $totalRemaining = (float) EmployeeAdvance::where('employee_id', $selectedEmployeeId)->sum('remaining_amount');
+                // استعلام واحد بدل 4، والمرفوضة مستبعدة من كل الأرقام —
+                // قبل كده المتبقي كان بيحسب رصيد السلف المرفوضة كأنه مستحق.
+                $totals = EmployeeAdvance::where('employee_id', $selectedEmployeeId)
+                    ->where('status', '!=', AdvanceStatus::Rejected->value)
+                    ->selectRaw('SUM(amount) as total_amount, SUM(paid_amount) as total_paid, SUM(waived_amount) as total_waived, SUM(remaining_amount) as total_remaining')
+                    ->first();
 
                 $advanceStats = [
-                    'total_advances'  => $totalAdvances,
-                    'total_paid'      => $totalPaid,
-                    'total_waived'    => $totalWaived,
-                    'total_remaining' => $totalRemaining,
+                    'total_advances'  => (float) $totals?->total_amount,
+                    'total_paid'      => (float) $totals?->total_paid,
+                    'total_waived'    => (float) $totals?->total_waived,
+                    'total_remaining' => (float) $totals?->total_remaining,
                     'currency'        => $selectedEmployee->branch?->currency ?? 'EGP',
                 ];
             }
@@ -280,174 +221,57 @@ class EmployeeAdvanceController extends Controller
         ));
     }
 
-    public function store(Request $request)
+    public function store(StoreAdvanceRequest $request)
     {
-        $data = $request->validate([
-            'employee_id'        => ['required', new AccessibleEmployee],
-            'amount'             => ['required', 'numeric', 'min:1'],
-            'installments_count' => ['required', 'integer', 'min:1'],
-            'advance_date'       => ['required', 'date'],
-            'start_date'         => ['required', 'date'],
-            'reason'             => ['nullable', 'string'],
-            'notes'              => ['nullable', 'string'],
-        ]);
-
-        $installments = max(1, (int) $data['installments_count']);
-        $monthlyInstallment = round((float) $data['amount'] / $installments, 2);
-
-        $advance = EmployeeAdvance::create([
-            'employee_id'         => $data['employee_id'],
-            'amount'              => $data['amount'],
-            'installments_count'  => $installments,
-            'monthly_installment' => $monthlyInstallment,
-            'paid_amount'         => 0.00,
-            'waived_amount'       => 0.00,
-            'remaining_amount'    => $data['amount'],
-            'advance_date'        => $data['advance_date'],
-            'start_date'          => $data['start_date'],
-            'status'              => 'pending',
-            'reason'              => $data['reason'] ?? null,
-            'notes'               => $data['notes'] ?? null,
-        ]);
-
-        $this->notifyAdvanceRequested($advance);
+        $this->advances->create($request->validated());
 
         return redirect()->back()->with('success', __('advance.messages.created'));
     }
 
     public function approve(EmployeeAdvance $advance)
     {
-        if ($advance->status !== 'pending') {
-            return redirect()->back()->with('error', __('advance.errors.not_pending'));
-        }
-
-        $advance->update([
-            'status'      => 'approved',
-            'approved_by' => admin()?->id,
-            'approved_at' => now(),
-        ]);
-
-        $this->notifyAdvanceDecided($advance, 'approved');
-
-        return redirect()->back()->with('success', __('advance.messages.approved'));
+        return $this->attempt(fn () => $this->advances->approve($advance), 'advance.messages.approved');
     }
 
     public function reject(EmployeeAdvance $advance)
     {
-        if ($advance->status !== 'pending') {
-            return redirect()->back()->with('error', __('advance.errors.not_pending'));
-        }
-
-        $advance->update([
-            'status'      => 'rejected',
-            'approved_by' => admin()?->id,
-            'approved_at' => now(),
-        ]);
-
-        $this->notifyAdvanceDecided($advance, 'rejected');
-
-        return redirect()->back()->with('success', __('advance.messages.rejected'));
+        return $this->attempt(fn () => $this->advances->reject($advance), 'advance.messages.rejected');
     }
 
-    public function recordPayment(Request $request, EmployeeAdvance $advance)
+    public function recordPayment(RecordAdvancePaymentRequest $request, EmployeeAdvance $advance)
     {
-        $request->validate([
-            'amount'         => ['required', 'numeric', 'min:0.01'],
-            'repayment_date' => ['required', 'date'],
-            'notes'          => ['nullable', 'string', 'max:500'],
-        ]);
-
-        try {
-            DB::transaction(function () use ($request, $advance) {
-                // قفل السلفة لقراءة أحدث رصيد بشكل ذري
-                $lockedAdvance = EmployeeAdvance::where('id', $advance->id)->lockForUpdate()->firstOrFail();
-
-                if ((float) $lockedAdvance->remaining_amount <= 0) {
-                    throw new Exception(__('advance.errors.already_fully_paid'));
-                }
-
-                $amount = (float) $request->amount;
-                if ($amount > (float) $lockedAdvance->remaining_amount) {
-                    throw new Exception(__('advance.errors.amount_exceeds_remaining', [
-                        'amount'    => number_format($amount, 2),
-                        'remaining' => number_format($lockedAdvance->remaining_amount, 2),
-                    ]));
-                }
-
-                $lockedAdvance->repayments()->create([
-                    'amount'         => $amount,
-                    'repayment_date' => $request->repayment_date,
-                    'type'           => 'manual_payment',
-                    'notes'          => $request->notes ?? 'سداد نقدي مباشر',
-                    'created_by'     => admin()?->id,
-                ]);
-
-                // إعادة احتساب الأرصدة والحالة آلياً من جدول السدادات
-                $lockedAdvance->recalculateRepayments();
-            });
-
-            return redirect()->back()->with('success', __('advance.messages.payment_recorded'));
-        } catch (Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
-        }
+        return $this->attempt(
+            fn () => $this->advances->recordPayment(
+                $advance,
+                (float) $request->validated('amount'),
+                $request->validated('repayment_date'),
+                $request->validated('notes'),
+            ),
+            'advance.messages.payment_recorded'
+        );
     }
 
-    public function waive(Request $request, EmployeeAdvance $advance)
+    public function waive(WaiveAdvanceRequest $request, EmployeeAdvance $advance)
     {
-        $request->validate([
-            'waived_amount' => ['required', 'numeric', 'min:0.01'],
-            'reason'        => ['required', 'string', 'max:500'],
-        ]);
-
-        try {
-            DB::transaction(function () use ($request, $advance) {
-                // قفل السلفة لقراءة أحدث رصيد بشكل ذري
-                $lockedAdvance = EmployeeAdvance::where('id', $advance->id)->lockForUpdate()->firstOrFail();
-
-                if ((float) $lockedAdvance->remaining_amount <= 0) {
-                    throw new Exception(__('advance.errors.already_fully_paid'));
-                }
-
-                $amount = (float) $request->waived_amount;
-                if ($amount > (float) $lockedAdvance->remaining_amount) {
-                    throw new Exception(__('advance.errors.amount_exceeds_remaining', [
-                        'amount'    => number_format($amount, 2),
-                        'remaining' => number_format($lockedAdvance->remaining_amount, 2),
-                    ]));
-                }
-
-                $lockedAdvance->repayments()->create([
-                    'amount'         => $amount,
-                    'repayment_date' => now()->toDateString(),
-                    'type'           => 'manager_waiver',
-                    'notes'          => 'إسقاط إداري معتمد: ' . $request->reason,
-                    'created_by'     => admin()?->id,
-                ]);
-
-                // إعادة احتساب الأرصدة والحالة آلياً من جدول السدادات
-                $lockedAdvance->recalculateRepayments();
-            });
-
-            return redirect()->back()->with('success', __('advance.messages.waived'));
-        } catch (Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
-        }
+        return $this->attempt(
+            fn () => $this->advances->waive($advance, (float) $request->validated('waived_amount'), $request->validated('reason')),
+            'advance.messages.waived'
+        );
     }
 
     public function repayments(EmployeeAdvance $advance)
     {
-        $repayments = $advance->repayments()->with('creator:id,name')->get();
         return response()->json([
             'advance'    => $advance,
-            'repayments' => $repayments,
+            'repayments' => $advance->repayments()->with('creator:id,name')->get(),
         ]);
     }
 
     public function destroy(EmployeeAdvance $advance)
     {
-        $advance->delete();
-        return redirect()->back()->with('success', __('advance.messages.deleted'));
+        return $this->attempt(fn () => $this->advances->delete($advance), 'advance.messages.deleted');
     }
+
     public function trash(Request $request)
     {
         if ($request->ajax()) {
@@ -481,51 +305,4 @@ class EmployeeAdvanceController extends Controller
         return redirect()->back()->with('success', __('global.force_delete'));
     }
 
-    // ========================================================
-    //  الإشعارات
-    // ========================================================
-
-    /** إشعار المسؤولين بطلب سلفة جديد. */
-    private function notifyAdvanceRequested(EmployeeAdvance $advance): void
-    {
-        $employee = $advance->employee;
-
-        app(NotificationService::class)->notifyEligible(
-            type: NotificationType::AdvanceRequested,
-            title: __('notification.messages.advance_requested.title'),
-            body: __('notification.messages.advance_requested.body', [
-                'employee'     => $employee?->name ?? '-',
-                'amount'       => number_format((float) $advance->amount, 2),
-                'installments' => $advance->installments_count,
-            ]),
-            url: route('admin.advances.index', ['employee_id' => $advance->employee_id]),
-            branchId: $employee?->branch_id,
-            data: ['advance_id' => $advance->id],
-            excludeAdminId: admin()?->id,
-        );
-    }
-
-    /** إشعار مقدّم الطلب بنتيجة المراجعة. */
-    private function notifyAdvanceDecided(EmployeeAdvance $advance, string $decision): void
-    {
-        $employee = $advance->employee;
-        $targetAdminId = $employee?->admin_id;
-
-        if (!$targetAdminId) {
-            return;
-        }
-
-        app(NotificationService::class)->send(
-            adminId: $targetAdminId,
-            type: NotificationType::AdvanceDecided,
-            title: __('notification.messages.advance_decided.title'),
-            body: __('notification.messages.advance_decided.body', [
-                'amount' => number_format((float) $advance->amount, 2),
-                'status' => AdvanceStatus::fromValue($decision)?->label() ?? $decision,
-            ]),
-            url: route('admin.advances.index', ['employee_id' => $advance->employee_id]),
-            branchId: $employee?->branch_id,
-            data: ['advance_id' => $advance->id, 'decision' => $decision],
-        );
-    }
 }

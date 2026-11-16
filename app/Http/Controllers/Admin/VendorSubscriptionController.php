@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\VendorSubscriptionRequest;
 use App\Models\Branch;
 use App\Models\Vendor;
 use App\Models\VendorPayment;
+use App\Http\Requests\Admin\RecordVendorPaymentRequest;
 use App\Models\VendorSubscription;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -77,29 +78,7 @@ class VendorSubscriptionController extends Controller
                         return '<span dir="ltr">' . $dateStr . '</span> <span class="badge bg-label-danger ms-1" data-bs-toggle="tooltip" title="الاشتراك متأخر عن التجديد">متأخر ' . abs($days) . ' يوم</span>';
                     }
                 })
-                ->addColumn('actions', function ($row) {
-                    $html = '<div class="d-inline-flex gap-1">';
-                    if (admin_can('vendor_subscription_show')) {
-                        $html .= '<a href="' . route('admin.vendor-subscriptions.show', $row->id) . '" class="btn btn-sm btn-icon btn-label-info" data-bs-toggle="tooltip" title="' . __('global.view') . '">
-                            <i class="fa-solid fa-eye"></i>
-                        </a>';
-                    }
-                    if (admin_can('vendor_subscription_update')) {
-                        $html .= '<a href="' . route('admin.vendor-subscriptions.edit', $row->id) . '" class="btn btn-sm btn-icon btn-label-primary" data-bs-toggle="tooltip" title="' . __('global.edit') . '">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </a>';
-                    }
-                    if (admin_can('vendor_subscription_delete')) {
-                        $html .= '<form action="' . route('admin.vendor-subscriptions.destroy', $row->id) . '" method="POST" class="d-inline">
-                            ' . csrf_field() . method_field('DELETE') . '
-                            <button type="submit" class="btn btn-sm btn-icon btn-label-danger" data-bs-toggle="tooltip" title="' . __('global.delete') . '">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>';
-                    }
-                    $html .= '</div>';
-                    return $html;
-                })
+                ->addColumn('actions', fn ($row) => view('admin.partials.table-actions.crud', ['row' => $row, 'routes' => 'admin.vendor-subscriptions', 'can' => 'vendor_subscription', 'show' => true])->render())
                 ->rawColumns(['formatted_cost', 'cycle_badge', 'status_badge', 'formatted_next_billing', 'actions'])
                 ->make(true);
         }
@@ -198,18 +177,8 @@ class VendorSubscriptionController extends Controller
         return redirect()->route('admin.vendor-subscriptions.index')->with('success', __('vendor_subscription.messages.deleted'));
     }
 
-    public function recordPayment(Request $request, VendorSubscription $vendorSubscription)
+    public function recordPayment(RecordVendorPaymentRequest $request, VendorSubscription $vendorSubscription)
     {
-        $request->validate([
-            'amount'                => ['required', 'numeric', 'min:0.01'],
-            'payment_date'          => ['required', 'date'],
-            'payment_method'        => ['required', 'in:bank_transfer,card,cash,cheque'],
-            'transaction_reference' => ['nullable', 'string', 'max:100'],
-            'invoice_number'        => ['nullable', 'string', 'max:100'],
-            'notes'                 => ['nullable', 'string', 'max:1000'],
-            'renew_next_date'       => ['nullable', 'date'],
-        ]);
-
         $paymentData = [
             'vendor_subscription_id' => $vendorSubscription->id,
             'amount'                 => $request->amount,

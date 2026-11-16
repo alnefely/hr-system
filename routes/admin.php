@@ -44,12 +44,12 @@ Route::resource('/admins', AdminController::class)
     'store' => 'admins.store',
     'update' => 'admins.update',
     'destroy' => 'admins.destroy',
-])->middleware([
-    'index' => 'AdminPermission:admin_show',
-    'store' => 'AdminPermission:admin_create',
-    'update' => 'AdminPermission:admin_update',
-    'destroy' => 'AdminPermission:admin_delete',
-]);
+])->middlewareFor('create', 'AdminPermission:admin_create')
+    ->middlewareFor('index', 'AdminPermission:admin_show')
+    ->middlewareFor('store', 'AdminPermission:admin_create')
+    ->middlewareFor('update', 'AdminPermission:admin_update')
+    ->middlewareFor('destroy', 'AdminPermission:admin_delete')
+    ->middlewareFor('edit', 'AdminPermission:admin_update');
 
 // SettingsController
 Route::get('/settings', [SettingsController::class,'index'])->name('settings')->middleware('AdminPermission:setting_show');
@@ -68,14 +68,12 @@ Route::resource('/roles', RoleController::class)
     'edit'    => 'roles.edit',
     'update'  => 'roles.update',
     'destroy' => 'roles.destroy',
-])->middleware([
-    'index'   => 'AdminPermission:role_show',
-    'create'  => 'AdminPermission:role_create',
-    'store'   => 'AdminPermission:role_create',
-    'edit'    => 'AdminPermission:role_update',
-    'update'  => 'AdminPermission:role_update',
-    'destroy' => 'AdminPermission:role_delete',
-]);
+])->middlewareFor('index', 'AdminPermission:role_show')
+    ->middlewareFor('create', 'AdminPermission:role_create')
+    ->middlewareFor('store', 'AdminPermission:role_create')
+    ->middlewareFor('edit', 'AdminPermission:role_update')
+    ->middlewareFor('update', 'AdminPermission:role_update')
+    ->middlewareFor('destroy', 'AdminPermission:role_delete');
 
 // ========================================================
 //  HR Module — الموارد البشرية
@@ -102,14 +100,12 @@ Route::resource('/branches', BranchController::class)
     'edit'    => 'branches.edit',
     'update'  => 'branches.update',
     'destroy' => 'branches.destroy',
-])->middleware([
-    'index'   => 'AdminPermission:branch_show',
-    'create'  => 'AdminPermission:branch_create',
-    'store'   => 'AdminPermission:branch_create',
-    'edit'    => 'AdminPermission:branch_update',
-    'update'  => 'AdminPermission:branch_update',
-    'destroy' => 'AdminPermission:branch_delete',
-]);
+])->middlewareFor('index', 'AdminPermission:branch_show')
+    ->middlewareFor('create', 'AdminPermission:branch_create')
+    ->middlewareFor('store', 'AdminPermission:branch_create')
+    ->middlewareFor('edit', 'AdminPermission:branch_update')
+    ->middlewareFor('update', 'AdminPermission:branch_update')
+    ->middlewareFor('destroy', 'AdminPermission:branch_delete');
 
 // 2. المسميات الوظيفية (Job Titles)
 Route::get('/job-titles/trash', [JobTitleController::class, 'trash'])->name('job_titles.trash')->middleware('AdminPermission:job_title_trash');
@@ -125,14 +121,12 @@ Route::resource('/job-titles', JobTitleController::class)
     'edit'    => 'job_titles.edit',
     'update'  => 'job_titles.update',
     'destroy' => 'job_titles.destroy',
-])->middleware([
-    'index'   => 'AdminPermission:job_title_show',
-    'create'  => 'AdminPermission:job_title_create',
-    'store'   => 'AdminPermission:job_title_create',
-    'edit'    => 'AdminPermission:job_title_update',
-    'update'  => 'AdminPermission:job_title_update',
-    'destroy' => 'AdminPermission:job_title_delete',
-]);
+])->middlewareFor('index', 'AdminPermission:job_title_show')
+    ->middlewareFor('create', 'AdminPermission:job_title_create')
+    ->middlewareFor('store', 'AdminPermission:job_title_create')
+    ->middlewareFor('edit', 'AdminPermission:job_title_update')
+    ->middlewareFor('update', 'AdminPermission:job_title_update')
+    ->middlewareFor('destroy', 'AdminPermission:job_title_delete');
 
 // 3. الموظفون (Employees)
 Route::get('/employees/trash', [EmployeeController::class, 'trash'])->name('employees.trash')->middleware('AdminPermission:employee_trash');
@@ -148,15 +142,13 @@ Route::resource('/employees', EmployeeController::class)
     'edit'    => 'employees.edit',
     'update'  => 'employees.update',
     'destroy' => 'employees.destroy',
-])->middleware([
-    'index'   => 'AdminPermission:employee_show',
-    'show'    => 'AdminPermission:employee_show',
-    'create'  => 'AdminPermission:employee_create',
-    'store'   => 'AdminPermission:employee_create',
-    'edit'    => 'AdminPermission:employee_update',
-    'update'  => 'AdminPermission:employee_update',
-    'destroy' => 'AdminPermission:employee_delete',
-]);
+])->middlewareFor('index', 'AdminPermission:employee_show')
+    ->middlewareFor('show', 'AdminPermission:employee_show')
+    ->middlewareFor('create', 'AdminPermission:employee_create')
+    ->middlewareFor('store', 'AdminPermission:employee_create')
+    ->middlewareFor('edit', 'AdminPermission:employee_update')
+    ->middlewareFor('update', 'AdminPermission:employee_update')
+    ->middlewareFor('destroy', 'AdminPermission:employee_delete');
 
 // 4. سجل رواتب الموظف (Employee Salaries)
 Route::post('/salaries', [EmployeeSalaryController::class, 'store'])->name('salaries.store')->middleware('AdminPermission:salary_create');
@@ -205,11 +197,10 @@ Route::resource('/leaves', EmployeeLeaveController::class)
         'index'   => 'leaves.index',
         'store'   => 'leaves.store',
         'destroy' => 'leaves.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:leave_show',
-        'store'   => 'AdminPermission:leave_create',
-        'destroy' => 'AdminPermission:leave_delete',
-    ]);
+    ])->middlewareFor('create', 'AdminPermission:leave_create')
+    ->middlewareFor('index', 'AdminPermission:leave_show')
+    ->middlewareFor('store', 'AdminPermission:leave_create')
+    ->middlewareFor('destroy', 'AdminPermission:leave_delete');
 
 // 8. الأذونات (Employee Permissions)
 Route::post('/permissions/{permission}/approve', [EmployeePermissionController::class, 'approve'])->name('permissions.approve')->middleware('AdminPermission:permission_approve');
@@ -225,11 +216,10 @@ Route::resource('/permissions', EmployeePermissionController::class)
         'index'   => 'permissions.index',
         'store'   => 'permissions.store',
         'destroy' => 'permissions.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:permission_show',
-        'store'   => 'AdminPermission:permission_create',
-        'destroy' => 'AdminPermission:permission_delete',
-    ]);
+    ])->middlewareFor('create', 'AdminPermission:permission_create')
+    ->middlewareFor('index', 'AdminPermission:permission_show')
+    ->middlewareFor('store', 'AdminPermission:permission_create')
+    ->middlewareFor('destroy', 'AdminPermission:permission_delete');
 
 // 9. الجزاءات (Employee Penalties)
 Route::get('/penalties/trash', [EmployeePenaltyController::class, 'trash'])->name('penalties.trash')->middleware('AdminPermission:penalty_trash');
@@ -251,11 +241,10 @@ Route::resource('/penalties', EmployeePenaltyController::class)
         'index'   => 'penalties.index',
         'store'   => 'penalties.store',
         'destroy' => 'penalties.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:penalty_show',
-        'store'   => 'AdminPermission:penalty_create',
-        'destroy' => 'AdminPermission:penalty_delete',
-    ]);
+    ])->middlewareFor('create', 'AdminPermission:penalty_create')
+    ->middlewareFor('index', 'AdminPermission:penalty_show')
+    ->middlewareFor('store', 'AdminPermission:penalty_create')
+    ->middlewareFor('destroy', 'AdminPermission:penalty_delete');
 
 // 9.1 المكافآت والبدلات الاستثنائية (Employee Rewards)
 Route::get('/rewards/trash', [EmployeeRewardController::class, 'trash'])->name('rewards.trash')->middleware('AdminPermission:reward_trash');
@@ -277,11 +266,10 @@ Route::resource('/rewards', EmployeeRewardController::class)
         'index'   => 'rewards.index',
         'store'   => 'rewards.store',
         'destroy' => 'rewards.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:reward_show',
-        'store'   => 'AdminPermission:reward_create',
-        'destroy' => 'AdminPermission:reward_delete',
-    ]);
+    ])->middlewareFor('create', 'AdminPermission:reward_create')
+    ->middlewareFor('index', 'AdminPermission:reward_show')
+    ->middlewareFor('store', 'AdminPermission:reward_create')
+    ->middlewareFor('destroy', 'AdminPermission:reward_delete');
 
 // 10. السلف المالية (Employee Advances)
 Route::post('/advances/{advance}/approve', [EmployeeAdvanceController::class, 'approve'])->name('advances.approve')->middleware('AdminPermission:advance_approve');
@@ -300,11 +288,10 @@ Route::resource('/advances', EmployeeAdvanceController::class)
         'index'   => 'advances.index',
         'store'   => 'advances.store',
         'destroy' => 'advances.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:advance_show',
-        'store'   => 'AdminPermission:advance_create',
-        'destroy' => 'AdminPermission:advance_delete',
-    ]);
+    ])->middlewareFor('create', 'AdminPermission:advance_create')
+    ->middlewareFor('index', 'AdminPermission:advance_show')
+    ->middlewareFor('store', 'AdminPermission:advance_create')
+    ->middlewareFor('destroy', 'AdminPermission:advance_delete');
 
 // 11. مسيرات الرواتب وسندات الصرف (Payrolls & Payslips)
 Route::get('/payrolls/payslip/{item}', [PayrollController::class, 'payslip'])->name('payrolls.payslip')->middleware('AdminPermission:payroll_show');
@@ -327,13 +314,11 @@ Route::resource('/payrolls', PayrollController::class)
         'store'   => 'payrolls.store',
         'show'    => 'payrolls.show',
         'destroy' => 'payrolls.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:payroll_show',
-        'create'  => 'AdminPermission:payroll_create',
-        'store'   => 'AdminPermission:payroll_create',
-        'show'    => 'AdminPermission:payroll_show',
-        'destroy' => 'AdminPermission:payroll_delete',
-    ]);
+    ])->middlewareFor('index', 'AdminPermission:payroll_show')
+    ->middlewareFor('create', 'AdminPermission:payroll_create')
+    ->middlewareFor('store', 'AdminPermission:payroll_create')
+    ->middlewareFor('show', 'AdminPermission:payroll_show')
+    ->middlewareFor('destroy', 'AdminPermission:payroll_delete');
 
 // 12. التقارير الإدارية والمالية (Reports)
 Route::get('/reports/employee-statement', [EmployeeReportController::class, 'statement'])->name('reports.employee-statement')->middleware('AdminPermission:report_employee_statement');
@@ -360,14 +345,12 @@ Route::resource('/expenses', ExpenseController::class)
         'edit'    => 'expenses.edit',
         'update'  => 'expenses.update',
         'destroy' => 'expenses.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:expense_show',
-        'create'  => 'AdminPermission:expense_create',
-        'store'   => 'AdminPermission:expense_create',
-        'edit'    => 'AdminPermission:expense_update',
-        'update'  => 'AdminPermission:expense_update',
-        'destroy' => 'AdminPermission:expense_delete',
-    ]);
+    ])->middlewareFor('index', 'AdminPermission:expense_show')
+    ->middlewareFor('create', 'AdminPermission:expense_create')
+    ->middlewareFor('store', 'AdminPermission:expense_create')
+    ->middlewareFor('edit', 'AdminPermission:expense_update')
+    ->middlewareFor('update', 'AdminPermission:expense_update')
+    ->middlewareFor('destroy', 'AdminPermission:expense_delete');
 
 // 14. تصنيفات المصروفات والعهدة (Expense Categories)
 Route::get('/expense-categories/trash', [ExpenseCategoryController::class, 'trash'])->name('expense-categories.trash')->middleware('AdminPermission:expense_category_trash');
@@ -382,13 +365,13 @@ Route::resource('/expense-categories', ExpenseCategoryController::class)
         'show'    => 'expense-categories.show',
         'update'  => 'expense-categories.update',
         'destroy' => 'expense-categories.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:expense_category_show',
-        'store'   => 'AdminPermission:expense_category_create',
-        'show'    => 'AdminPermission:expense_category_show',
-        'update'  => 'AdminPermission:expense_category_update',
-        'destroy' => 'AdminPermission:expense_category_delete',
-    ]);
+    ])->middlewareFor('create', 'AdminPermission:expense_category_create')
+    ->middlewareFor('index', 'AdminPermission:expense_category_show')
+    ->middlewareFor('store', 'AdminPermission:expense_category_create')
+    ->middlewareFor('show', 'AdminPermission:expense_category_show')
+    ->middlewareFor('update', 'AdminPermission:expense_category_update')
+    ->middlewareFor('destroy', 'AdminPermission:expense_category_delete')
+    ->middlewareFor('edit', 'AdminPermission:expense_category_update');
 
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\VendorSubscriptionController;
@@ -409,12 +392,12 @@ Route::resource('/vendors', VendorController::class)
         'store'   => 'vendors.store',
         'update'  => 'vendors.update',
         'destroy' => 'vendors.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:vendor_show',
-        'store'   => 'AdminPermission:vendor_create',
-        'update'  => 'AdminPermission:vendor_update',
-        'destroy' => 'AdminPermission:vendor_delete',
-    ]);
+    ])->middlewareFor('create', 'AdminPermission:vendor_create')
+    ->middlewareFor('index', 'AdminPermission:vendor_show')
+    ->middlewareFor('store', 'AdminPermission:vendor_create')
+    ->middlewareFor('update', 'AdminPermission:vendor_update')
+    ->middlewareFor('destroy', 'AdminPermission:vendor_delete')
+    ->middlewareFor('edit', 'AdminPermission:vendor_update');
 
 // 16. الاشتراكات والخدمات الخارجية (Vendor Subscriptions)
 Route::post('/vendor-subscriptions/{vendorSubscription}/record-payment', [VendorSubscriptionController::class, 'recordPayment'])
@@ -434,15 +417,13 @@ Route::resource('/vendor-subscriptions', VendorSubscriptionController::class)
         'edit'    => 'vendor-subscriptions.edit',
         'update'  => 'vendor-subscriptions.update',
         'destroy' => 'vendor-subscriptions.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:vendor_subscription_show',
-        'create'  => 'AdminPermission:vendor_subscription_create',
-        'store'   => 'AdminPermission:vendor_subscription_create',
-        'show'    => 'AdminPermission:vendor_subscription_show',
-        'edit'    => 'AdminPermission:vendor_subscription_update',
-        'update'  => 'AdminPermission:vendor_subscription_update',
-        'destroy' => 'AdminPermission:vendor_subscription_delete',
-    ]);
+    ])->middlewareFor('index', 'AdminPermission:vendor_subscription_show')
+    ->middlewareFor('create', 'AdminPermission:vendor_subscription_create')
+    ->middlewareFor('store', 'AdminPermission:vendor_subscription_create')
+    ->middlewareFor('show', 'AdminPermission:vendor_subscription_show')
+    ->middlewareFor('edit', 'AdminPermission:vendor_subscription_update')
+    ->middlewareFor('update', 'AdminPermission:vendor_subscription_update')
+    ->middlewareFor('destroy', 'AdminPermission:vendor_subscription_delete');
 
 // 17. إدارة العملاء (Customers)
 Route::get('/customers/trash', [CustomerController::class, 'trash'])->name('customers.trash')->middleware('AdminPermission:customer_trash');
@@ -458,14 +439,12 @@ Route::resource('/customers', CustomerController::class)
         'edit'    => 'customers.edit',
         'update'  => 'customers.update',
         'destroy' => 'customers.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:customer_show',
-        'create'  => 'AdminPermission:customer_create',
-        'store'   => 'AdminPermission:customer_create',
-        'edit'    => 'AdminPermission:customer_update',
-        'update'  => 'AdminPermission:customer_update',
-        'destroy' => 'AdminPermission:customer_delete',
-    ]);
+    ])->middlewareFor('index', 'AdminPermission:customer_show')
+    ->middlewareFor('create', 'AdminPermission:customer_create')
+    ->middlewareFor('store', 'AdminPermission:customer_create')
+    ->middlewareFor('edit', 'AdminPermission:customer_update')
+    ->middlewareFor('update', 'AdminPermission:customer_update')
+    ->middlewareFor('destroy', 'AdminPermission:customer_delete');
 
 // 18. قنوات البيع والتطبيقات (Sales Channels)
 // CustomerSourceController
@@ -481,9 +460,12 @@ Route::resource('/customer-sources', CustomerSourceController::class)
         'update'  => 'customer-sources.update',
         'destroy' => 'customer-sources.destroy',
     ])
-    ->middleware([
-        'AdminPermission:customer_source_show',
-    ]);
+    // كانت صلاحية العرض بس على كل الإجراءات، فأي حد بيشوف المصادر كان
+    // يقدر يضيف ويعدّل ويحذف رغم وجود صلاحيات منفصلة في شاشة الأدوار.
+    ->middlewareFor('index', 'AdminPermission:customer_source_show')
+    ->middlewareFor('store', 'AdminPermission:customer_source_create')
+    ->middlewareFor('update', 'AdminPermission:customer_source_update')
+    ->middlewareFor('destroy', 'AdminPermission:customer_source_delete');
 
 Route::get('/sales-channels/trash', [SalesChannelController::class, 'trash'])->name('sales-channels.trash')->middleware('AdminPermission:sales_channel_trash');
 Route::post('/sales-channels/{id}/restore', [SalesChannelController::class, 'restore'])->name('sales-channels.restore')->middleware('AdminPermission:sales_channel_restore');
@@ -496,12 +478,12 @@ Route::resource('/sales-channels', SalesChannelController::class)
         'store'   => 'sales-channels.store',
         'update'  => 'sales-channels.update',
         'destroy' => 'sales-channels.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:sales_channel_show',
-        'store'   => 'AdminPermission:sales_channel_create',
-        'update'  => 'AdminPermission:sales_channel_update',
-        'destroy' => 'AdminPermission:sales_channel_delete',
-    ]);
+    ])->middlewareFor('create', 'AdminPermission:sales_channel_create')
+    ->middlewareFor('index', 'AdminPermission:sales_channel_show')
+    ->middlewareFor('store', 'AdminPermission:sales_channel_create')
+    ->middlewareFor('update', 'AdminPermission:sales_channel_update')
+    ->middlewareFor('destroy', 'AdminPermission:sales_channel_delete')
+    ->middlewareFor('edit', 'AdminPermission:sales_channel_update');
 
 // 19. فواتير المبيعات والإيرادات (Sales & Invoices)
 Route::get('/sales/trash', [SaleController::class, 'trash'])->name('sales.trash')->middleware('AdminPermission:sale_trash');
@@ -525,15 +507,13 @@ Route::resource('/sales', SaleController::class)
         'edit'    => 'sales.edit',
         'update'  => 'sales.update',
         'destroy' => 'sales.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:sale_show',
-        'create'  => 'AdminPermission:sale_create',
-        'store'   => 'AdminPermission:sale_create',
-        'show'    => 'AdminPermission:sale_show',
-        'edit'    => 'AdminPermission:sale_update',
-        'update'  => 'AdminPermission:sale_update',
-        'destroy' => 'AdminPermission:sale_delete',
-    ]);
+    ])->middlewareFor('index', 'AdminPermission:sale_show')
+    ->middlewareFor('create', 'AdminPermission:sale_create')
+    ->middlewareFor('store', 'AdminPermission:sale_create')
+    ->middlewareFor('show', 'AdminPermission:sale_show')
+    ->middlewareFor('edit', 'AdminPermission:sale_update')
+    ->middlewareFor('update', 'AdminPermission:sale_update')
+    ->middlewareFor('destroy', 'AdminPermission:sale_delete');
 
 // 20. التقارير المالية والإدارية (Financial & Management Reports)
 Route::get('/reports/financial-pl', [ReportController::class, 'financialPL'])
@@ -624,11 +604,9 @@ Route::resource('/links', LinkController::class)
         'edit'    => 'links.edit',
         'update'  => 'links.update',
         'destroy' => 'links.destroy',
-    ])->middleware([
-        'index'   => 'AdminPermission:link_show',
-        'create'  => 'AdminPermission:link_create',
-        'store'   => 'AdminPermission:link_create',
-        'edit'    => 'AdminPermission:link_update',
-        'update'  => 'AdminPermission:link_update',
-        'destroy' => 'AdminPermission:link_delete',
-    ]);
+    ])->middlewareFor('index', 'AdminPermission:link_show')
+    ->middlewareFor('create', 'AdminPermission:link_create')
+    ->middlewareFor('store', 'AdminPermission:link_create')
+    ->middlewareFor('edit', 'AdminPermission:link_update')
+    ->middlewareFor('update', 'AdminPermission:link_update')
+    ->middlewareFor('destroy', 'AdminPermission:link_delete');

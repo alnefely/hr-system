@@ -2,6 +2,11 @@
 
 namespace App\Services\Dashboard;
 
+use App\Enums\AdvanceStatus;
+use App\Enums\ApprovalStatus;
+use App\Enums\LeaveStatus;
+use App\Enums\PayrollStatus;
+use App\Enums\RewardStatus;
 use App\Models\AdminNotification;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
@@ -358,11 +363,11 @@ class DashboardService
     private function pendingActions(): array
     {
         return [
-            'leaves'      => EmployeeLeave::where('status', 'pending')->count(),
-            'advances'    => EmployeeAdvance::where('status', 'pending')->count(),
-            'penalties'   => EmployeePenalty::where('status', 'pending')->count(),
-            'rewards'     => EmployeeReward::where('status', 'pending')->count(),
-            'payrolls'    => Payroll::where('status', 'draft')->count(),
+            'leaves'      => EmployeeLeave::where('status', LeaveStatus::Pending->value)->count(),
+            'advances'    => EmployeeAdvance::where('status', AdvanceStatus::Pending->value)->count(),
+            'penalties'   => EmployeePenalty::where('status', ApprovalStatus::Pending->value)->count(),
+            'rewards'     => EmployeeReward::where('status', RewardStatus::Pending->value)->count(),
+            'payrolls'    => Payroll::where('status', PayrollStatus::Draft->value)->count(),
             'unread_notifications' => admin()
                 ? AdminNotification::forAdmin(admin()->id)->unread()->count()
                 : 0,

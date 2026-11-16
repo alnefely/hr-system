@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Admin\HR;
 
+use App\Enums\ApprovalStatus;
+use App\Enums\LeaveStatus;
+use App\Enums\RewardStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\EmployeeDocument;
@@ -49,13 +52,13 @@ class EmployeeReportController extends Controller
                     ->whereBetween('penalty_date', [$fromDate, $toDate])
                     ->get();
 
-                $approvedLeaves  = $leaves->where('status', 'approved');
+                $approvedLeaves  = $leaves->where('status', LeaveStatus::Approved->value);
                 $totalAnnualDays = $approvedLeaves->where('leave_type', 'annual')->sum($leaveDays);
                 $totalCasualDays = $approvedLeaves->where('leave_type', 'casual')->sum($leaveDays);
                 $totalSickDays   = $approvedLeaves->where('leave_type', 'sick')->sum($leaveDays);
                 $totalUnpaidDays = $approvedLeaves->where('leave_type', 'unpaid')->sum($leaveDays);
 
-                $approvedPermissions  = $permissions->where('status', 'approved');
+                $approvedPermissions  = $permissions->where('status', ApprovalStatus::Approved->value);
                 $totalPermissionHours = $approvedPermissions->sum('hours_count');
                 $monthlyLimit         = PayrollRules::permissionLimit($selectedEmployee);
                 $excessHours          = max(0, $totalPermissionHours - $monthlyLimit);
@@ -95,8 +98,8 @@ class EmployeeReportController extends Controller
                         'detail' => $l->days_count . ' يوم (' . ($l->start_date ? $l->start_date->format('Y-m-d') : '') . ' إلى ' . ($l->end_date ? $l->end_date->format('Y-m-d') : '') . ')',
                         'reason' => $l->reason ?? '-',
                         'status' => $l->status,
-                        'badge'  => $l->status === 'approved' ? 'bg-label-success' : ($l->status === 'rejected' ? 'bg-label-danger' : 'bg-label-warning'),
-                        'cost'   => $l->leave_type === 'unpaid' && $l->status === 'approved' ? round($leaveDays($l) * $dailyRate, 2) : 0,
+                        'badge'  => LeaveStatus::fromValue($l->status)?->badge() ?? 'bg-label-secondary',
+                        'cost'   => $l->leave_type === 'unpaid' && $l->status === LeaveStatus::Approved->value ? round($leaveDays($l) * $dailyRate, 2) : 0,
                     ]);
                 }
 
@@ -108,7 +111,7 @@ class EmployeeReportController extends Controller
                         'detail' => $p->hours_count . ' ساعة (' . $p->start_time . ' - ' . $p->end_time . ')',
                         'reason' => $p->reason ?? '-',
                         'status' => $p->status,
-                        'badge'  => $p->status === 'approved' ? 'bg-label-info' : ($p->status === 'rejected' ? 'bg-label-danger' : 'bg-label-warning'),
+                        'badge'  => ApprovalStatus::fromValue($p->status)?->badge() ?? 'bg-label-secondary',
                         'cost'   => 0,
                     ]);
                 }
@@ -125,7 +128,7 @@ class EmployeeReportController extends Controller
                         // الحالة الحقيقية بدل "applied" الثابتة: الجزاء المعلّق
                         // أو المرفوض كان بيتعرض كأنه اتخصم.
                         'status' => $pen->status,
-                        'badge'  => $pen->status === 'approved' ? 'bg-label-danger' : ($pen->status === 'rejected' ? 'bg-label-secondary' : 'bg-label-warning'),
+                        'badge'  => ApprovalStatus::fromValue($pen->status)?->badge() ?? 'bg-label-secondary',
                         'cost'   => $cost,
                     ]);
                 }
@@ -179,7 +182,7 @@ class EmployeeReportController extends Controller
 
                 // 2. Rewards & Bonuses in this month
                 $rewards = EmployeeReward::where('employee_id', $selectedEmployee->id)
-                    ->whereIn('status', ['approved', 'paid'])
+                    ->whereIn('status', [RewardStatus::Approved->value, RewardStatus::Paid->value])
                     ->whereBetween('reward_date', [$startDate, $endDate])
                     ->get();
                 $totalRewards = (float) $rewards->sum('amount');
@@ -196,7 +199,7 @@ class EmployeeReportController extends Controller
 
                 // 4. Excess Permission Hours
                 $permissions = EmployeePermission::where('employee_id', $selectedEmployee->id)
-                    ->where('status', 'approved')
+                    ->where('status', ApprovalStatus::Approved->value)
                     ->whereBetween('permission_date', [$startDate, $endDate])
                     ->get();
                 $totalPermHours = (float) $permissions->sum('hours_count');
@@ -207,7 +210,7 @@ class EmployeeReportController extends Controller
                 // 5. Unpaid Leaves
                 $unpaidLeaves = PayrollRules::overlapping(
                     EmployeeLeave::where('employee_id', $selectedEmployee->id)
-                        ->where('status', 'approved')
+                        ->where('status', LeaveStatus::Approved->value)
                         ->where('leave_type', 'unpaid'),
                     $startDate,
                     $endDate

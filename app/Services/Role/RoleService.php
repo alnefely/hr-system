@@ -25,6 +25,9 @@ class RoleService
      */
     protected ?array $roles = null;
 
+    /** الدور اللي $roles متحسوبة له. */
+    protected ?int $rolesFor = null;
+
     public function __construct(
         protected CacheService $cache
     ) {}
@@ -458,11 +461,15 @@ class RoleService
      */
     public function roles(): array
     {
-        if ($this->roles !== null) {
+        $roleId = $this->admin()?->role_id;
+
+        // الذاكرة مربوطة بالدور: الكلاس singleton، ولو المستخدم اتغيّر جوّه
+        // نفس العملية (اختبارات، queue، octane) مانرجّعش صلاحيات اللي قبله.
+        if ($this->roles !== null && $this->rolesFor === $roleId) {
             return $this->roles;
         }
 
-        $roleId = $this->admin()?->role_id;
+        $this->rolesFor = $roleId;
 
         if ($roleId === null) {
             return $this->roles = [];

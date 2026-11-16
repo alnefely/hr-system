@@ -54,7 +54,7 @@ class LinkController extends Controller
                 ->filterColumn('status', fn ($q, $keyword) => $this->applyStatusFilter($q, $keyword))
                 ->addColumn('clicks', fn ($row) => '<span dir="ltr">' . number_format($row->clicks_count) . '</span>')
                 ->addColumn('formatted_date', fn ($row) => $row->created_at?->format('Y-m-d'))
-                ->addColumn('actions', fn ($row) => $this->actionsCell($row))
+                ->addColumn('actions', fn ($row) => view('admin.links.partials.actions', ['row' => $row])->render())
                 ->rawColumns(['short_url', 'destination', 'status', 'clicks', 'actions'])
                 ->make(true);
         }
@@ -136,7 +136,7 @@ class LinkController extends Controller
                 ->addColumn('creator_name', fn ($row) => $row->creator?->name ?? '-')
                 ->addColumn('clicks', fn ($row) => '<span dir="ltr">' . number_format($row->clicks_count) . '</span>')
                 ->addColumn('deleted_at', fn ($row) => $row->deleted_at?->format('Y-m-d H:i') ?? '-')
-                ->addColumn('actions', fn ($row) => $this->trashActionsCell($row))
+                ->addColumn('actions', fn ($row) => view('admin.links.partials.trash-actions', ['row' => $row])->render())
                 ->rawColumns(['clicks', 'actions'])
                 ->make(true);
         }
@@ -254,74 +254,5 @@ class LinkController extends Controller
         }
 
         return '<span class="badge bg-label-success">' . __('link.status.active') . '</span>';
-    }
-
-    private function actionsCell(Link $link): string
-    {
-        $html = '<div class="d-flex gap-1 justify-content-center">';
-
-        $html .= '<a href="' . e($link->short_url) . '" target="_blank" rel="noopener noreferrer"'
-            . ' class="btn btn-sm btn-icon btn-label-info waves-effect" title="' . __('link.actions.open') . '">'
-            . '<i class="fa-solid fa-arrow-up-right-from-square"></i></a>';
-
-        if (admin_can('link_stats')) {
-            $html .= '<a href="' . route('admin.links.stats', $link->id) . '"'
-                . ' class="btn btn-sm btn-icon btn-label-success waves-effect" title="' . __('link.actions.stats') . '">'
-                . '<i class="fa-solid fa-chart-line"></i></a>';
-        }
-
-        if (admin_can('link_update')) {
-            $html .= '<a href="' . route('admin.links.edit', $link->id) . '"'
-                . ' class="btn btn-sm btn-icon btn-label-primary waves-effect" title="' . __('global.edit') . '">'
-                . '<i class="fa-solid fa-pen-to-square"></i></a>';
-        }
-
-        if (admin_can('link_delete')) {
-            $html .= '<form action="' . route('admin.links.destroy', $link->id) . '" method="POST" class="d-inline">'
-                . csrf_field() . method_field('DELETE')
-                . '<button type="button" class="btn btn-sm btn-icon btn-label-danger waves-effect btn-swal-confirm"'
-                . ' title="' . __('global.delete') . '"'
-                . ' data-title="' . __('link.confirm.delete_title') . '"'
-                . ' data-text="' . __('link.confirm.delete_text', ['link' => $link->short_code]) . '"'
-                . ' data-icon="warning"'
-                . ' data-btn-text="' . __('link.confirm.delete_button') . '"'
-                . ' data-btn-class="btn-danger"><i class="fa-solid fa-trash"></i></button>'
-                . '</form>';
-        }
-
-        return $html . '</div>';
-    }
-
-    private function trashActionsCell(Link $link): string
-    {
-        $html = '<div class="d-flex gap-1 justify-content-center">';
-
-        if (admin_can('link_restore')) {
-            $html .= '<form action="' . route('admin.links.restore', $link->id) . '" method="POST" class="d-inline">'
-                . csrf_field()
-                . '<button type="button" class="btn btn-sm btn-icon btn-label-success waves-effect btn-swal-confirm"'
-                . ' title="' . __('global.restore') . '"'
-                . ' data-title="' . __('link.confirm.restore_title') . '"'
-                . ' data-text="' . __('link.confirm.restore_text', ['link' => $link->short_code]) . '"'
-                . ' data-icon="question"'
-                . ' data-btn-text="' . __('link.confirm.restore_button') . '"'
-                . ' data-btn-class="btn-success"><i class="fa-solid fa-rotate-left"></i></button>'
-                . '</form>';
-        }
-
-        if (admin_can('link_force_delete')) {
-            $html .= '<form action="' . route('admin.links.forceDelete', $link->id) . '" method="POST" class="d-inline">'
-                . csrf_field() . method_field('DELETE')
-                . '<button type="button" class="btn btn-sm btn-icon btn-label-danger waves-effect btn-swal-confirm"'
-                . ' title="' . __('global.force_delete') . '"'
-                . ' data-title="' . __('global.confirm_delete') . '"'
-                . ' data-text="' . __('global.confirm_delete') . '"'
-                . ' data-icon="warning"'
-                . ' data-btn-text="' . __('global.force_delete') . '"'
-                . ' data-btn-class="btn-danger"><i class="fa-solid fa-trash"></i></button>'
-                . '</form>';
-        }
-
-        return $html . '</div>';
     }
 }

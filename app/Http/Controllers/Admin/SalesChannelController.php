@@ -42,37 +42,7 @@ class SalesChannelController extends Controller
                         <i class="fa-solid fa-arrow-left fa-xs ms-1"></i>
                     </a>';
                 })
-                ->addColumn('actions', function ($row) {
-                    $html = '<div class="d-inline-flex gap-1">';
-                    if (admin_can('sales_channel_update')) {
-                        $html .= '<button type="button" class="btn btn-sm btn-icon btn-label-primary edit-channel-btn" 
-                            data-id="' . $row->id . '" 
-                            data-code="' . e($row->code) . '" 
-                            data-name="' . e($row->name) . '" 
-                            data-type="' . e($row->type) . '" 
-                            data-active="' . ($row->is_active ? '1' : '0') . '" 
-                            data-notes="' . e($row->notes) . '" 
-                            title="' . __('global.edit') . '">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>';
-                    }
-                    if (admin_can('sales_channel_delete')) {
-                        $html .= '<form action="' . route('admin.sales-channels.destroy', $row->id) . '" method="POST" class="d-inline">
-                            ' . csrf_field() . method_field('DELETE') . '
-                            <button type="button" class="btn btn-sm btn-icon btn-label-danger waves-effect btn-swal-confirm" 
-                                data-title="' . __('global.confirm_delete') . '" 
-                                data-text="' . __('global.confirm_delete') . '" 
-                                data-icon="warning" 
-                                data-btn-text="' . __('global.delete') . '" 
-                                data-btn-class="btn-danger" 
-                                title="' . __('global.delete') . '">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>';
-                    }
-                    $html .= '</div>';
-                    return $html;
-                })
+                ->addColumn('actions', fn ($row) => view('admin.sales_channels.partials.actions', ['row' => $row])->render())
                 ->rawColumns(['type_badge', 'status_badge', 'sales_badge', 'actions'])
                 ->make(true);
         }

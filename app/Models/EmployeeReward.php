@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\ApprovalStatus;
+use App\Enums\RewardStatus;
 use App\Models\Concerns\HasDateRangeScopes;
 use App\Models\Concerns\ScopedToBranch;
 use App\Models\Concerns\LogsActivity;
@@ -60,35 +60,35 @@ class EmployeeReward extends Model
     //  الاعتماد
     // ========================================================
 
-    public function statusEnum(): ?ApprovalStatus
+    public function statusEnum(): ?RewardStatus
     {
-        return ApprovalStatus::fromValue($this->status);
+        return RewardStatus::fromValue($this->status);
     }
 
     /** المعتمد بس هو اللي بيدخل مسير الرواتب. */
     public function scopeApproved($query)
     {
-        return $query->where('status', ApprovalStatus::Approved->value);
+        return $query->where('status', RewardStatus::Approved->value);
     }
 
     public function scopePending($query)
     {
-        return $query->where('status', ApprovalStatus::Pending->value);
+        return $query->where('status', RewardStatus::Pending->value);
     }
 
     public function isApproved(): bool
     {
-        return $this->status === ApprovalStatus::Approved->value;
+        return $this->status === RewardStatus::Approved->value;
     }
 
     public function isPending(): bool
     {
-        return $this->status === ApprovalStatus::Pending->value;
+        return $this->status === RewardStatus::Pending->value;
     }
 
-    /** التعديل والحذف ممنوعين بعد الاعتماد — الحركة بقت جزء من المسير. */
+    /** التعديل والحذف ممنوعين بعد الاعتماد أو الصرف — الحركة بقت جزء من المسير. */
     public function isEditable(): bool
     {
-        return $this->status !== ApprovalStatus::Approved->value;
+        return RewardStatus::fromValue($this->status)?->isEditable() ?? true;
     }
 }

@@ -84,6 +84,8 @@ return [
         'cannot_reset_pending_repaid'     => 'Cannot revert advance to pending status because repayment movements are already recorded.',
         'already_fully_paid'              => 'This advance is already fully paid and has no remaining balance.',
         'amount_exceeds_remaining'        => 'The requested amount (:amount) exceeds the remaining balance on this advance (:remaining).',
+        'not_approved'                    => 'Payments or waivers can only be recorded on an approved advance.',
+        'cannot_delete_repaid'            => 'An advance with recorded repayments or waivers cannot be deleted.',
     ],
 
     'export' => [

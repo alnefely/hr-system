@@ -31,30 +31,7 @@ class CustomerController extends Controller
                 ->addColumn('sales_badge', function ($row) {
                     return '<span class="badge bg-label-primary"><span dir="ltr">' . $row->sales_count . '</span> ' . __('customer.sales_count') . '</span>';
                 })
-                ->addColumn('actions', function ($row) {
-                    $html = '<div class="d-inline-flex gap-1">';
-                    if (admin_can('customer_update')) {
-                        $html .= '<a href="' . route('admin.customers.edit', $row->id) . '" class="btn btn-sm btn-icon btn-label-primary" title="' . __('global.edit') . '">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </a>';
-                    }
-                    if (admin_can('customer_delete')) {
-                        $html .= '<form action="' . route('admin.customers.destroy', $row->id) . '" method="POST" class="d-inline">
-                            ' . csrf_field() . method_field('DELETE') . '
-                            <button type="button" class="btn btn-sm btn-icon btn-label-danger waves-effect btn-swal-confirm" 
-                                data-title="' . __('global.confirm_delete') . '" 
-                                data-text="' . __('global.confirm_delete') . '" 
-                                data-icon="warning" 
-                                data-btn-text="' . __('global.delete') . '" 
-                                data-btn-class="btn-danger" 
-                                title="' . __('global.delete') . '">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>';
-                    }
-                    $html .= '</div>';
-                    return $html;
-                })
+                ->addColumn('actions', fn ($row) => view('admin.partials.table-actions.crud', ['row' => $row, 'routes' => 'admin.customers', 'can' => 'customer'])->render())
                 ->rawColumns(['phone_formatted', 'status_badge', 'sales_badge', 'actions'])
                 ->make(true);
         }

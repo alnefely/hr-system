@@ -56,7 +56,7 @@ class EmployeeService
      */
     public function managersList(?int $excludeId = null)
     {
-        return Employee::where('status', 'active')
+        return Employee::active()
             ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
             ->select('id', 'name', 'employee_code')
             ->get();

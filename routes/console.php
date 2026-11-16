@@ -100,12 +100,16 @@ Schedule::command('links:prune')
     ->withoutOverlapping()
     ->onOneServer();
 
-// معالجة الطابور من الـ Schedule — مفيش worker شغال طول الوقت.
+// معالجة الطابور من الـ Schedule — للسيرفر اللي مافيهوش Supervisor.
 //
 // كل دقيقة بيشتغل، يخلّص اللي في الطابور (الإيميلات بالذات: AppMail
 // بيتبعت في الخلفية) ويقفل لوحده. --max-time أقل من دقيقة عشان
 // مايتداخلش مع التشغيلة اللي بعده.
+//
+// لو فيه worker دائم عبر Supervisor (QUEUE_SUPERVISED=true) ده بيتوقف،
+// عشان مايبقاش فيه اتنين بيسحبوا من نفس الطابور.
 Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')
     ->everyMinute()
     ->withoutOverlapping()
-    ->onOneServer();
+    ->onOneServer()
+    ->skip(fn () => (bool) config('queue.supervised'));

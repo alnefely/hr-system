@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\SalePaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SaleRequest;
 use App\Models\Branch;
 use App\Models\Customer;
+use App\Http\Requests\Admin\StoreSalePaymentRequest;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SalePayment;
@@ -82,35 +84,7 @@ class SaleController extends Controller
                     return '<span class="badge ' . $info['class'] . '">' . $info['label'] . '</span>';
                 })
                 ->addColumn('formatted_date', fn($row) => $row->sale_date ? '<span dir="ltr">' . $row->sale_date->format('Y-m-d') . '</span>' : '-')
-                ->addColumn('actions', function ($row) {
-                    $html = '<div class="d-inline-flex gap-1">';
-                    if (admin_can('sale_show')) {
-                        $html .= '<a href="' . route('admin.sales.show', $row->id) . '" class="btn btn-sm btn-icon btn-label-info" data-bs-toggle="tooltip" title="' . __('global.view') . '">
-                            <i class="fa-solid fa-eye"></i>
-                        </a>';
-                    }
-                    if (admin_can('sale_update')) {
-                        $html .= '<a href="' . route('admin.sales.edit', $row->id) . '" class="btn btn-sm btn-icon btn-label-primary" data-bs-toggle="tooltip" title="' . __('global.edit') . '">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </a>';
-                    }
-                    if (admin_can('sale_delete')) {
-                        $html .= '<form action="' . route('admin.sales.destroy', $row->id) . '" method="POST" class="d-inline">
-                            ' . csrf_field() . method_field('DELETE') . '
-                            <button type="button" class="btn btn-sm btn-icon btn-label-danger waves-effect btn-swal-confirm" 
-                                data-title="' . __('global.confirm_delete') . '" 
-                                data-text="' . __('global.confirm_delete') . '" 
-                                data-icon="warning" 
-                                data-btn-text="' . __('global.delete') . '" 
-                                data-btn-class="btn-danger" 
-                                title="' . __('global.delete') . '">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>';
-                    }
-                    $html .= '</div>';
-                    return $html;
-                })
+                ->addColumn('actions', fn ($row) => view('admin.partials.table-actions.crud', ['row' => $row, 'routes' => 'admin.sales', 'can' => 'sale', 'show' => true])->render())
                 ->rawColumns(['invoice_link', 'formatted_total', 'payment_badge', 'formatted_date', 'actions'])
                 ->make(true);
         }
@@ -230,13 +204,13 @@ class SaleController extends Controller
             $data['currency'] = $branch?->currency ?? 'EGP';
         }
 
-        $status = $data['payment_status'] ?? 'paid';
+        $status = SalePaymentStatus::fromValue($data['payment_status'] ?? null) ?? SalePaymentStatus::Paid;
         $total  = (float)($data['total_amount'] ?? 0);
 
-        if ($status === 'paid') {
+        if ($status === SalePaymentStatus::Paid) {
             $data['paid_amount'] = $total;
             $data['due_amount']  = 0;
-        } elseif ($status === 'unpaid') {
+        } elseif ($status === SalePaymentStatus::Unpaid) {
             $data['paid_amount'] = 0;
             $data['due_amount']  = $total;
         } else {
@@ -375,15 +349,9 @@ class SaleController extends Controller
         return redirect()->back()->with('success', __('global.force_delete'));
     }
 
-    public function addPayment(Request $request, Sale $sale)
+    public function addPayment(StoreSalePaymentRequest $request, Sale $sale)
     {
-        $validated = $request->validate([
-            'payment_date'     => ['required', 'date'],
-            'amount'           => ['required', 'numeric', 'min:0.01'],
-            'payment_method'   => ['required', 'string', 'max:50'],
-            'reference_number' => ['nullable', 'string', 'max:100'],
-            'notes'            => ['nullable', 'string', 'max:1000'],
-        ]);
+        $validated = $request->validated();
 
         if ((float)$validated['amount'] > ((float)$sale->due_amount + 0.01)) {
             return redirect()->back()->with('error', __('sale.payments.amount_exceeds'));

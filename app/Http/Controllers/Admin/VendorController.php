@@ -24,35 +24,7 @@ class VendorController extends Controller
                 ->addColumn('subscriptions_badge', function ($row) {
                     return '<span class="badge bg-label-primary"><span dir="ltr">' . $row->subscriptions_count . '</span> ' . __('vendor.subscriptions_count') . '</span>';
                 })
-                ->addColumn('actions', function ($row) {
-                    $html = '<div class="d-inline-flex gap-1">';
-                    if (admin_can('vendor_update')) {
-                        $html .= '<button type="button" class="btn btn-sm btn-icon btn-label-primary edit-vendor-btn" 
-                            data-id="' . $row->id . '" 
-                            data-code="' . e($row->code) . '" 
-                            data-name="' . e($row->name) . '" 
-                            data-company="' . e($row->company_name) . '" 
-                            data-contact="' . e($row->contact_person) . '" 
-                            data-phone="' . e($row->phone) . '" 
-                            data-email="' . e($row->email) . '" 
-                            data-tax="' . e($row->tax_number) . '" 
-                            data-active="' . ($row->is_active ? '1' : '0') . '" 
-                            data-notes="' . e($row->notes) . '" 
-                            title="' . __('global.edit') . '">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>';
-                    }
-                    if (admin_can('vendor_delete')) {
-                        $html .= '<form action="' . route('admin.vendors.destroy', $row->id) . '" method="POST" class="d-inline">
-                            ' . csrf_field() . method_field('DELETE') . '
-                            <button type="submit" class="btn btn-sm btn-icon btn-label-danger" title="' . __('global.delete') . '">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>';
-                    }
-                    $html .= '</div>';
-                    return $html;
-                })
+                ->addColumn('actions', fn ($row) => view('admin.vendors.partials.actions', ['row' => $row])->render())
                 ->rawColumns(['phone_formatted', 'status_badge', 'subscriptions_badge', 'actions'])
                 ->make(true);
         }

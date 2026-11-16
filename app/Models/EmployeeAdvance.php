@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AdvanceStatus;
 use App\Models\Concerns\HasDateRangeScopes;
 use App\Models\Concerns\LogsActivity;
 use App\Models\Concerns\ScopedToBranch;
@@ -77,10 +78,10 @@ class EmployeeAdvance extends Model
         $this->waived_amount = round($waivedTotal, 2);
         $this->remaining_amount = max(0, round((float) $this->amount - $totalSettled, 2));
 
-        if ($this->remaining_amount <= 0 && in_array($this->status, ['approved', 'pending'])) {
-            $this->status = 'paid';
-        } elseif ($this->remaining_amount > 0 && $this->status === 'paid') {
-            $this->status = 'approved';
+        if ($this->remaining_amount <= 0 && in_array($this->status, [AdvanceStatus::Approved->value, AdvanceStatus::Pending->value], true)) {
+            $this->status = AdvanceStatus::Paid->value;
+        } elseif ($this->remaining_amount > 0 && $this->status === AdvanceStatus::Paid->value) {
+            $this->status = AdvanceStatus::Approved->value;
         }
 
         $this->saveQuietly();

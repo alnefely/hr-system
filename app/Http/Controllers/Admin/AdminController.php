@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\AdminAccountRequest;
 use App\Models\Admin;
 use App\Models\Role;
 use Illuminate\Support\Collection;
@@ -31,15 +32,9 @@ class AdminController extends Controller
     }
 
     // update profile
-    public function updateProfile(Request $request)
+    public function updateProfile(AdminAccountRequest $request)
     {
         $admin = admin();
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:admins,email,' . $admin->id,
-            'password' => 'nullable|string|min:6',
-            'img' => 'nullable|string|max:255',
-        ]);
 
         $admin->name = $request->name;
         $admin->email = $request->email;
@@ -70,16 +65,8 @@ class AdminController extends Controller
     }
 
     // store
-    public function store(Request $request)
+    public function store(AdminAccountRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:admins,email',
-            'password' => 'required|string|min:6',
-            'img' => 'nullable|string|max:255',
-            'role_id' => 'required|exists:roles,id',
-        ]);
-
         $admin = new Admin();
         $admin->name = $request->name;
         $admin->email = $request->email;
@@ -99,16 +86,9 @@ class AdminController extends Controller
     }
 
     // update
-    public function update(Request $request, Admin $admin)
+    public function update(AdminAccountRequest $request, Admin $admin)
     {
         $this->checkIsMainAdmin($admin);
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:admins,email,' . $admin->id,
-            'password' => 'nullable|string|min:6',
-            'img' => 'nullable|string|max:255',
-            'role_id' => 'required|exists:roles,id',
-        ]);
         $admin->name = $request->name;
         $admin->email = $request->email;
         $admin->img = $request->img;

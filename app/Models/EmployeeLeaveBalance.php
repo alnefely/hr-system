@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\LeaveStatus;
+use App\Enums\LeaveType;
 use App\Models\Concerns\ScopedToBranch;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -64,29 +66,18 @@ class EmployeeLeaveBalance extends Model
      */
     public function recalculateUsed(): void
     {
-        $this->used_annual = (float) EmployeeLeave::where('employee_id', $this->employee_id)
-            ->where('status', 'approved')
-            ->where('leave_type', 'annual')
+        // استعلام واحد مجمّع بالنوع بدل 4 استعلامات SUM
+        $used = EmployeeLeave::where('employee_id', $this->employee_id)
+            ->where('status', LeaveStatus::Approved->value)
             ->inYear($this->year, 'start_date')
-            ->sum('days_count');
+            ->groupBy('leave_type')
+            ->selectRaw('leave_type, SUM(days_count) as total')
+            ->pluck('total', 'leave_type');
 
-        $this->used_casual = (float) EmployeeLeave::where('employee_id', $this->employee_id)
-            ->where('status', 'approved')
-            ->where('leave_type', 'casual')
-            ->inYear($this->year, 'start_date')
-            ->sum('days_count');
-
-        $this->used_sick = (float) EmployeeLeave::where('employee_id', $this->employee_id)
-            ->where('status', 'approved')
-            ->where('leave_type', 'sick')
-            ->inYear($this->year, 'start_date')
-            ->sum('days_count');
-
-        $this->used_unpaid = (float) EmployeeLeave::where('employee_id', $this->employee_id)
-            ->where('status', 'approved')
-            ->where('leave_type', 'unpaid')
-            ->inYear($this->year, 'start_date')
-            ->sum('days_count');
+        $this->used_annual = (float) ($used[LeaveType::Annual->value] ?? 0);
+        $this->used_casual = (float) ($used[LeaveType::Casual->value] ?? 0);
+        $this->used_sick   = (float) ($used[LeaveType::Sick->value] ?? 0);
+        $this->used_unpaid = (float) ($used[LeaveType::Unpaid->value] ?? 0);
 
         $this->saveQuietly();
     }

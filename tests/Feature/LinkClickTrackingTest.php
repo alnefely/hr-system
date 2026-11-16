@@ -53,6 +53,14 @@ class LinkClickTrackingTest extends TestCase
         }
     }
 
+    private function rebuildRedis(int|string $port): void
+    {
+        Redis::purge('cache');
+        config(['database.redis.cache.port' => $port]);
+        $this->app->forgetInstance('redis');
+        Redis::clearResolvedInstance('redis');
+    }
+
     private function link(array $attributes = []): Link
     {
         return Link::create(array_merge([
@@ -271,6 +279,36 @@ class LinkClickTrackingTest extends TestCase
 
         $response->assertStatus(302);
         $response->assertRedirect('https://example.com/dest');
+    }
+
+    /**
+     * Redis مش متاح: النقرة بتتكتب في قاعدة البيانات مباشرة بدل ما تضيع،
+     * والزائر المتكرر بيتحسب فريد مرة واحدة زي مسار Redis.
+     */
+    public function test_clicks_fall_back_to_database_when_redis_is_unavailable(): void
+    {
+        $link = $this->link();
+
+        // اتصال Redis على بورت مقفول = Redis واقع.
+        // RedisManager بيحتفظ بنسخة من الإعدادات وقت إنشاؤه، فلازم يتبني من جديد.
+        $originalPort = config('database.redis.cache.port');
+        $this->rebuildRedis(1);
+
+        try {
+            $this->visit($link->short_code);
+            $this->visit($link->short_code);                    // نفس الزائر
+            $this->visit($link->short_code, ip: '2.2.2.2');     // زائر تاني
+            $this->visit($link->short_code, 'Googlebot/2.1');   // بوت
+        } finally {
+            // نرجّع الاتصال الحقيقي عشان tearDown يقدر ينضّف
+            $this->rebuildRedis($originalPort);
+        }
+
+        $link->refresh();
+
+        $this->assertSame(4, LinkClick::where('link_id', $link->id)->count(), 'كل النقرات اتسجّلت');
+        $this->assertSame(3, (int) $link->clicks_count, 'البوت مايتحسبش في العدّاد');
+        $this->assertSame(2, (int) $link->unique_clicks_count, 'الزائر المتكرر يتحسب مرة');
     }
 
     /** السقف بيحسب النقرات اللي لسه في Redis. */

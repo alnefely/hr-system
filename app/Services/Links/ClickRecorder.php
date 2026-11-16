@@ -2,7 +2,9 @@
 
 namespace App\Services\Links;
 
+use App\Models\LinkClick;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
@@ -16,8 +18,9 @@ use Illuminate\Support\Facades\Redis;
  * مفيش Jobs ولا طوابير — قرار صريح. الطابور هنا مجرد قائمة في
  * Redis، والأمر المجدول هو اللي بيستهلكها.
  *
- * قاعدة أساسية: التسجيل مايوقّعش التحويل أبداً. لو Redis وقع،
- * النقرة تضيع لكن المستخدم يوصل لوجهته.
+ * قاعدة أساسية: التسجيل مايوقّعش التحويل أبداً. لو Redis مش متاح،
+ * النقرة بتتكتب في قاعدة البيانات مباشرة (أبطأ لكن مابتضيعش)، ولو
+ * ده كمان فشل المستخدم بيوصل لوجهته برضه.
  */
 class ClickRecorder
 {
@@ -43,50 +46,107 @@ class ClickRecorder
     public function record(int $linkId, Request $request): bool
     {
         try {
-            $userAgent = (string) $request->userAgent();
-            $botName   = $this->bots->detect($userAgent);
-            $isBot     = $botName !== null;
+            $payload = $this->buildPayload($linkId, $request);
+        } catch (\Throwable $e) {
+            Log::warning('ClickRecorder failed: ' . $e->getMessage(), ['link_id' => $linkId]);
 
-            $visitorHash = $this->visitorHash($linkId, $request);
-            $isUnique    = ! $isBot && $this->markVisitor($linkId, $visitorHash);
+            return false;
+        }
 
-            $agent = $this->parser->parse($userAgent);
+        try {
+            return $this->pushToRedis($payload);
+        } catch (\Throwable $e) {
+            // Redis مش متاح (مش متسطّب على السيرفر أو واقع): بدل ما النقرة
+            // تضيع بصمت، بنكتبها في قاعدة البيانات مباشرة. أبطأ شوية، لكن
+            // الإحصائيات بتفضل صحيحة.
+            Log::warning('ClickRecorder: Redis unavailable, writing click directly: ' . $e->getMessage(), [
+                'link_id' => $linkId,
+            ]);
+        }
 
-            $payload = [
-                'link_id'         => $linkId,
-                'ip_hash'         => $this->hash((string) $request->ip()),
-                'visitor_hash'    => $visitorHash,
-                'device_type'     => $agent['device_type'],
-                'os'              => $agent['os'],
-                'browser'         => $agent['browser'],
-                'country_code'    => $this->countryCode($request),
-                'language'        => $this->language($request),
-                'referrer_domain' => $this->referrerDomain($request),
-                'is_bot'          => $isBot,
-                'bot_name'        => $botName,
-                'clicked_at'      => now()->toDateTimeString(),
-            ];
-
-            $redis = $this->redis();
-            $redis->rpush(self::QUEUE_KEY, json_encode($payload, JSON_UNESCAPED_UNICODE));
-
-            // البوتات بتتسجّل بس مابتزوّدش العدّاد الظاهر — وإلا
-            // معاينة واتساب لوحدها بتضخّم الرقم عشرات المرات.
-            if (! $isBot) {
-                $redis->hincrby(self::COUNTER_KEY, $linkId . ':clicks', 1);
-
-                if ($isUnique) {
-                    $redis->hincrby(self::COUNTER_KEY, $linkId . ':unique', 1);
-                }
-            }
-
-            return ! $isBot;
+        try {
+            return $this->recordDirectly($payload);
         } catch (\Throwable $e) {
             // التحويل أهم من الإحصائية: بنبلع الخطأ ونسجّله في اللوج.
             Log::warning('ClickRecorder failed: ' . $e->getMessage(), ['link_id' => $linkId]);
 
             return false;
         }
+    }
+
+    /** بيانات النقرة — نفس الشكل اللي links:flush بيدخّله في link_clicks. */
+    private function buildPayload(int $linkId, Request $request): array
+    {
+        $userAgent = (string) $request->userAgent();
+        $botName   = $this->bots->detect($userAgent);
+        $agent     = $this->parser->parse($userAgent);
+
+        return [
+            'link_id'         => $linkId,
+            'ip_hash'         => $this->hash((string) $request->ip()),
+            'visitor_hash'    => $this->visitorHash($linkId, $request),
+            'device_type'     => $agent['device_type'],
+            'os'              => $agent['os'],
+            'browser'         => $agent['browser'],
+            'country_code'    => $this->countryCode($request),
+            'language'        => $this->language($request),
+            'referrer_domain' => $this->referrerDomain($request),
+            'is_bot'          => $botName !== null,
+            'bot_name'        => $botName,
+            'clicked_at'      => now()->toDateTimeString(),
+        ];
+    }
+
+    /** المسار السريع: دفعة مؤقتة في Redis، و links:flush بيفرّغها. */
+    private function pushToRedis(array $payload): bool
+    {
+        $linkId = $payload['link_id'];
+        $isBot  = $payload['is_bot'];
+
+        $isUnique = ! $isBot && $this->markVisitor($linkId, $payload['visitor_hash']);
+
+        $redis = $this->redis();
+        $redis->rpush(self::QUEUE_KEY, json_encode($payload, JSON_UNESCAPED_UNICODE));
+
+        // البوتات بتتسجّل بس مابتزوّدش العدّاد الظاهر — وإلا
+        // معاينة واتساب لوحدها بتضخّم الرقم عشرات المرات.
+        if (! $isBot) {
+            $redis->hincrby(self::COUNTER_KEY, $linkId . ':clicks', 1);
+
+            if ($isUnique) {
+                $redis->hincrby(self::COUNTER_KEY, $linkId . ':unique', 1);
+            }
+        }
+
+        return ! $isBot;
+    }
+
+    /**
+     * المسار البديل من غير Redis: النقرة والعدّادات في قاعدة البيانات مباشرة.
+     *
+     * الزائر الفريد = أول نقرة بشرية بنفس البصمة. البصمة فيها تاريخ اليوم،
+     * فالتفرّد يومي زي مسار Redis بالظبط.
+     */
+    private function recordDirectly(array $payload): bool
+    {
+        $isBot = $payload['is_bot'];
+
+        $isUnique = ! $isBot && ! LinkClick::where('link_id', $payload['link_id'])
+            ->where('visitor_hash', $payload['visitor_hash'])
+            ->where('is_bot', false)
+            ->exists();
+
+        LinkClick::insert($payload);
+
+        if (! $isBot) {
+            DB::table('links')->where('id', $payload['link_id'])->update([
+                'clicks_count'        => DB::raw('clicks_count + 1'),
+                'unique_clicks_count' => DB::raw('unique_clicks_count + ' . ($isUnique ? 1 : 0)),
+                'last_clicked_at'     => now(),
+            ]);
+        }
+
+        return ! $isBot;
     }
 
     /**
