@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\HR;
 
+use App\Rules\AccessibleEmployee;
 use App\Enums\LeaveStatus;
 use App\Enums\LeaveType;
 use App\Enums\NotificationType;
@@ -137,7 +138,7 @@ class EmployeeLeaveController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'employee_id' => ['required', 'exists:employees,id'],
+            'employee_id' => ['required', new AccessibleEmployee],
             'leave_type'  => ['required', 'in:annual,casual,sick,unpaid'],
             'start_date'  => ['required', 'date'],
             'end_date'    => ['required', 'date', 'after_or_equal:start_date'],

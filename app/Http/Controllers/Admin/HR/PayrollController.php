@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\HR;
 
+use App\Rules\AccessibleBranch;
 use App\Enums\PayrollStatus;
 use App\Enums\NotificationType;
 use App\Services\Notification\NotificationService;
@@ -98,7 +99,7 @@ class PayrollController extends Controller
                 ->make(true);
         }
 
-        $branches = Branch::select('id', 'name')->get();
+        $branches = Branch::accessible()->select('id', 'name')->get();
         $stats = [
             'total_paid'     => Payroll::where('status', 'paid')->sum('total_net_salary'),
             'draft_count'    => Payroll::where('status', 'draft')->count(),
@@ -110,7 +111,7 @@ class PayrollController extends Controller
 
     public function create()
     {
-        $branches = Branch::select('id', 'name')->get();
+        $branches = Branch::accessible()->select('id', 'name')->get();
         $currentYear = (int) date('Y');
         $currentMonth = (int) date('m');
 
@@ -122,7 +123,7 @@ class PayrollController extends Controller
         $validated = $request->validate([
             'year'      => 'required|integer|min:2020|max:2050',
             'month'     => 'required|integer|min:1|max:12',
-            'branch_id' => 'nullable|exists:branches,id',
+            'branch_id' => ['nullable', 'exists:branches,id', new AccessibleBranch],
             'notes'     => 'nullable|string',
         ]);
 
@@ -219,17 +220,24 @@ class PayrollController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $payroll) {
-            foreach ($request->items as $itemId => $data) {
-                $item = $payroll->items()->find($itemId);
-                if ($item) {
-                    $item->update([
+            // البنود كلها في استعلام واحد بدل find() لكل بند، والإجماليات
+            // بتتحسب مرة واحدة في الآخر بدل 4 استعلامات SUM بعد كل بند.
+            $items = $payroll->items()
+                ->whereIn('id', array_keys($request->items))
+                ->get()
+                ->keyBy('id');
+
+            PayrollItem::withoutSyncingTotals(function () use ($request, $items) {
+                foreach ($request->items as $itemId => $data) {
+                    $items->get($itemId)?->update([
                         'allowances'     => $data['allowances'] ?? 0,
                         'deductions'     => $data['deductions'] ?? 0,
                         'payment_method' => $data['payment_method'],
                         'notes'          => $data['notes'] ?? null,
                     ]);
                 }
-            }
+            });
+
             $payroll->recalculateTotals();
         });
 
@@ -373,28 +381,12 @@ class PayrollController extends Controller
 
         DB::transaction(function () use ($request, $item) {
             // القفل بيمنع إن طلبين متزامنين يدفعوا نفس البند ويخصموا السلفة مرتين.
-            $locked = PayrollItem::whereKey($item->id)->lockForUpdate()->first();
-            if (!$locked || $locked->status === 'paid') {
-                return;
-            }
+            $items = PayrollItem::whereKey($item->id)
+                ->where('status', '!=', 'paid')
+                ->lockForUpdate()
+                ->get();
 
-            $locked->update([
-                'status'         => 'paid',
-                'payment_method' => $request->payment_method ?? $locked->payment_method,
-                'paid_at'        => now(),
-                'paid_by'        => admin()?->id,
-            ]);
-
-            $this->settleAdvanceForPayrollItem($locked);
-
-            $payroll = $item->payroll;
-            if ($payroll && $payroll->items()->where('status', '!=', 'paid')->count() === 0) {
-                $payroll->update([
-                    'status'  => 'paid',
-                    'paid_by' => admin()?->id,
-                    'paid_at' => now(),
-                ]);
-            }
+            $this->markItemsPaid($item->payroll, $items, $request->payment_method);
         });
 
         return redirect()->back()->with('success', __('payroll.messages.paid_single'));
@@ -406,9 +398,11 @@ class PayrollController extends Controller
             return redirect()->back()->with('error', __('payroll.messages.cant_pay_unapproved'));
         }
 
+        // مفيش exists على كل عنصر: كانت بتعمل استعلام لكل id، والـ whereIn
+        // تحت مقيّدة بالمسير ده أصلاً فأي id غريب بيتجاهل.
         $request->validate([
             'item_ids'       => 'required|array',
-            'item_ids.*'     => 'exists:payroll_items,id',
+            'item_ids.*'     => 'integer',
             'payment_method' => 'nullable|in:cash,bank_transfer',
         ]);
 
@@ -421,23 +415,7 @@ class PayrollController extends Controller
                 ->lockForUpdate()
                 ->get();
 
-            foreach ($items as $item) {
-                $item->update([
-                    'status'         => 'paid',
-                    'paid_at'        => now(),
-                    'paid_by'        => admin()?->id,
-                    'payment_method' => $request->filled('payment_method') ? $request->payment_method : $item->payment_method,
-                ]);
-                $this->settleAdvanceForPayrollItem($item);
-            }
-
-            if ($payroll->items()->where('status', '!=', 'paid')->count() === 0) {
-                $payroll->update([
-                    'status'  => 'paid',
-                    'paid_by' => admin()?->id,
-                    'paid_at' => now(),
-                ]);
-            }
+            $this->markItemsPaid($payroll, $items, $request->filled('payment_method') ? $request->payment_method : null);
         });
 
         return redirect()->back()->with('success', __('payroll.messages.paid_selected'));
@@ -450,25 +428,12 @@ class PayrollController extends Controller
         }
 
         DB::transaction(function () use ($payroll) {
-            $payroll->update([
-                'status'  => 'paid',
-                'paid_by' => admin()?->id,
-                'paid_at' => now(),
-            ]);
-
             $items = $payroll->items()
                 ->where('status', '!=', 'paid')
                 ->lockForUpdate()
                 ->get();
 
-            foreach ($items as $item) {
-                $item->update([
-                    'status'  => 'paid',
-                    'paid_at' => now(),
-                    'paid_by' => admin()?->id,
-                ]);
-                $this->settleAdvanceForPayrollItem($item);
-            }
+            $this->markItemsPaid($payroll, $items);
         });
 
         return redirect()->back()->with('success', __('payroll.messages.paid'));
@@ -505,39 +470,99 @@ class PayrollController extends Controller
         return view('admin.hr.payrolls.payslips_bulk', compact('payroll', 'items'));
     }
 
-    private function settleAdvanceForPayrollItem(PayrollItem $item): void
+    /**
+     * صرف مجموعة بنود دفعة واحدة.
+     *
+     * قبل كده كل بند كان بيعمل: lazy load للمسير + 4 استعلامات SUM لإعادة
+     * حساب الإجماليات (من saved) + find() لكل سلفة. مسير فيه 200 موظف كان
+     * بيوصل لآلاف الاستعلامات. دلوقتي:
+     *  - الصرف مابيغيّرش المبالغ، فإعادة حساب الإجماليات بتتوقف.
+     *  - كل السلف المرتبطة بتتجاب في استعلام واحد، والمكافآت بتتحدّث في UPDATE واحد.
+     *
+     * بيقفل المسير كمدفوع لو مابقاش فيه بنود معلّقة.
+     *
+     * @param  \Illuminate\Support\Collection<int, PayrollItem>  $items  مقفولة بـ lockForUpdate
+     */
+    private function markItemsPaid(Payroll $payroll, $items, ?string $paymentMethod = null): void
     {
-        if (is_array($item->deduction_details)) {
-            foreach ($item->deduction_details as $ded) {
-                if (!empty($ded['advance_id'])) {
-                    $adv = EmployeeAdvance::find($ded['advance_id']);
-                    if ($adv && in_array($adv->status, ['approved', 'paid'])) {
-                        $paidInst = (float) ($ded['amount'] ?? 0);
-                        if ($paidInst > 0) {
-                            $adv->repayments()->create([
-                                'amount'         => $paidInst,
-                                'repayment_date' => now()->toDateString(),
-                                'type'           => 'payroll_deduction',
-                                'notes'          => 'استقطاع قسط سلفة من مسير رواتب شهر ' . ($item->payroll?->month . '/' . $item->payroll?->year),
-                                'created_by'     => admin()?->id,
-                            ]);
+        if ($items->isNotEmpty()) {
+            $now     = now();
+            $adminId = admin()?->id;
 
-                            $adv->recalculateRepayments();
-                        }
-                    }
+            PayrollItem::withoutSyncingTotals(function () use ($items, $paymentMethod, $now, $adminId) {
+                foreach ($items as $item) {
+                    $item->update([
+                        'status'         => 'paid',
+                        'paid_at'        => $now,
+                        'paid_by'        => $adminId,
+                        'payment_method' => $paymentMethod ?? $item->payment_method,
+                    ]);
+                }
+            });
+
+            $this->settleAdvancesAndRewards($payroll, $items);
+        }
+
+        if ($payroll->status !== 'paid' && ! $payroll->items()->where('status', '!=', 'paid')->exists()) {
+            $payroll->update([
+                'status'  => 'paid',
+                'paid_by' => admin()?->id,
+                'paid_at' => now(),
+            ]);
+        }
+    }
+
+    /**
+     * تسوية أقساط السلف وصرف المكافآت للبنود المدفوعة.
+     *
+     * @param  \Illuminate\Support\Collection<int, PayrollItem>  $items
+     */
+    private function settleAdvancesAndRewards(Payroll $payroll, $items): void
+    {
+        $installments = []; // advance_id => [amounts...]
+        $rewardIds    = [];
+
+        foreach ($items as $item) {
+            foreach ((array) $item->deduction_details as $ded) {
+                $amount = (float) ($ded['amount'] ?? 0);
+                if (! empty($ded['advance_id']) && $amount > 0) {
+                    $installments[(int) $ded['advance_id']][] = $amount;
+                }
+            }
+
+            foreach ((array) $item->allowance_details as $al) {
+                if (! empty($al['reward_id'])) {
+                    $rewardIds[] = (int) $al['reward_id'];
                 }
             }
         }
 
-        // Settle Rewards
-        if (is_array($item->allowance_details)) {
-            foreach ($item->allowance_details as $al) {
-                if (!empty($al['reward_id'])) {
-                    EmployeeReward::where('id', $al['reward_id'])->where('status', 'approved')->update([
-                        'status' => 'paid',
+        if ($installments) {
+            $advances = EmployeeAdvance::whereIn('id', array_keys($installments))
+                ->whereIn('status', ['approved', 'paid'])
+                ->get();
+
+            $note = 'استقطاع قسط سلفة من مسير رواتب شهر ' . $payroll->month . '/' . $payroll->year;
+
+            foreach ($advances as $advance) {
+                foreach ($installments[$advance->id] as $amount) {
+                    $advance->repayments()->create([
+                        'amount'         => $amount,
+                        'repayment_date' => now()->toDateString(),
+                        'type'           => 'payroll_deduction',
+                        'notes'          => $note,
+                        'created_by'     => admin()?->id,
                     ]);
                 }
+
+                $advance->recalculateRepayments();
             }
+        }
+
+        if ($rewardIds) {
+            EmployeeReward::whereIn('id', array_unique($rewardIds))
+                ->where('status', 'approved')
+                ->update(['status' => 'paid']);
         }
     }
 

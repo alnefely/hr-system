@@ -85,12 +85,14 @@ class PettyCashService
         $previousTotal = (float) $first->allocated_amount + (float) $first->carried_over_amount;
         $changed = 0;
 
-        DB::transaction(function () use ($branchId, $rows, &$year, &$month, $toYear, $toMonth, &$previousTotal, &$changed) {
+        // مصروف كل الشهور في استعلام واحد بدل استعلام SUM لكل شهر —
+        // السلسلة بتبدأ من أول شهر للفرع، فالعدد كان بيكبر كل شهر (وبيتنفّذ
+        // مع كل حفظ لمصروف).
+        $spentByPeriod = $this->spentByPeriod($branchId, $year, $month, $toYear, $toMonth);
+
+        DB::transaction(function () use ($branchId, $rows, &$year, &$month, $toYear, $toMonth, &$previousTotal, &$changed, $spentByPeriod) {
             while ($this->periodKey($year, $month) < $this->periodKey($toYear, $toMonth)) {
-                $spent = (float) Expense::acrossAllBranches()
-                    ->where('branch_id', $branchId)
-                    ->inMonth($year, $month)
-                    ->sum('amount');
+                $spent = (float) ($spentByPeriod[$this->periodKey($year, $month)] ?? 0);
 
                 $remaining = round(max(0, $previousTotal - $spent), 2);
 
@@ -128,6 +130,31 @@ class PettyCashService
         });
 
         return $changed;
+    }
+
+    /**
+     * مصروف الفرع لكل شهر في الفترة: [202610 => 1500.00, ...].
+     *
+     * @return array<int, float>
+     */
+    private function spentByPeriod(int $branchId, int $fromYear, int $fromMonth, int $toYear, int $toMonth): array
+    {
+        [$start] = Expense::monthBounds($fromYear, $fromMonth);
+        [, $end] = Expense::monthBounds($toYear, $toMonth);
+
+        // تعبير الشهر بيختلف بين MySQL و SQLite (بيئة الاختبار)
+        $period = DB::connection()->getDriverName() === 'sqlite'
+            ? "CAST(strftime('%Y%m', expense_date) AS INTEGER)"
+            : "(YEAR(expense_date) * 100 + MONTH(expense_date))";
+
+        return Expense::acrossAllBranches()
+            ->where('branch_id', $branchId)
+            ->whereBetween('expense_date', [$start, $end])
+            ->groupBy(DB::raw($period))
+            ->selectRaw("{$period} as period, SUM(amount) as total")
+            ->pluck('total', 'period')
+            ->mapWithKeys(fn ($total, $period) => [(int) $period => (float) $total])
+            ->all();
     }
 
     /** مفتاح قابل للمقارنة: 2026-10 → 202610. */

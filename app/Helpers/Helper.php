@@ -86,6 +86,12 @@ if (!function_exists('setEnvVal')) {
 if (!function_exists('FormatDate')) {
     function FormatDate($date)
     {
+        // Carbon::parse(null) بيرجّع الوقت الحالي، فسجل من غير تاريخ كان
+        // بيتعرض كأنه اتعمل دلوقتي.
+        if ($date === null || $date === '') {
+            return null;
+        }
+
         return Carbon::parse($date)->setTimezone(config('app.timezone'))->format('Y-m-d h:i A');
     }
 }

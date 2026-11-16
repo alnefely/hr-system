@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\AccessibleEmployee;
 use Illuminate\Foundation\Http\FormRequest;
 
 class EmployeeDocumentRequest extends FormRequest
@@ -22,7 +23,7 @@ class EmployeeDocumentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'employee_id'   => ['required', 'exists:employees,id'],
+            'employee_id'   => ['required', new AccessibleEmployee],
             // النوع مش إجباري من المستخدم: لو مابعتش بنحط 'other'
             // في prepareForValidation عشان العمود NOT NULL.
             'document_type' => ['required', 'string', 'max:100'],

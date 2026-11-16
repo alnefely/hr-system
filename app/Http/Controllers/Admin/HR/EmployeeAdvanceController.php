@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\HR;
 
+use App\Rules\AccessibleEmployee;
 use App\Enums\AdvanceStatus;
 use App\Enums\NotificationType;
 use App\Services\Notification\NotificationService;
@@ -282,7 +283,7 @@ class EmployeeAdvanceController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'employee_id'        => ['required', 'exists:employees,id'],
+            'employee_id'        => ['required', new AccessibleEmployee],
             'amount'             => ['required', 'numeric', 'min:1'],
             'installments_count' => ['required', 'integer', 'min:1'],
             'advance_date'       => ['required', 'date'],

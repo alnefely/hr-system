@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\AccessibleBranch;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,6 +11,53 @@ class SaleRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    /**
+     * إعادة حساب المبالغ على السيرفر.
+     *
+     * إجمالي البند والإجمالي الفرعي والإجمالي النهائي كانوا بييجوا جاهزين
+     * من JavaScript ويتحفظوا زي ما هم — أي تعديل في الطلب (أو باج في
+     * الواجهة) كان بيسجّل فاتورة أرقامها مش متسقة: بنود مجموعها 1000
+     * وإجمالي 100. دلوقتي الكمية × السعر هي المصدر.
+     *
+     * لو مفيش بنود باسم (فاتورة بمبلغ مباشر) بنحترم الإجمالي الفرعي المُرسل.
+     */
+    protected function prepareForValidation(): void
+    {
+        $items = is_array($this->input('items')) ? $this->input('items') : [];
+        $hasNamedItems = false;
+        $subtotal = 0.0;
+
+        foreach ($items as $key => $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $quantity = is_numeric($item['quantity'] ?? null) ? (float) $item['quantity'] : 1.0;
+            $price    = is_numeric($item['unit_price'] ?? null) ? (float) $item['unit_price'] : 0.0;
+            $line     = round($quantity * $price, 2);
+
+            $items[$key]['total_price'] = $line;
+
+            if (! empty($item['item_name'])) {
+                $hasNamedItems = true;
+                $subtotal += $line;
+            }
+        }
+
+        $subtotal = $hasNamedItems
+            ? round($subtotal, 2)
+            : (float) (is_numeric($this->input('subtotal')) ? $this->input('subtotal') : 0);
+
+        $tax      = is_numeric($this->input('tax_amount')) ? (float) $this->input('tax_amount') : 0.0;
+        $discount = is_numeric($this->input('discount_amount')) ? (float) $this->input('discount_amount') : 0.0;
+
+        $this->merge([
+            'items'        => $items ?: $this->input('items'),
+            'subtotal'     => $subtotal,
+            'total_amount' => max(0, round($subtotal + $tax - $discount, 2)),
+        ]);
     }
 
     public function rules(): array
@@ -22,7 +70,7 @@ class SaleRequest extends FormRequest
             'sale_type'        => ['required', 'in:external_project,app_service,direct_sale'],
             'sales_channel_id' => ['nullable', 'exists:sales_channels,id'],
             'sales_channel'    => ['nullable', 'string', 'max:100'],
-            'branch_id'        => ['required', 'exists:branches,id'],
+            'branch_id'        => ['required', 'exists:branches,id', new AccessibleBranch],
             'sale_date'        => ['required', 'date'],
             'subtotal'         => ['required', 'numeric', 'min:0'],
             'tax_amount'       => ['nullable', 'numeric', 'min:0'],

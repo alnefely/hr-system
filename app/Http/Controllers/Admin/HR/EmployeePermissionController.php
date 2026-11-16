@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\HR;
 
+use App\Rules\AccessibleEmployee;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\EmployeePermission;
@@ -120,7 +121,7 @@ class EmployeePermissionController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'employee_id'     => ['required', 'exists:employees,id'],
+            'employee_id'     => ['required', new AccessibleEmployee],
             'permission_date' => ['required', 'date'],
             'start_time'      => ['required', 'date_format:H:i'],
             'end_time'        => ['required', 'date_format:H:i', 'after:start_time'],

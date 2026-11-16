@@ -62,6 +62,10 @@ return [
             'title' => 'فاتورة تجاوزت موعد السداد',
             'body'  => 'الفاتورة :invoice للعميل :customer متأخرة بمبلغ :amount.',
         ],
+        'invoice_overdue_summary' => [
+            'title' => 'فواتير تجاوزت موعد السداد',
+            'body'  => ':count فاتورة متأخرة أكثر من :days يوم، بإجمالي مستحق :amount.',
+        ],
     ],
 
     'filters' => [

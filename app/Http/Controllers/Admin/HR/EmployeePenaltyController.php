@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\HR;
 
+use App\Rules\AccessibleEmployee;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\EmployeePenalty;
@@ -17,7 +18,9 @@ class EmployeePenaltyController extends Controller
             // العلاقات، و select * ساعتها بيخلي أعمدة الجدول المنضم
             // تدهس أعمدة الجدول الأصلي (id بالذات).
             $query = EmployeePenalty::select('employee_penalties.*')
-                ->with(['employee:id,name,employee_code', 'creator:id,name']);
+                // branch_id + employee.branch لازمين: عمود الخصم بيعرض عملة
+                // فرع الموظف، ومن غيرهم العلاقة كانت بتطلع null والعملة دايماً EGP.
+                ->with(['employee:id,name,employee_code,branch_id', 'employee.branch:id,currency', 'creator:id,name']);
 
             if ($request->filled('employee_id')) {
                 $query->where('employee_id', $request->employee_id);
@@ -217,7 +220,7 @@ class EmployeePenaltyController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'employee_id'      => ['required', 'exists:employees,id'],
+            'employee_id'      => ['required', new AccessibleEmployee],
             'penalty_type'     => ['required', 'in:days_deduction,amount_deduction,warning'],
             'days_count'       => ['nullable', 'numeric', 'min:0'],
             'deduction_amount' => ['nullable', 'numeric', 'min:0'],

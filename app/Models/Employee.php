@@ -155,15 +155,15 @@ class Employee extends Model
         return $this->hasMany(PayrollItem::class);
     }
 
+    /**
+     * مُبقاة للتوافق — نفس hourly_rate بالظبط.
+     *
+     * كانت بتحسب من الأساسي ÷ 30 وبتتجاهل custom_daily_rate، فموظف له
+     * سعر يوم خاص كان أجر ساعته في المسير مختلف عن اللي في ملفه.
+     */
     public function getEffectiveHourlyRateAttribute(): float
     {
-        if ($this->custom_hourly_rate && (float) $this->custom_hourly_rate > 0) {
-            return (float) $this->custom_hourly_rate;
-        }
-
-        $basic = (float) ($this->basic_salary ?? 0);
-        $dailyHours = (float) ($this->daily_work_hours ?: 8);
-        return $basic > 0 ? round(($basic / 30) / $dailyHours, 2) : 0.0;
+        return $this->hourly_rate;
     }
 
     public function scopeActive($query)

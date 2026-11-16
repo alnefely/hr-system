@@ -373,10 +373,7 @@ class DashboardService
     private function alerts(): array
     {
         return [
-            'overdue_invoices' => Sale::whereIn('payment_status', ['unpaid', 'partially_paid'])
-                ->where('due_amount', '>', 0)
-                ->whereDate('sale_date', '<', $this->now->subDays(30)->toDateString())
-                ->count(),
+            'overdue_invoices' => Sale::overdue()->count(),
 
             'due_subscriptions' => VendorSubscription::where('status', 'active')
                 ->whereNotNull('next_billing_date')

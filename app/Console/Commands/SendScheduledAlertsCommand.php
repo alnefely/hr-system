@@ -37,6 +37,10 @@ class SendScheduledAlertsCommand extends Command
     {
         $this->dryRun = (bool) $this->option('dry-run');
 
+        // نسخة الأمر ممكن تتستخدم تاني في نفس العملية (Artisan::call)،
+        // فذاكرة "اتبعت النهارده" لازم تبدأ فاضية كل تشغيل.
+        $this->sentToday = [];
+
         if ($this->dryRun) {
             $this->warn('وضع المعاينة — مفيش إشعارات هتتبعت فعلياً.');
             $this->newLine();
@@ -166,40 +170,58 @@ class SendScheduledAlertsCommand extends Command
         return $count;
     }
 
-    /** فواتير تجاوزت موعد السداد ولسه عليها مبلغ. */
+    /**
+     * ملخّص يومي واحد لكل فرع بالفواتير المتأخرة.
+     *
+     * قبل كده كان بيبعت إشعار لكل فاتورة متأخرة كل يوم للأبد — 50 فاتورة
+     * متأخرة = 50 إشعار يومياً لكل مشرف، وده بيدفن باقي الإشعارات.
+     * الملخّص فيه العدد والمبلغ لكل عملة، ورابط للقائمة مفلترة على المتأخرات.
+     */
     private function overdueInvoices(NotificationService $notifier): int
     {
-        $invoices = Sale::acrossAllBranches()
-            ->with('customer:id,name')
-            ->whereIn('payment_status', ['unpaid', 'partially_paid'])
-            ->where('due_amount', '>', 0)
-            ->whereDate('sale_date', '<', now()->subDays(30)->toDateString())
-            ->get();
+        // التجميع في SQL: صف لكل (فرع، عملة) بدل تحميل كل الفواتير
+        $rows = Sale::acrossAllBranches()
+            ->overdue()
+            ->groupBy('branch_id', 'currency')
+            ->selectRaw('branch_id, currency, COUNT(*) as invoices, SUM(due_amount) as due')
+            ->get()
+            ->groupBy('branch_id');
 
-        $this->line("فواتير متأخرة: <fg=cyan>{$invoices->count()}</>");
+        $total = $rows->flatten()->sum('invoices');
+        $this->line("فواتير متأخرة: <fg=cyan>{$total}</> في <fg=cyan>{$rows->count()}</> فرع");
         $count = 0;
 
-        foreach ($invoices as $invoice) {
-            if ($this->alreadySentToday(NotificationType::InvoiceOverdue, 'sale_id', $invoice->id)) {
+        foreach ($rows as $branchId => $byCurrency) {
+            $branchId = $branchId === '' ? null : (int) $branchId;
+
+            if ($this->alreadySentToday(NotificationType::InvoiceOverdue, 'overdue_branch_id', $branchId ?? 0)) {
                 continue;
             }
+
+            $invoices = (int) $byCurrency->sum('invoices');
+            $amounts  = $byCurrency
+                ->map(fn ($r) => number_format((float) $r->due, 2) . ' ' . $r->currency)
+                ->implode(' + ');
 
             if (!$this->dryRun) {
                 $notifier->notifyEligible(
                     type: NotificationType::InvoiceOverdue,
-                    title: __('notification.messages.invoice_overdue.title'),
-                    body: __('notification.messages.invoice_overdue.body', [
-                        'invoice'  => $invoice->invoice_number,
-                        'customer' => $invoice->customer?->name ?? '-',
-                        'amount'   => number_format((float) $invoice->due_amount, 2) . ' ' . $invoice->currency,
+                    title: __('notification.messages.invoice_overdue_summary.title'),
+                    body: __('notification.messages.invoice_overdue_summary.body', [
+                        'count'  => $invoices,
+                        'amount' => $amounts,
+                        'days'   => Sale::OVERDUE_AFTER_DAYS,
                     ]),
-                    url: route('admin.sales.show', $invoice->id),
-                    branchId: $invoice->branch_id,
-                    data: ['sale_id' => $invoice->id],
+                    url: route('admin.sales.index', array_filter([
+                        'overdue'   => 1,
+                        'branch_id' => $branchId,
+                    ])),
+                    branchId: $branchId,
+                    data: ['overdue_branch_id' => $branchId ?? 0, 'invoices' => $invoices],
                 );
             }
 
-            $this->line("   • {$invoice->invoice_number} — " . number_format((float) $invoice->due_amount, 2));
+            $this->line("   • فرع #" . ($branchId ?? '-') . " — {$invoices} فاتورة ({$amounts})");
             $count++;
         }
 
@@ -218,9 +240,22 @@ class SendScheduledAlertsCommand extends Command
             return false;
         }
 
-        return AdminNotification::where('type', $type->value)
-            ->whereDate('created_at', today())
-            ->where('data->' . $key, $value)
-            ->exists();
+        // الكيانات اللي اتبعتلها النهارده بتتجاب مرة واحدة لكل نوع، بدل
+        // استعلام JSON لكل فاتورة/اشتراك. ونطاق created_at صريح بدل
+        // whereDate عشان الفهرس (type, created_at) يتستخدم.
+        $cacheKey = $type->value . '|' . $key;
+
+        $this->sentToday[$cacheKey] ??= AdminNotification::where('type', $type->value)
+            ->where('created_at', '>=', today())
+            ->pluck('data')
+            ->map(fn ($data) => is_array($data) ? ($data[$key] ?? null) : null)
+            ->filter(fn ($v) => $v !== null)
+            ->mapWithKeys(fn ($v) => [(string) $v => true])
+            ->all();
+
+        return isset($this->sentToday[$cacheKey][(string) $value]);
     }
+
+    /** @var array<string, array<string, true>> */
+    private array $sentToday = [];
 }

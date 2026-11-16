@@ -11,6 +11,7 @@ use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Event;
@@ -38,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureRateLimiting();
+        $this->detectLazyLoading();
         Paginator::useBootstrap();
         $this->resetBranchScopeOnAuthChange();
 
@@ -91,10 +93,42 @@ class AppServiceProvider extends ServiceProvider
         }, ['guards' => ['admin']]);
     }
 
+    /**
+     * كشف مشكلة N+1 (تحميل علاقة جوّه لوب) أثناء التطوير.
+     *
+     * في الإنتاج مقفول تماماً. في التطوير بيكتب تحذير في اللوج بدل ما
+     * يوقع الصفحة، عشان تشوف العلاقة الناقصة في with() وتصلّحها.
+     */
+    protected function detectLazyLoading(): void
+    {
+        if ($this->app->isProduction()) {
+            return;
+        }
+
+        Model::preventLazyLoading();
+
+        Model::handleLazyLoadingViolationUsing(function (Model $model, string $relation) {
+            $message = sprintf('N+1: علاقة [%s] اتحمّلت lazy على [%s] — ضيفها في with().', $relation, $model::class);
+
+            if (env('LAZY_LOADING_THROW', false)) {
+                throw new \Illuminate\Database\LazyLoadingViolationException($model, $relation);
+            }
+
+            \Illuminate\Support\Facades\Log::warning($message);
+        });
+    }
+
     protected function configureRateLimiting(): void
     {
         RateLimiter::for('WebRateLimiter', function (Request $request) {
-            return Limit::perMinute(60)->by($request->ip());
+            // المشرف المسجّل له حد خاص بيه مش بالـ IP: موظفين مكتب واحد
+            // بيطلعوا من نفس الـ IP، وشاشة واحدة فيها جداول AJAX ولوحة
+            // وإشعارات — فـ 60 طلب مشتركة كانت بتخلص في ثواني وتطلّع 429.
+            $adminId = auth('admin')->id();
+
+            return $adminId
+                ? Limit::perMinute(300)->by('admin:' . $adminId)
+                : Limit::perMinute(60)->by($request->ip());
         });
 
         RateLimiter::for('ApiRateLimiter', function (Request $request) {

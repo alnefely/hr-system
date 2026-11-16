@@ -17,7 +17,7 @@ class HomeController extends Controller
         $dashboard = $dashboard->withFilter(DashboardFilter::fromRequest($request));
 
         return view('admin.home.index', array_merge($dashboard->payload(), [
-            'branches'   => Branch::where('is_active', true)->get(['id', 'name']),
+            'branches'   => Branch::accessible()->where('is_active', true)->get(['id', 'name']),
             'currencies' => $dashboard->availableCurrencies(),
         ]));
     }

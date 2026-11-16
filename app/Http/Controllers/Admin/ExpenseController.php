@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Rules\AccessibleBranch;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Expense\StoreExpenseRequest;
 use App\Http\Requests\Admin\Expense\UpdateExpenseRequest;
@@ -265,7 +266,7 @@ class ExpenseController extends Controller
         $usingCustomRange = $spansMultipleMonths;
 
         $categories = ExpenseCategory::where('is_active', true)->get(['id', 'name']);
-        $branches   = Branch::where('is_active', true)->get(['id', 'name', 'currency']);
+        $branches   = Branch::accessible()->where('is_active', true)->get(['id', 'name', 'currency']);
         $employees  = Employee::visibleTo()->active()->get(['id', 'name', 'employee_code']);
 
         return view('admin.expenses.index', compact(
@@ -299,7 +300,7 @@ class ExpenseController extends Controller
     public function create()
     {
         $categories = ExpenseCategory::where('is_active', true)->get(['id', 'name']);
-        $branches   = Branch::where('is_active', true)->get(['id', 'name', 'currency']);
+        $branches   = Branch::accessible()->where('is_active', true)->get(['id', 'name', 'currency']);
         $employees  = Employee::where('status', 'active')->get(['id', 'name', 'employee_code']);
 
         return view('admin.expenses.create', compact('categories', 'branches', 'employees'));
@@ -336,7 +337,7 @@ class ExpenseController extends Controller
     public function edit(Expense $expense)
     {
         $categories = ExpenseCategory::where('is_active', true)->get(['id', 'name']);
-        $branches   = Branch::where('is_active', true)->get(['id', 'name', 'currency']);
+        $branches   = Branch::accessible()->where('is_active', true)->get(['id', 'name', 'currency']);
         $employees  = Employee::where('status', 'active')->get(['id', 'name', 'employee_code']);
 
         return view('admin.expenses.edit', compact('expense', 'categories', 'branches', 'employees'));
@@ -455,7 +456,7 @@ class ExpenseController extends Controller
     public function updateBalance(Request $request)
     {
         $request->validate([
-            'branch_id'        => ['required', 'exists:branches,id'],
+            'branch_id'        => ['required', 'exists:branches,id', new AccessibleBranch],
             'year'             => ['required', 'integer', 'min:2020', 'max:2100'],
             'month'            => ['required', 'integer', 'min:1', 'max:12'],
             'allocated_amount' => ['required', 'numeric', 'min:0'],

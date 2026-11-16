@@ -28,6 +28,19 @@ class Branch extends Model
         'is_active' => 'boolean',
     ];
 
+    /**
+     * الفروع اللي المشرف الحالي يقدر يسجّل عليها — لقوائم الاختيار.
+     *
+     * مشرف الفرع بيشوف فرعه بس، والمشرف الرئيسي بيشوف الكل. القائمة
+     * بس للراحة: الحماية الفعلية في قاعدة AccessibleBranch.
+     */
+    public function scopeAccessible(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    {
+        $branchId = \App\Support\BranchScopeResolver::branchId();
+
+        return $query->when($branchId !== null, fn ($q) => $q->whereKey($branchId));
+    }
+
     public function employees()
     {
         return $this->hasMany(Employee::class);

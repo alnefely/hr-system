@@ -27,9 +27,6 @@ use Illuminate\Support\Facades\DB;
  */
 class PayrollGenerator
 {
-    /** الحد الافتراضي لساعات الاستئذان الشهرية. */
-    private const DEFAULT_PERMISSION_LIMIT = 4.00;
-
     /** حجم دفعة الإدخال المجمّع. */
     private const INSERT_CHUNK = 200;
 
@@ -148,6 +145,7 @@ class PayrollGenerator
     private function collectInputs(array $employeeIds, int $year, int $month): array
     {
         $lastDayOfMonth = date('Y-m-t', strtotime(sprintf('%04d-%02d-01', $year, $month)));
+        [$monthStart, $monthEnd] = EmployeeLeave::monthBounds($year, $month);
 
         return [
             'rewards' => EmployeeReward::whereIn('employee_id', $employeeIds)
@@ -164,13 +162,20 @@ class PayrollGenerator
                 ->get()
                 ->groupBy('employee_id'),
 
-            'unpaidLeaveDays' => EmployeeLeave::whereIn('employee_id', $employeeIds)
-                ->where('status', 'approved')
-                ->where('leave_type', 'unpaid')
-                ->inMonth($year, $month)
+            // الإجازة اللي بتعدّي الشهر بتتوزّع على الشهرين بدل ما تتخصم كلها
+            // في شهر البداية — عشان كده بنجيب كل اللي بيتقاطع مع الشهر.
+            'unpaidLeaveDays' => PayrollRules::overlapping(
+                    EmployeeLeave::whereIn('employee_id', $employeeIds)
+                        ->where('status', 'approved')
+                        ->where('leave_type', 'unpaid'),
+                    $monthStart,
+                    $monthEnd
+                )
+                ->get(['id', 'employee_id', 'start_date', 'end_date', 'days_count'])
                 ->groupBy('employee_id')
-                ->selectRaw('employee_id, SUM(days_count) as total_days')
-                ->pluck('total_days', 'employee_id'),
+                ->map(fn ($leaves) => round($leaves->sum(
+                    fn (EmployeeLeave $leave) => PayrollRules::leaveDaysWithin($leave, $monthStart, $monthEnd)
+                ), 2)),
 
             'permissionHours' => EmployeePermission::whereIn('employee_id', $employeeIds)
                 ->where('status', 'approved')
@@ -192,9 +197,8 @@ class PayrollGenerator
     {
         $basicSalary = round((float) ($employee->basic_salary ?? 0), 2);
 
-        // daily_rate بيحترم custom_daily_rate لو الموظف متسجل له سعر يوم خاص.
-        $dailyRate  = $employee->daily_rate;
-        $hourlyRate = $employee->effective_hourly_rate;
+        $dailyRate  = PayrollRules::dailyRate($employee);
+        $hourlyRate = PayrollRules::hourlyRate($employee);
 
         [$allowanceDetails, $totalAllowances] = $this->buildAllowances($employee, $inputs);
         [$deductionDetails, $totalDeductions] = $this->buildDeductions($employee, $inputs, $dailyRate, $hourlyRate);
@@ -255,21 +259,14 @@ class PayrollGenerator
 
         // 1. الجزاءات الإدارية
         foreach ($inputs['penalties']->get($employee->id, collect()) as $penalty) {
-            if ($penalty->penalty_type === 'days_deduction') {
-                // بنستخدم المبلغ المخزّن وقت تسجيل الجزاء، مش نعيد حسابه
-                // من سعر اليوم الحالي: الراتب ممكن يكون اتغيّر بعد الجزاء،
-                // فإعادة الحساب كانت بتخصم رقم غير اللي اتعرض واتعمد.
-                // الحساب من سعر اليوم بيفضل كخطة بديلة للسجلات القديمة.
-                $cost = (float) $penalty->deduction_amount > 0
-                    ? round((float) $penalty->deduction_amount, 2)
-                    : round((float) $penalty->days_count * $dailyRate, 2);
+            $cost = PayrollRules::penaltyCost($penalty, $dailyRate);
 
+            if ($penalty->penalty_type === 'days_deduction') {
                 $title = __('payroll.generated.penalty_days', [
                     'days'   => $penalty->days_count,
                     'reason' => $penalty->reason ?? __('payroll.generated.violation'),
                 ]);
             } elseif ($penalty->penalty_type === 'amount_deduction') {
-                $cost = round((float) $penalty->deduction_amount, 2);
                 $title = __('payroll.generated.penalty_amount', [
                     'reason' => $penalty->reason ?? __('payroll.generated.financial_deduction'),
                 ]);
@@ -294,7 +291,7 @@ class PayrollGenerator
         }
 
         // 3. ساعات الاستئذان الزائدة عن الحد الشهري
-        $limit = (float) ($employee->monthly_permission_hours_limit ?? self::DEFAULT_PERMISSION_LIMIT);
+        $limit = PayrollRules::permissionLimit($employee);
         $approvedHours = (float) ($inputs['permissionHours'][$employee->id] ?? 0);
         $excessHours = max(0, $approvedHours - $limit);
         $permissionDeduction = round($excessHours * $hourlyRate, 2);

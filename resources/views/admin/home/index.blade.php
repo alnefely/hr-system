@@ -60,7 +60,8 @@
                 @endif
 
                 @if ($alerts['overdue_invoices'])
-                    <a href="{{ route('admin.sales.index', ['payment_status' => 'unpaid']) }}" class="btn btn-sm btn-label-danger">
+                    {{-- overdue=1 بيعرض نفس الفواتير اللي العدّاد بيعدّها (غير المدفوعة والمدفوعة جزئياً بعد 30 يوم) --}}
+                    <a href="{{ route('admin.sales.index', ['overdue' => 1]) }}" class="btn btn-sm btn-label-danger">
                         <i class="fa-solid fa-file-invoice-dollar me-1"></i>
                         {{ __('dashboard.alerts.overdue_invoices') }}
                         <span class="badge bg-danger ms-1">{{ $alerts['overdue_invoices'] }}</span>

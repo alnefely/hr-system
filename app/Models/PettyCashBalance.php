@@ -2,13 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ScopedToBranch;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PettyCashBalance extends Model
 {
-    use HasFactory;
+    /**
+     * العزل على عمود branch_id. من غيره مشرف الفرع كان بيشوف أرصدة
+     * عهد كل الفروع في شاشة المصاريف وفي get-custody-balance.
+     * الأوامر المجدولة مافيهاش مشرف، فالعزل مابيأثرش على الترحيل.
+     */
+    use HasFactory, ScopedToBranch;
 
     protected $fillable = [
         'branch_id',

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin\Link;
 
+use App\Rules\AccessibleBranch;
 use App\Rules\SafeUrl;
 use App\Services\Links\ShortCodeGenerator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -23,7 +24,7 @@ class UpdateLinkRequest extends FormRequest
                 'regex:/^[A-Za-z0-9_-]+$/'],
             'title'        => ['nullable', 'string', 'max:255'],
             'notes'        => ['nullable', 'string', 'max:2000'],
-            'branch_id'    => ['nullable', 'exists:branches,id'],
+            'branch_id'    => ['nullable', AccessibleBranch::requiredForScopedAdmin(), 'exists:branches,id', new AccessibleBranch],
             'is_active'    => ['nullable', 'boolean'],
 
             // مافيش after:now هنا: رابط قديم منتهي المفروض ينفع يتحفظ

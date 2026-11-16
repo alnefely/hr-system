@@ -62,6 +62,10 @@ return [
             'title' => 'Invoice past its due date',
             'body'  => 'Invoice :invoice for :customer is overdue by :amount.',
         ],
+        'invoice_overdue_summary' => [
+            'title' => 'Invoices past their due date',
+            'body'  => ':count invoices are more than :days days overdue, totalling :amount.',
+        ],
     ],
 
     'filters' => [

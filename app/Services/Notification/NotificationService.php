@@ -98,9 +98,29 @@ class NotificationService
      */
     public function eligibleRecipients(NotificationType $type, ?int $branchId = null, ?int $excludeAdminId = null): Collection
     {
+        // ذاكرة داخل نفس العملية: الأمر المجدول بيبعت نفس النوع لنفس الفرع
+        // عشرات المرات (فاتورة متأخرة لكل فاتورة)، فمالوش لازمة نعيد تحميل
+        // كل المشرفين وصلاحياتهم في كل مرة.
+        $memoKey = $type->value . '|' . $branchId . '|' . $excludeAdminId;
+
+        return $this->recipientsMemo[$memoKey] ??= $this->loadEligibleRecipients($type, $branchId, $excludeAdminId);
+    }
+
+    /** @var array<string, Collection<int, Admin>> */
+    protected array $recipientsMemo = [];
+
+    /** @return Collection<int, Admin> */
+    protected function loadEligibleRecipients(NotificationType $type, ?int $branchId, ?int $excludeAdminId): Collection
+    {
         $permission = $type->requiredPermission();
 
-        return Admin::with('role')
+        // فرع كل مشرف بيتجاب مع المشرفين في استعلام واحد بدل استعلام لكل
+        // مشرف. من غير Global Scopes: لو اللي عامل الحدث مشرف فرع، عزل
+        // الفروع كان هيخفي موظفين الفروع التانية ويطلّع فروع المستلمين null.
+        return Admin::with([
+                'role',
+                'employee' => fn ($q) => $q->withoutGlobalScopes()->select('id', 'branch_id'),
+            ])
             ->when($excludeAdminId, fn ($q) => $q->where('id', '!=', $excludeAdminId))
             ->get()
             ->filter(function (Admin $admin) use ($permission, $branchId) {
@@ -142,9 +162,8 @@ class NotificationService
             return null;
         }
 
-        $branchId = \Illuminate\Support\Facades\DB::table('employees')
-            ->where('id', $admin->employee_id)
-            ->value('branch_id');
+        // العلاقة متحمّلة مسبقاً في loadEligibleRecipients
+        $branchId = $admin->employee?->branch_id;
 
         return $branchId ? (int) $branchId : null;
     }

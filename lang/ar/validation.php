@@ -55,6 +55,7 @@ return [
     'ends_with'            => 'يجب أن ينتهي :attribute بأحد القيم التالية: :values.',
     'enum'                 => 'القيمة المختارة في :attribute غير صحيحة.',
     'exists'               => 'القيمة المختارة في :attribute غير موجودة.',
+    'branch_not_accessible' => 'لا تملك صلاحية التسجيل على هذا الفرع في :attribute.',
     'extensions'           => 'يجب أن يكون امتداد :attribute أحد التالي: :values.',
     'file'                 => 'يجب أن يكون :attribute ملفًا.',
     'filled'               => 'حقل :attribute مطلوب.',

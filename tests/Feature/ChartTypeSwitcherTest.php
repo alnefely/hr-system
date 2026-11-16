@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Admin;
 use App\Models\Branch;
+use App\Models\Employee;
+use App\Models\JobTitle;
 use App\Models\Role;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -27,10 +29,27 @@ class ChartTypeSwitcherTest extends TestCase
             'password' => bcrypt('x'), 'main' => true, 'role_id' => $role->id,
         ]);
 
-        Branch::create([
+        $branch = Branch::create([
             'name' => 'HQ', 'code' => 'CHT', 'country' => 'Egypt',
             'currency' => 'EGP', 'is_active' => true,
         ]);
+
+        // رسم الفروع بيظهر بس لما يكون فيه موظفين في أكتر من فرع. قبل كده
+        // الاختبار كان معتمد على البيانات التجريبية اللي الـ migration كان بيضيفها.
+        $second = Branch::create([
+            'name' => 'Second', 'code' => 'CHT2', 'country' => 'Egypt',
+            'currency' => 'EGP', 'is_active' => true,
+        ]);
+        $jobTitleId = JobTitle::create(['name' => 'Staff', 'is_active' => true])->id;
+
+        foreach ([$branch, $second] as $i => $b) {
+            Employee::create([
+                'branch_id' => $b->id, 'job_title_id' => $jobTitleId,
+                'name' => 'Chart Emp ' . $i, 'employee_code' => 'CHT-000' . $i,
+                'phone' => '0100000000' . $i, 'status' => 'active',
+                'basic_salary' => 1000, 'hire_date' => '2024-01-01',
+            ]);
+        }
 
         return $this->actingAs($admin, 'admin')
             ->get(route('admin.home'))

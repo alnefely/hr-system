@@ -5,6 +5,7 @@ namespace App\Services\HR;
 use App\Models\Admin;
 use App\Models\Branch;
 use App\Models\Employee;
+use App\Support\CodeSequence;
 use App\Models\EmployeeAllowance;
 use App\Models\EmployeeDocument;
 use App\Models\EmployeeSalary;
@@ -73,8 +74,7 @@ class EmployeeService
                 $prefix = $branch->code;
             }
         }
-        $count = Employee::withTrashed()->count() + 1;
-        return sprintf('%s-%04d', $prefix, $count);
+        return CodeSequence::next(Employee::class, 'employee_code', $prefix . '-');
     }
 
     /**
@@ -414,8 +414,6 @@ class EmployeeService
     protected function generateEmployeeCode(Branch $branch): string
     {
         $branchCode = $branch->code ?: 'EMP';
-        $count = Employee::withTrashed()->where('branch_id', $branch->id)->count() + 1;
-
-        return sprintf('%s-%04d', $branchCode, $count);
+        return CodeSequence::next(Employee::class, 'employee_code', $branchCode . '-');
     }
 }

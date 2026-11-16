@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\HR;
 
+use App\Rules\AccessibleEmployee;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\EmployeeReward;
@@ -226,7 +227,7 @@ class EmployeeRewardController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'employee_id' => ['required', 'exists:employees,id'],
+            'employee_id' => ['required', new AccessibleEmployee],
             'reward_type' => ['required', 'in:bonus,incentive,allowance,appreciation'],
             'title'       => ['required', 'string', 'max:255'],
             'amount'      => ['required', 'numeric', 'min:0.01'],

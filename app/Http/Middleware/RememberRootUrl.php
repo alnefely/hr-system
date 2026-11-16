@@ -16,7 +16,17 @@ class RememberRootUrl
 {
     public function handle(Request $request, Closure $next): Response
     {
-        RootUrl::remember($request->root());
+        // الجلسة بتتذكّر آخر دومين اتسجّل، فالكاش (اللي ممكن يكون جدول في
+        // قاعدة البيانات) بيتلمس مرة لكل جلسة بدل مع كل طلب.
+        $root = $request->root();
+
+        if (! $request->hasSession() || $request->session()->get(RootUrl::CACHE_KEY) !== $root) {
+            RootUrl::remember($root);
+
+            if ($request->hasSession()) {
+                $request->session()->put(RootUrl::CACHE_KEY, $root);
+            }
+        }
 
         return $next($request);
     }

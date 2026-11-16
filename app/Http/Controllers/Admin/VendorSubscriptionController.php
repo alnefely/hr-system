@@ -105,7 +105,7 @@ class VendorSubscriptionController extends Controller
         }
 
         $vendors  = Vendor::where('is_active', true)->get(['id', 'name']);
-        $branches = Branch::where('is_active', true)->get(['id', 'name']);
+        $branches = Branch::accessible()->where('is_active', true)->get(['id', 'name']);
 
         // Multi-currency calculation for active subscriptions costs!
         $activeCostsByCurrency = VendorSubscription::where('status', 'active')
@@ -139,7 +139,7 @@ class VendorSubscriptionController extends Controller
     public function create()
     {
         $vendors  = Vendor::where('is_active', true)->get(['id', 'name']);
-        $branches = Branch::where('is_active', true)->get(['id', 'name']);
+        $branches = Branch::accessible()->where('is_active', true)->get(['id', 'name']);
 
         return view('admin.vendor-subscriptions.create', compact('vendors', 'branches'));
     }
@@ -169,7 +169,7 @@ class VendorSubscriptionController extends Controller
     public function edit(VendorSubscription $vendorSubscription)
     {
         $vendors  = Vendor::where('is_active', true)->get(['id', 'name']);
-        $branches = Branch::where('is_active', true)->get(['id', 'name']);
+        $branches = Branch::accessible()->where('is_active', true)->get(['id', 'name']);
 
         return view('admin.vendor-subscriptions.edit', compact('vendorSubscription', 'vendors', 'branches'));
     }

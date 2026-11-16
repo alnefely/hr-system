@@ -31,6 +31,8 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['employee_id', 'reward_date']);
+            // عدّاد الطلبات المعلّقة في اللوحة: WHERE status = 'pending'
+            $table->index('status', 'employee_rewards_status_idx');
         });
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\AccessibleBranch;
 use Illuminate\Foundation\Http\FormRequest;
 
 class VendorSubscriptionRequest extends FormRequest
@@ -16,7 +17,7 @@ class VendorSubscriptionRequest extends FormRequest
         return [
             'title'             => ['required', 'string', 'max:200'],
             'vendor_id'         => ['required', 'exists:vendors,id'],
-            'branch_id'         => ['nullable', 'exists:branches,id'],
+            'branch_id'         => ['nullable', AccessibleBranch::requiredForScopedAdmin(), 'exists:branches,id', new AccessibleBranch],
             'type'              => ['required', 'in:subscription,contract,one_time'],
             'billing_cycle'     => ['required', 'in:monthly,quarterly,semi_annually,annually,one_time'],
             'cost'              => ['required', 'numeric', 'min:0'],

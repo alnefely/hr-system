@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\AccessibleEmployee;
 use Illuminate\Foundation\Http\FormRequest;
 
 class EmployeeSalaryRequest extends FormRequest
@@ -14,7 +15,7 @@ class EmployeeSalaryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'employee_id'    => ['required', 'exists:employees,id'],
+            'employee_id'    => ['required', new AccessibleEmployee],
             'basic_salary'   => ['required', 'numeric', 'min:0'],
             'allowances'     => ['nullable', 'numeric', 'min:0'],
             'currency'       => ['required', 'string', 'max:10'],

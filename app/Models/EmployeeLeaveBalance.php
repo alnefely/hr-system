@@ -2,13 +2,20 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ScopedToBranch;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EmployeeLeaveBalance extends Model
 {
-    use HasFactory;
+    use HasFactory, ScopedToBranch;
+
+    /**
+     * العزل عبر فرع الموظف. من غيره مسار تعديل الرصيد
+     * (leaves/balances/{balance}) كان بيقبل أي id حتى لو الموظف في فرع تاني.
+     */
+    public $branchScopeVia = 'employee';
 
     protected $fillable = [
         'employee_id',

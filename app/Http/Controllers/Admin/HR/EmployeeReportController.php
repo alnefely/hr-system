@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\HR;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\EmployeeDocument;
+use App\Services\HR\PayrollRules;
 use App\Models\Branch;
 use App\Models\EmployeeLeave;
 use App\Models\EmployeePenalty;
@@ -31,9 +32,14 @@ class EmployeeReportController extends Controller
             $selectedEmployee = Employee::with(['branch', 'jobTitle', 'leaveBalances'])->find($request->employee_id);
 
             if ($selectedEmployee) {
-                $leaves = EmployeeLeave::where('employee_id', $selectedEmployee->id)
-                    ->whereBetween('start_date', [$fromDate, $toDate])
-                    ->get();
+                // كل إجازة بتتقاطع مع الفترة، وأيامها بتتحسب بنصيب الفترة بس
+                // (نفس قاعدة المسير) — مش اللي بتبدأ فيها بس بكامل أيامها.
+                $leaves = PayrollRules::overlapping(
+                    EmployeeLeave::where('employee_id', $selectedEmployee->id),
+                    $fromDate,
+                    $toDate
+                )->get();
+                $leaveDays = fn ($l) => PayrollRules::leaveDaysWithin($l, $fromDate, $toDate);
 
                 $permissions = EmployeePermission::where('employee_id', $selectedEmployee->id)
                     ->whereBetween('permission_date', [$fromDate, $toDate])
@@ -44,23 +50,25 @@ class EmployeeReportController extends Controller
                     ->get();
 
                 $approvedLeaves  = $leaves->where('status', 'approved');
-                $totalAnnualDays = $approvedLeaves->where('leave_type', 'annual')->sum('days_count');
-                $totalCasualDays = $approvedLeaves->where('leave_type', 'casual')->sum('days_count');
-                $totalSickDays   = $approvedLeaves->where('leave_type', 'sick')->sum('days_count');
-                $totalUnpaidDays = $approvedLeaves->where('leave_type', 'unpaid')->sum('days_count');
+                $totalAnnualDays = $approvedLeaves->where('leave_type', 'annual')->sum($leaveDays);
+                $totalCasualDays = $approvedLeaves->where('leave_type', 'casual')->sum($leaveDays);
+                $totalSickDays   = $approvedLeaves->where('leave_type', 'sick')->sum($leaveDays);
+                $totalUnpaidDays = $approvedLeaves->where('leave_type', 'unpaid')->sum($leaveDays);
 
                 $approvedPermissions  = $permissions->where('status', 'approved');
                 $totalPermissionHours = $approvedPermissions->sum('hours_count');
-                $monthlyLimit         = (float) ($selectedEmployee->monthly_permission_hours_limit ?? 4.00);
+                $monthlyLimit         = PayrollRules::permissionLimit($selectedEmployee);
                 $excessHours          = max(0, $totalPermissionHours - $monthlyLimit);
 
-                $dailyRate  = $selectedEmployee->daily_rate ?: ($selectedEmployee->basic_salary > 0 ? ($selectedEmployee->basic_salary / 30) : 0);
-                $hourlyRate = $selectedEmployee->effective_hourly_rate;
+                $dailyRate  = PayrollRules::dailyRate($selectedEmployee);
+                $hourlyRate = PayrollRules::hourlyRate($selectedEmployee);
 
-                $penaltiesDays   = $penalties->where('penalty_type', 'days_deduction')->sum('days_count');
-                $penaltiesAmount = $penalties->where('penalty_type', 'amount_deduction')->sum('deduction_amount');
+                // الجزاءات المعتمدة بس هي اللي بتتخصم — زي المسير. المعلّق
+                // والمرفوض بيظهروا في السجل الزمني من غير تكلفة.
+                $deductiblePenalties = $penalties->filter(fn ($p) => PayrollRules::isDeductible($p));
+                $penaltiesDays = $deductiblePenalties->where('penalty_type', 'days_deduction')->sum('days_count');
 
-                $totalPenaltiesCost  = ($penaltiesDays * $dailyRate) + $penaltiesAmount;
+                $totalPenaltiesCost  = $deductiblePenalties->sum(fn ($p) => PayrollRules::penaltyCost($p, $dailyRate));
                 $unpaidLeavesCost    = $totalUnpaidDays * $dailyRate;
                 $permissionCost      = $excessHours * $hourlyRate;
                 $totalDeductionsCost = round($totalPenaltiesCost + $unpaidLeavesCost + $permissionCost, 2);
@@ -88,7 +96,7 @@ class EmployeeReportController extends Controller
                         'reason' => $l->reason ?? '-',
                         'status' => $l->status,
                         'badge'  => $l->status === 'approved' ? 'bg-label-success' : ($l->status === 'rejected' ? 'bg-label-danger' : 'bg-label-warning'),
-                        'cost'   => $l->leave_type === 'unpaid' && $l->status === 'approved' ? round($l->days_count * $dailyRate, 2) : 0,
+                        'cost'   => $l->leave_type === 'unpaid' && $l->status === 'approved' ? round($leaveDays($l) * $dailyRate, 2) : 0,
                     ]);
                 }
 
@@ -107,15 +115,17 @@ class EmployeeReportController extends Controller
 
                 foreach ($penalties as $pen) {
                     $val = $pen->penalty_type === 'days_deduction' ? ($pen->days_count . ' يوم خصم') : ($pen->penalty_type === 'amount_deduction' ? ($pen->deduction_amount . ' ' . ($selectedEmployee->branch?->currency ?? '')) : 'إنذار كتابي');
-                    $cost = $pen->penalty_type === 'days_deduction' ? round($pen->days_count * $dailyRate, 2) : ($pen->penalty_type === 'amount_deduction' ? $pen->deduction_amount : 0);
+                    $cost = PayrollRules::isDeductible($pen) ? PayrollRules::penaltyCost($pen, $dailyRate) : 0;
                     $timeline->push([
                         'date'   => $pen->penalty_date ? $pen->penalty_date->format('Y-m-d') : '-',
                         'type'   => 'penalty',
                         'title'  => 'خصم / جزاء إداري (' . (__('penalty.type_enums.' . $pen->penalty_type) ?? $pen->penalty_type) . ')',
                         'detail' => $val,
                         'reason' => $pen->reason ?? '-',
-                        'status' => 'applied',
-                        'badge'  => 'bg-label-danger',
+                        // الحالة الحقيقية بدل "applied" الثابتة: الجزاء المعلّق
+                        // أو المرفوض كان بيتعرض كأنه اتخصم.
+                        'status' => $pen->status,
+                        'badge'  => $pen->status === 'approved' ? 'bg-label-danger' : ($pen->status === 'rejected' ? 'bg-label-secondary' : 'bg-label-warning'),
                         'cost'   => $cost,
                     ]);
                 }
@@ -160,8 +170,8 @@ class EmployeeReportController extends Controller
             if ($selectedEmployee) {
                 $currency = $selectedEmployee->branch?->currency ?? 'EGP';
                 $basicSalary = (float) $selectedEmployee->basic_salary;
-                $dailyRate = $selectedEmployee->daily_rate ?: ($basicSalary > 0 ? round($basicSalary / 30, 2) : 0);
-                $hourlyRate = $selectedEmployee->effective_hourly_rate;
+                $dailyRate  = PayrollRules::dailyRate($selectedEmployee);
+                $hourlyRate = PayrollRules::hourlyRate($selectedEmployee);
 
                 // 1. Fixed Allowances
                 $fixedAllowances = $selectedEmployee->allowances ?? collect();
@@ -175,14 +185,14 @@ class EmployeeReportController extends Controller
                 $totalRewards = (float) $rewards->sum('amount');
 
                 // 3. Penalties & Deductions in this month
+                // المعتمدة بس، وبمبلغها المخزّن — نفس اللي بيدخل المسير.
+                // قبل كده المعلّق والمرفوض كانوا بيتخصموا في التدقيق.
                 $penalties = EmployeePenalty::where('employee_id', $selectedEmployee->id)
+                    ->whereIn('status', PayrollRules::DEDUCTIBLE_PENALTY_STATUSES)
                     ->whereBetween('penalty_date', [$startDate, $endDate])
                     ->get();
 
-                $penaltyDaysCount = (float) $penalties->where('penalty_type', 'days_deduction')->sum('days_count');
-                $penaltyDaysCost  = round($penaltyDaysCount * $dailyRate, 2);
-                $penaltyAmountCost = (float) $penalties->where('penalty_type', 'amount_deduction')->sum('deduction_amount');
-                $totalPenalties = round($penaltyDaysCost + $penaltyAmountCost, 2);
+                $totalPenalties = round($penalties->sum(fn ($p) => PayrollRules::penaltyCost($p, $dailyRate)), 2);
 
                 // 4. Excess Permission Hours
                 $permissions = EmployeePermission::where('employee_id', $selectedEmployee->id)
@@ -190,17 +200,21 @@ class EmployeeReportController extends Controller
                     ->whereBetween('permission_date', [$startDate, $endDate])
                     ->get();
                 $totalPermHours = (float) $permissions->sum('hours_count');
-                $monthlyPermLimit = (float) ($selectedEmployee->monthly_permission_hours_limit ?? 4.00);
+                $monthlyPermLimit = PayrollRules::permissionLimit($selectedEmployee);
                 $excessPermHours = max(0, $totalPermHours - $monthlyPermLimit);
                 $permExcessCost = round($excessPermHours * $hourlyRate, 2);
 
                 // 5. Unpaid Leaves
-                $unpaidLeaves = EmployeeLeave::where('employee_id', $selectedEmployee->id)
-                    ->where('status', 'approved')
-                    ->where('leave_type', 'unpaid')
-                    ->whereBetween('start_date', [$startDate, $endDate])
-                    ->get();
-                $unpaidLeaveDays = (float) $unpaidLeaves->sum('days_count');
+                $unpaidLeaves = PayrollRules::overlapping(
+                    EmployeeLeave::where('employee_id', $selectedEmployee->id)
+                        ->where('status', 'approved')
+                        ->where('leave_type', 'unpaid'),
+                    $startDate,
+                    $endDate
+                )->get();
+                $unpaidLeaveDays = round((float) $unpaidLeaves->sum(
+                    fn ($l) => PayrollRules::leaveDaysWithin($l, $startDate, $endDate)
+                ), 2);
                 $unpaidLeaveCost = round($unpaidLeaveDays * $dailyRate, 2);
 
                 // 6. Advance Repayments in this month
@@ -259,7 +273,7 @@ class EmployeeReportController extends Controller
 
                 // Penalties
                 foreach ($penalties as $pen) {
-                    $pCost = $pen->penalty_type === 'days_deduction' ? round($pen->days_count * $dailyRate, 2) : $pen->deduction_amount;
+                    $pCost = PayrollRules::penaltyCost($pen, $dailyRate);
                     if ($pCost > 0) {
                         $pDesc = $pen->penalty_type === 'days_deduction' ? ('خصم ' . $pen->days_count . ' يوم غياب/تأخير') : 'خصم مالي إداري مباشر';
                         $breakdown->push([
@@ -441,7 +455,7 @@ class EmployeeReportController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        $branches = Branch::where('is_active', true)->get(['id', 'name']);
+        $branches = Branch::accessible()->where('is_active', true)->get(['id', 'name']);
 
         return view('admin.hr.reports.documents', compact(
             'documents',

@@ -3,6 +3,7 @@
 namespace App\Services\HR;
 
 use App\Models\Branch;
+use App\Support\CodeSequence;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -38,7 +39,7 @@ class BranchService
      */
     public function allActive(): Collection
     {
-        return Branch::where('is_active', true)->select('id', 'name', 'currency', 'code')->get();
+        return Branch::accessible()->where('is_active', true)->select('id', 'name', 'currency', 'code')->get();
     }
 
     /**
@@ -115,8 +116,6 @@ class BranchService
             default                                                     => 'EG',
         };
 
-        $count = Branch::withTrashed()->where('country', $country)->count() + 1;
-
-        return sprintf('%s-%02d', $prefix, $count);
+        return CodeSequence::next(Branch::class, 'code', $prefix . '-', 2);
     }
 }

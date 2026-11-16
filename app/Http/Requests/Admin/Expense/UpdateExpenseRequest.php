@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin\Expense;
 
+use App\Rules\AccessibleBranch;
+use App\Rules\AccessibleEmployee;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateExpenseRequest extends FormRequest
@@ -16,8 +18,8 @@ class UpdateExpenseRequest extends FormRequest
         return [
             'title'               => ['required', 'string', 'max:255'],
             'expense_category_id' => ['required', 'exists:expense_categories,id'],
-            'branch_id'           => ['required', 'exists:branches,id'],
-            'employee_id'         => ['nullable', 'exists:employees,id'],
+            'branch_id'           => ['required', 'exists:branches,id', new AccessibleBranch],
+            'employee_id'         => ['nullable', new AccessibleEmployee],
             'amount'              => ['required', 'numeric', 'min:0.01', 'max:999999999.99'],
             'currency'            => ['nullable', 'string', 'max:10'],
             'expense_date'        => ['required', 'date'],

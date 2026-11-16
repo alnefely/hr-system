@@ -60,7 +60,7 @@ class LinkController extends Controller
         }
 
         return view('admin.links.index', [
-            'branches'   => Branch::select('id', 'name')->orderBy('name')->get(),
+            'branches'   => Branch::accessible()->select('id', 'name')->orderBy('name')->get(),
             'stats'      => $this->stats(),
             'trashCount' => admin_can('link_trash') ? Link::onlyTrashed()->count() : 0,
         ]);
@@ -69,7 +69,7 @@ class LinkController extends Controller
     public function create(ShortCodeGenerator $generator)
     {
         return view('admin.links.create', [
-            'branches' => Branch::select('id', 'name')->orderBy('name')->get(),
+            'branches' => Branch::accessible()->select('id', 'name')->orderBy('name')->get(),
 
             // كود جاهز في الحقل بدل ما يبقى فاضي: المستخدم يشوف
             // الكود اللي هياخده، ويقدر يمسحه ويكتب بتاعه.
@@ -100,7 +100,7 @@ class LinkController extends Controller
     {
         return view('admin.links.edit', [
             'link'     => $link,
-            'branches' => Branch::select('id', 'name')->orderBy('name')->get(),
+            'branches' => Branch::accessible()->select('id', 'name')->orderBy('name')->get(),
         ]);
     }
 

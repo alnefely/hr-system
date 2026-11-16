@@ -29,6 +29,8 @@ return new class extends Migration
 
             $table->index(['employee_id', 'status']);
             $table->index('start_date', 'employee_advances_start_date_idx');
+            // عدّاد الطلبات المعلّقة في اللوحة: WHERE status = 'pending'
+            $table->index('status', 'employee_advances_status_idx');
         });
 
         // سجل حركات السداد والإعفاء — المصدر الوحيد لحساب المسدد والمتبقي

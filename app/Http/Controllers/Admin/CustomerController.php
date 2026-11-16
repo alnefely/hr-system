@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CustomerRequest;
 use App\Models\Customer;
+use App\Support\CodeSequence;
 use App\Models\CustomerSource;
 use Illuminate\Http\Request;
 
@@ -67,7 +68,7 @@ class CustomerController extends Controller
 
     public function create()
     {
-        $nextCode = 'CUST-' . str_pad(Customer::withTrashed()->count() + 1, 4, '0', STR_PAD_LEFT);
+        $nextCode = CodeSequence::next(Customer::class, 'code', 'CUST-');
         $sources  = CustomerSource::active()->get(['id', 'name']);
 
         return view('admin.customers.create', compact('nextCode', 'sources'));

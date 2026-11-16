@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\AccessibleBranch;
+use App\Rules\AccessibleEmployee;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -86,9 +88,9 @@ class EmployeeRequest extends FormRequest
             // البيانات الوظيفية
             'code'                            => ['nullable', 'string', 'max:50', Rule::unique('employees', 'employee_code')->ignore($employeeId)],
             'employee_code'                   => ['nullable', 'string', 'max:50', Rule::unique('employees', 'employee_code')->ignore($employeeId)],
-            'branch_id'                       => ['required', 'exists:branches,id'],
+            'branch_id'                       => ['required', 'exists:branches,id', new AccessibleBranch],
             'job_title_id'                    => ['required', 'exists:job_titles,id'],
-            'manager_id'                      => ['nullable', 'exists:employees,id', Rule::notIn([$employeeId])],
+            'manager_id'                      => ['nullable', new AccessibleEmployee, Rule::notIn([$employeeId])],
             'hire_date'                       => ['required', 'date'],
             'hired_at'                        => ['nullable', 'date'],
             'probation_end_date'              => ['nullable', 'date'],

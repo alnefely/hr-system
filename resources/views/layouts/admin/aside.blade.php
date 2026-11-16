@@ -331,10 +331,13 @@
         </li>
 
         <li class="menu-item">
-            <a href="{{ route('admin.logout') }}" class="menu-link">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <div>{{ __('auth.logout') }}</div>
-            </a>
+            <form action="{{ route('admin.logout') }}" method="POST" class="m-0">
+                @csrf
+                <a href="#" class="menu-link" onclick="event.preventDefault(); this.closest('form').submit();">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <div>{{ __('auth.logout') }}</div>
+                </a>
+            </form>
         </li>
     </ul>
 </aside>

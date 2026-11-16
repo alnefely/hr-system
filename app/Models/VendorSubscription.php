@@ -3,13 +3,18 @@
 namespace App\Models;
 
 use App\Models\Concerns\LogsActivity;
+use App\Models\Concerns\ScopedToBranch;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class VendorSubscription extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity;
+    /**
+     * معزولة بالفرع: مشرف الفرع بيشوف ويعدّل اشتراكات فرعه بس.
+     * الاشتراك من غير فرع (عام) بيظهر للمشرف الرئيسي بس.
+     */
+    use HasFactory, SoftDeletes, LogsActivity, ScopedToBranch;
 
     protected $fillable = [
         'title',

@@ -89,12 +89,26 @@ class Sale extends Model
         $period = $period ?: date('Ym');
         $prefix = 'INV-' . $period . '-';
 
-        $lastNumber = static::withTrashed()
-            ->where('invoice_number', 'like', $prefix . '%')
-            ->selectRaw('MAX(CAST(SUBSTRING(invoice_number, ?) AS UNSIGNED)) as seq', [strlen($prefix) + 1])
-            ->value('seq');
+        // CodeSequence بيتجاهل عزل الفروع: رقم الفاتورة unique على النظام
+        // كله، فمشرف الفرع لازم يشوف آخر رقم في كل الفروع مش فرعه بس.
+        return \App\Support\CodeSequence::next(static::class, 'invoice_number', $prefix);
+    }
 
-        return $prefix . str_pad((int) $lastNumber + 1, 4, '0', STR_PAD_LEFT);
+    /** عدد الأيام بعد تاريخ الفاتورة اللي بعدها تعتبر متأخرة. */
+    public const OVERDUE_AFTER_DAYS = 30;
+
+    /**
+     * الفواتير المتأخرة: عليها مبلغ ومرّ على تاريخها أكتر من 30 يوم.
+     *
+     * تعريف واحد للوحة والتنبيه المجدول وفلتر قائمة المبيعات.
+     * المقارنة مباشرة على العمود (مش whereDate) عشان الفهرس يشتغل.
+     */
+    public function scopeOverdue(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    {
+        return $query
+            ->whereIn($this->qualifyColumn('payment_status'), ['unpaid', 'partially_paid'])
+            ->where($this->qualifyColumn('due_amount'), '>', 0)
+            ->where($this->qualifyColumn('sale_date'), '<', now()->subDays(self::OVERDUE_AFTER_DAYS)->toDateString());
     }
 
     public function recalculatePayments(): void

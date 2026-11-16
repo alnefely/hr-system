@@ -27,6 +27,8 @@ return new class extends Migration
             $table->index(['employee_id', 'status'], 'employee_leaves_employee_id_status_idx');
             $table->index(['leave_type', 'start_date'], 'employee_leaves_type_start_idx');
             $table->index('start_date', 'employee_leaves_start_date_idx');
+            // عدّاد الطلبات المعلّقة في اللوحة: WHERE status = 'pending'
+            $table->index('status', 'employee_leaves_status_idx');
         });
     }
 

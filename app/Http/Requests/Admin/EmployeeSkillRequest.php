@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\AccessibleEmployee;
 use Illuminate\Foundation\Http\FormRequest;
 
 class EmployeeSkillRequest extends FormRequest
@@ -14,7 +15,7 @@ class EmployeeSkillRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'employee_id'         => ['required', 'exists:employees,id'],
+            'employee_id'         => ['required', new AccessibleEmployee],
             'skill_name'          => ['required', 'string', 'max:150'],
             'proficiency_level'   => ['required', 'in:beginner,intermediate,advanced,expert'],
             'years_of_experience' => ['nullable', 'integer', 'min:0', 'max:60'],

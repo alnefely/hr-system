@@ -23,7 +23,9 @@ Route::post('/forgot-password', [AuthAdminController::class,'sendPassword'])->na
 Route::get('/reset-password/{token}', [AuthAdminController::class,'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [AuthAdminController::class,'resetPassword'])->name('password.update');
 
-Route::get('/logout', [AuthAdminController::class,'logout'])->name('logout');
+// POST مش GET: تسجيل الخروج بـ GET كان ممكن يتنفّذ من أي صفحة خارجية
+// بصورة أو رابط (<img src=".../logout">) من غير ما المستخدم يقصد.
+Route::post('/logout', [AuthAdminController::class,'logout'])->name('logout');
 
 // HomeController
 Route::get('/home', [HomeController::class,'home'])->name('home')->middleware('AdminPermission:dashboard_show');

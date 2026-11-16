@@ -43,6 +43,11 @@ class SaleController extends Controller
             $query->where('payment_status', $request->payment_status);
         }
 
+        // رابط تنبيه الفواتير المتأخرة بيفتح القائمة على المتأخرات بس
+        if ($request->boolean('overdue')) {
+            $query->overdue();
+        }
+
         if ($request->filled('currency')) {
             $query->where('currency', $request->currency);
         }
@@ -111,7 +116,7 @@ class SaleController extends Controller
         }
 
         $customers     = Customer::where('is_active', true)->get(['id', 'name']);
-        $branches      = Branch::where('is_active', true)->get(['id', 'name', 'currency']);
+        $branches      = Branch::accessible()->where('is_active', true)->get(['id', 'name', 'currency']);
         $salesChannels = SalesChannel::where('is_active', true)->get(['id', 'name']);
 
         // الكروت لازم تعكس نفس الفلاتر المطبّقة على الجدول. من غير
@@ -207,7 +212,7 @@ class SaleController extends Controller
     public function create()
     {
         $customers     = Customer::where('is_active', true)->get(['id', 'name']);
-        $branches      = Branch::where('is_active', true)->get(['id', 'name', 'currency']);
+        $branches      = Branch::accessible()->where('is_active', true)->get(['id', 'name', 'currency']);
         $salesChannels = SalesChannel::where('is_active', true)->get(['id', 'name']);
         
         $nextInvoiceNumber = Sale::nextInvoiceNumber();
@@ -287,7 +292,7 @@ class SaleController extends Controller
     {
         $sale->load('items');
         $customers     = Customer::where('is_active', true)->get(['id', 'name']);
-        $branches      = Branch::where('is_active', true)->get(['id', 'name', 'currency']);
+        $branches      = Branch::accessible()->where('is_active', true)->get(['id', 'name', 'currency']);
         $salesChannels = SalesChannel::where('is_active', true)->get(['id', 'name']);
 
         return view('admin.sales.edit', compact('sale', 'customers', 'branches', 'salesChannels'));

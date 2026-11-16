@@ -152,9 +152,12 @@
               <div class="dropdown-divider my-1 mx-n2"></div>
             </li>
             <li>
-              <a class="dropdown-item" href="{{ route('admin.logout') }}">
-                <i class="icon-base ti tabler-power icon-md me-3"></i><span>{{ __('auth.logout') }}</span>
-              </a>
+              <form action="{{ route('admin.logout') }}" method="POST" class="m-0">
+                @csrf
+                <a class="dropdown-item" href="#" onclick="event.preventDefault(); this.closest('form').submit();">
+                  <i class="icon-base ti tabler-power icon-md me-3"></i><span>{{ __('auth.logout') }}</span>
+                </a>
+              </form>
             </li>
           </ul>
         </li>
