@@ -209,6 +209,9 @@
                             </div>
                         </div>
 
+                        {{-- دخول بوابة الموظف --}}
+                        @include('admin.hr.employees.partials.portal-access', ['employee' => $employee])
+
                         @if ($employee->notes)
                         <div class="col-12">
                             <h6 class="fw-bold text-muted mb-1"><i class="fa-solid fa-note-sticky me-1"></i> {{ __('employee.sections.notes') }}</h6>
@@ -600,8 +603,11 @@
 
 {{-- Modals لإضافة سجلات جديدة مباشرة من الملف الشخصي --}}
 
-{{-- 1. Modal إضافة تعديل راتب --}}
-@if (admin_can('salary_create'))
+{{-- نوافذ دخول بوابة الموظف --}}
+@include('admin.hr.employees.partials.portal-access-modals', ['employee' => $employee])
+
+{{-- 1. Modal إضافة تعديل راتب — أرقامه ($curr وغيرها) بتتحسب في تبويب الرواتب، فمحتاج صلاحية عرضه --}}
+@if (admin_can('salary_create') && admin_can('employee_salary_view'))
 <div class="modal fade" id="addSalaryModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <form action="{{ route('admin.salaries.store') }}" method="POST" class="modal-content">
@@ -817,7 +823,7 @@
         const basicInput = document.getElementById('modal_basic_salary');
         const allowancesInput = document.getElementById('modal_allowances');
         const totalDisplay = document.getElementById('modal_total_salary_display');
-        const curr = '{{ $curr }}';
+        const curr = '{{ $curr ?? '' }}';
 
         function calcModalTotal() {
             const b = parseFloat(basicInput?.value || 0);

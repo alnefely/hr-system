@@ -137,6 +137,8 @@ class RoleService
                     'employee_force_delete',
                     'employee_salary_view',
                     'employee_bank_view',
+                    // تفعيل/إيقاف دخول الموظف لبوابته وإعادة تعيين كلمة مروره
+                    'employee_portal_manage',
                 ],
             ],
             'salary' => [

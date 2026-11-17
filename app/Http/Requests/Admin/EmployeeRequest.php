@@ -53,6 +53,17 @@ class EmployeeRequest extends FormRequest
             $merge['employee_code'] = $this->input('code');
         }
 
+        // الأرقام بصيغة دولية موحّدة — الهاتف الأساسي هو اسم دخول البوابة،
+        // والتوحيد قبل التحقق عشان قاعدة "مايتكررش" تقارن نفس الصيغة.
+        foreach (['phone', 'alt_phone', 'emergency_contact_phone'] as $field) {
+            if ($this->filled($field)) {
+                $merge[$field] = \App\Support\PhoneNumber::toE164(
+                    $this->input($field),
+                    $this->input($field . '_country') ?: 'EG'
+                );
+            }
+        }
+
         if (!empty($merge)) {
             $this->merge($merge);
         }
@@ -74,7 +85,8 @@ class EmployeeRequest extends FormRequest
             'avatar'                          => ['nullable', 'string', 'max:255'],
 
             // بيانات التواصل
-            'phone'                           => ['required', 'string', 'max:50'],
+            // اسم الدخول لبوابة الموظف — لازم يبقى فريد (شامل المحذوفين)
+            'phone'                           => ['required', 'string', 'max:50', Rule::unique('employees', 'phone')->ignore($employeeId)],
             'phone_country'                   => ['nullable', 'string', 'max:10'],
             'alt_phone'                       => ['nullable', 'string', 'max:50'],
             'alt_phone_country'               => ['nullable', 'string', 'max:10'],
@@ -120,11 +132,10 @@ class EmployeeRequest extends FormRequest
             'allowances.*.name'               => ['nullable', 'string', 'max:150'],
             'allowances.*.amount'             => ['nullable', 'numeric', 'min:0'],
 
-            // حساب الدخول للنظام
-            'create_account'                  => ['nullable'],
-            'account_email'                   => ['nullable', 'email', 'max:100'],
-            'account_password'                => ['nullable', 'string', 'min:6', 'confirmed'],
-            'role_id'                         => ['nullable', 'exists:roles,id'],
+            // دخول بوابة الموظف: كلمة المرور اختيارية — لو اتكتبت الدخول بيتفعّل
+            // (أو بتتعاد تعيينها لو مفعّل). حسابات لوحة التحكم منفصلة تماماً
+            // وبتتدار من شاشة المشرفين.
+            'portal_password'                 => ['nullable', ...\App\Models\Employee::portalPasswordRules()],
 
             // المستندات والوثائق
             'documents'                       => ['nullable', 'array'],

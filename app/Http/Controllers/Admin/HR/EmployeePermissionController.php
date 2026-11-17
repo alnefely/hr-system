@@ -11,6 +11,7 @@ use App\Models\Employee;
 use App\Models\EmployeePermission;
 use App\Services\HR\ApprovalService;
 use App\Services\HR\PayrollRules;
+use App\Services\HR\PermissionService;
 use Illuminate\Http\Request;
 
 /**
@@ -68,9 +69,9 @@ class EmployeePermissionController extends Controller
         ));
     }
 
-    public function store(StorePermissionRequest $request)
+    public function store(StorePermissionRequest $request, PermissionService $permissions)
     {
-        EmployeePermission::create(['status' => ApprovalStatus::Pending->value] + $request->permissionData());
+        $permissions->create($request->validated());
 
         return redirect()->route('admin.permissions.index')->with('success', __('permission.messages.created'));
     }

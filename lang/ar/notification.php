@@ -21,6 +21,7 @@ return [
     'types' => [
         'leave_requested'         => 'طلب إجازة جديد',
         'leave_decided'           => 'نتيجة طلب إجازة',
+        'permission_requested'    => 'طلب استئذان جديد',
         'advance_requested'       => 'طلب سلفة جديد',
         'advance_decided'         => 'نتيجة طلب سلفة',
         'payroll_awaiting_review' => 'مسير رواتب بانتظار الاعتماد',
@@ -37,6 +38,10 @@ return [
         'leave_decided' => [
             'title' => 'تم البت في طلب الإجازة',
             'body'  => 'طلب إجازتك لمدة :days يوم أصبح: :status.',
+        ],
+        'permission_requested' => [
+            'title' => 'طلب استئذان جديد بانتظار المراجعة',
+            'body'  => ':employee طلب استئذان يوم :date من :from إلى :to.',
         ],
         'advance_requested' => [
             'title' => 'طلب سلفة جديد بانتظار المراجعة',

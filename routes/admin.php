@@ -133,6 +133,11 @@ Route::get('/employees/trash', [EmployeeController::class, 'trash'])->name('empl
 Route::post('/employees/{id}/restore', [EmployeeController::class, 'restore'])->name('employees.restore')->middleware('AdminPermission:employee_restore');
 Route::delete('/employees/{id}/force-delete', [EmployeeController::class, 'forceDelete'])->name('employees.forceDelete')->middleware('AdminPermission:employee_force_delete');
 
+// دخول الموظف لبوابته (/portal) — تفعيل، إيقاف بسبب، إعادة تعيين كلمة المرور
+Route::post('/employees/{employee}/portal/enable', [\App\Http\Controllers\Admin\HR\EmployeePortalController::class, 'enable'])->name('employees.portal.enable')->middleware('AdminPermission:employee_portal_manage');
+Route::post('/employees/{employee}/portal/disable', [\App\Http\Controllers\Admin\HR\EmployeePortalController::class, 'disable'])->name('employees.portal.disable')->middleware('AdminPermission:employee_portal_manage');
+Route::post('/employees/{employee}/portal/reset-password', [\App\Http\Controllers\Admin\HR\EmployeePortalController::class, 'resetPassword'])->name('employees.portal.reset-password')->middleware('AdminPermission:employee_portal_manage');
+
 Route::resource('/employees', EmployeeController::class)
 ->names([
     'index'   => 'employees',

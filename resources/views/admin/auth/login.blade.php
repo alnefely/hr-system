@@ -123,6 +123,9 @@
                   <button class="btn btn-primary d-grid w-100" type="submit">{{ __('global.login') }}</button>
                 </div>
               </form>
+              <p class="text-center mb-0 mt-4">
+                  <a href="{{ route('home') }}" class="small"><i class="fa-solid fa-table-cells-large me-1"></i>{{ __('landing.choose_panel') }}</a>
+              </p>
             </div>
           </div>
           <!-- /Login -->

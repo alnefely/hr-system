@@ -1,5 +1,6 @@
 <link rel="stylesheet" href="/admin/vendor/libs/sweetalert2/sweetalert2.css" />
 <script src="/admin/vendor/libs/sweetalert2/sweetalert2.js"></script>
+@include('layouts.partials.confirm-submit')
 <script>
     function sweetAlert2(icon, text, customClass) {
         return Swal.fire({

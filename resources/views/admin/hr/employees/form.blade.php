@@ -469,81 +469,70 @@
     @endif
 </div>
 
-{{-- 5. حساب الدخول للنظام --}}
+{{-- 5. دخول بوابة الموظف (رقم الهاتف الأساسي + كلمة المرور) --}}
+@if (admin_can('employee_portal_manage'))
+@php
+    $portalState = ! $isEdit ? 'new'
+        : ($employee->status === 'terminated' ? 'terminated'
+        : ($employee->portal_enabled && $employee->password ? 'enabled'
+        : ($employee->portal_disabled_reason ? 'suspended' : 'inactive')));
+@endphp
 <div class="divider divider-primary text-start my-4">
     <div class="divider-text fw-bold fs-6">
-        <i class="fa-solid fa-key me-2"></i> {{ __('employee.sections.login_account') }}
+        <i class="fa-solid fa-door-open me-2"></i> {{ __('employee.sections.portal_access') }}
     </div>
 </div>
 
 <div class="row">
-    <div class="col-md-12 mb-3">
-        <div class="form-check form-switch">
-            <input type="hidden" name="create_account" value="0">
-            <input type="checkbox" name="create_account" id="create_account" value="1" 
-                   class="form-check-input" @checked(old('create_account', $isEdit && $employee->admin_id ? 1 : 0))>
-            <label class="form-check-label fw-bold" for="create_account">
-                {{ __('employee.account.create_switch') }}
-                <i class="fa-solid fa-circle-question text-muted ms-1 cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ __('employee.tooltips.create_account') }}"></i>
-            </label>
+    @if ($isEdit)
+        <div class="col-md-12 mb-3">
+            <span class="fw-medium me-2">{{ __('portal.admin.status') }}:</span>
+            @switch($portalState)
+                @case('enabled')
+                    <span class="badge bg-label-success">{{ __('portal.admin.status_enabled') }}</span>
+                    @break
+                @case('suspended')
+                    <span class="badge bg-label-danger">{{ __('portal.admin.status_suspended') }}</span>
+                    <span class="text-muted ms-2">{{ $employee->portal_disabled_reason }}</span>
+                    @break
+                @case('terminated')
+                    <span class="badge bg-label-secondary">{{ __('portal.admin.status_terminated') }}</span>
+                    @break
+                @default
+                    <span class="badge bg-label-warning">{{ __('portal.admin.status_not_activated') }}</span>
+            @endswitch
         </div>
-    </div>
+    @endif
 
-    <div id="account_fields_container" class="row {{ old('create_account', $isEdit && $employee->admin_id ? 1 : 0) ? '' : 'd-none' }}">
+    @if ($portalState !== 'terminated')
         <div class="col-md-4 mb-3">
-            <label for="account_email" class="form-label">
-                {{ __('employee.account.email') }}
-            </label>
-            <input type="email" value="{{ old('account_email', $isEdit && $employee->admin ? $employee->admin->email : '') }}" 
-                   class="form-control @error('account_email') is-invalid @enderror" 
-                   id="account_email" name="account_email" dir="ltr">
-            @error('account_email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <label class="form-label">{{ __('portal.admin.login_phone') }}</label>
+            <div class="form-control bg-light" dir="ltr">{{ __('portal.admin.login_phone_hint') }}</div>
         </div>
 
         <div class="col-md-4 mb-3">
-            <label for="account_password" class="form-label">
-                {{ __('employee.account.password') }}
+            <label for="portal_password" class="form-label">
+                {{ $portalState === 'new' ? __('portal.admin.password') : __('portal.admin.new_password') }}
             </label>
-            <div class="input-group form-password-toggle">
-                <input type="password" value="" class="form-control @error('account_password') is-invalid @enderror" 
-                       id="account_password" name="account_password">
-                <span class="input-group-text cursor-pointer toggle-password-visibility">
-                    <i class="icon-base ti tabler-eye-off"></i>
-                </span>
+            {{-- زرار الإظهار بيشغّله Vuexy تلقائياً لأي .form-password-toggle --}}
+            <div class="input-group input-group-merge form-password-toggle">
+                <input type="password" class="form-control @error('portal_password') is-invalid @enderror"
+                       id="portal_password" name="portal_password" autocomplete="new-password">
+                <span class="input-group-text cursor-pointer"><i class="icon-base ti tabler-eye-off"></i></span>
             </div>
-            @error('account_password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            @error('portal_password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            <div class="form-text">{{ __('portal.password.rules') }}</div>
         </div>
 
-        <div class="col-md-4 mb-3">
-            <label for="account_password_confirmation" class="form-label">
-                {{ __('employee.account.password_confirm') }}
-            </label>
-            <div class="input-group form-password-toggle">
-                <input type="password" value="" class="form-control" 
-                       id="account_password_confirmation" name="account_password_confirmation">
-                <span class="input-group-text cursor-pointer toggle-password-visibility">
-                    <i class="icon-base ti tabler-eye-off"></i>
-                </span>
+        <div class="col-md-12">
+            <div class="alert alert-info py-2 mb-0">
+                <i class="fa-solid fa-circle-info me-1"></i>
+                {{ __('portal.admin.form_hint_' . $portalState) }}
             </div>
         </div>
-
-        <div class="col-md-4 mb-4">
-            <label class="form-label">
-                {{ __('employee.account.role') }}
-                <i class="fa-solid fa-circle-question text-muted ms-1 cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ __('employee.tooltips.role') }}"></i>
-            </label>
-            <select name="role_id" class="form-select select2 @error('role_id') is-invalid @enderror">
-                <option value="">{{ __('employee.select_role') }}</option>
-                @foreach ($roles as $role)
-                    <option value="{{ $role->id }}" @selected(old('role_id', $isEdit && $employee->admin ? $employee->admin->role_id : '') == $role->id)>
-                        {{ $role->name }}
-                    </option>
-                @endforeach
-            </select>
-            @error('role_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-        </div>
-    </div>
+    @endif
 </div>
+@endif
 
 {{-- 6. المستندات والوثائق --}}
 <div class="divider divider-primary text-start my-4" id="documents_section">
@@ -785,36 +774,8 @@
             });
         }
 
-        // 1. Toggle Account Fields
-        const createAccountSwitch = document.getElementById('create_account');
-        const accountContainer = document.getElementById('account_fields_container');
-
-        if (createAccountSwitch && accountContainer) {
-            createAccountSwitch.addEventListener('change', function () {
-                if (this.checked) {
-                    accountContainer.classList.remove('d-none');
-                } else {
-                    accountContainer.classList.add('d-none');
-                }
-            });
-        }
-
-        // 2. Toggle Password Visibility
-        document.querySelectorAll('.toggle-password-visibility').forEach(function (toggleBtn) {
-            toggleBtn.addEventListener('click', function () {
-                const input = this.closest('.form-password-toggle').querySelector('input');
-                const icon = this.querySelector('i');
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    icon.classList.remove('tabler-eye-off');
-                    icon.classList.add('tabler-eye');
-                } else {
-                    input.type = 'password';
-                    icon.classList.remove('tabler-eye');
-                    icon.classList.add('tabler-eye-off');
-                }
-            });
-        });
+        // إظهار كلمة المرور: Vuexy (helpers.initPasswordToggle) بيتعامل مع
+        // .form-password-toggle تلقائياً — أي معالج تاني بيعكس الضغطة ومايحصلش حاجة.
 
         // 3. Dynamic Allowances Table
         let allowanceIndex = document.querySelectorAll('#emp_allowances_table tbody tr').length;

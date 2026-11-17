@@ -18,6 +18,7 @@ return [
     'alert_update'      => 'You cannot edit the primary role: [ :name ]',
 
     'action' => [
+        'employee_portal_manage'    => 'Manage employee portal access',
         'show'                      => 'View',
         'create'                    => 'Create',
         'update'                    => 'Update',

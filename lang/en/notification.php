@@ -21,6 +21,7 @@ return [
     'types' => [
         'leave_requested'         => 'New Leave Request',
         'leave_decided'           => 'Leave Request Decision',
+        'permission_requested'    => 'New permission request',
         'advance_requested'       => 'New Advance Request',
         'advance_decided'         => 'Advance Request Decision',
         'payroll_awaiting_review' => 'Payroll Awaiting Approval',
@@ -37,6 +38,10 @@ return [
         'leave_decided' => [
             'title' => 'Leave request decided',
             'body'  => 'Your :days day(s) leave request is now: :status.',
+        ],
+        'permission_requested' => [
+            'title' => 'New permission request awaiting review',
+            'body'  => ':employee requested permission on :date from :from to :to.',
         ],
         'advance_requested' => [
             'title' => 'New advance request awaiting review',

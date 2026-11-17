@@ -40,6 +40,11 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureRateLimiting();
         $this->detectLazyLoading();
+
+        // مزوّد بوابة الموظف (config/auth.php → providers.employees)
+        \Illuminate\Support\Facades\Auth::provider('employee_eloquent', function ($app, array $config) {
+            return new \App\Auth\EmployeeUserProvider($app['hash'], $config['model']);
+        });
         Paginator::useBootstrap();
         $this->resetBranchScopeOnAuthChange();
 
@@ -124,11 +129,15 @@ class AppServiceProvider extends ServiceProvider
             // المشرف المسجّل له حد خاص بيه مش بالـ IP: موظفين مكتب واحد
             // بيطلعوا من نفس الـ IP، وشاشة واحدة فيها جداول AJAX ولوحة
             // وإشعارات — فـ 60 طلب مشتركة كانت بتخلص في ثواني وتطلّع 429.
-            $adminId = auth('admin')->id();
+            if ($adminId = auth('admin')->id()) {
+                return Limit::perMinute(300)->by('admin:' . $adminId);
+            }
 
-            return $adminId
-                ? Limit::perMinute(300)->by('admin:' . $adminId)
-                : Limit::perMinute(60)->by($request->ip());
+            if ($employeeId = auth('employee')->id()) {
+                return Limit::perMinute(300)->by('employee:' . $employeeId);
+            }
+
+            return Limit::perMinute(60)->by($request->ip());
         });
 
         RateLimiter::for('ApiRateLimiter', function (Request $request) {

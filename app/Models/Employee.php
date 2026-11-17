@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Models\Concerns\LogsActivity;
 use App\Models\Concerns\ScopedToBranch;
+use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,12 +13,33 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Employee extends Model
+/**
+ * الموظف — وكمان مستخدم بوابة الموظف (guard: employee).
+ *
+ * الدخول برقم الهاتف الأساسي (phone) + كلمة المرور. البيانات دي منفصلة
+ * تماماً عن حساب المشرف (admins): جلسة الموظف ماتوصلش لأي مسار إداري.
+ */
+class Employee extends Model implements Authenticatable
 {
-    use HasFactory, SoftDeletes, ScopedToBranch, LogsActivity;
+    use HasFactory, SoftDeletes, ScopedToBranch, LogsActivity, AuthenticatableTrait;
 
     /** حقول حساسة مابتتسجّلش في سجل الحركات. */
     protected array $activityHidden = ['national_id', 'iban', 'bank_account_number', 'insurance_number'];
+
+    /** مابتطلعش في أي JSON (جداول، API). */
+    protected $hidden = ['password', 'remember_token'];
+
+    /**
+     * كلمة مرور البوابة: أي حروف أو أرقام (أرقام بس مقبولة) — مفيش شروط
+     * تعقيد. الحد الأدنى للطول بس عشان ماتبقاش فاضية عملياً.
+     */
+    public const PORTAL_PASSWORD_MIN = 4;
+
+    /** قواعد التحقق المشتركة لكلمة مرور البوابة (من غير required/nullable). */
+    public static function portalPasswordRules(): array
+    {
+        return ['string', 'min:' . self::PORTAL_PASSWORD_MIN, 'max:100'];
+    }
 
     protected $fillable = [
         'employee_code',
@@ -72,7 +95,45 @@ class Employee extends Model
         'daily_work_hours'               => 'decimal:2',
         'custom_daily_rate'              => 'decimal:2',
         'custom_hourly_rate'             => 'decimal:2',
+        'password'                       => 'hashed',
+        'portal_enabled'                 => 'boolean',
+        'must_change_password'           => 'boolean',
+        'portal_disabled_at'             => 'datetime',
+        'last_login_at'                  => 'datetime',
     ];
+
+    // ========================================================
+    //  بوابة الموظف
+    // ========================================================
+
+    /**
+     * سبب منع الدخول للبوابة، أو null لو مسموح.
+     *
+     * بيتعرض للموظف في شاشة الدخول، فلازم يبقى مفهوم ومحدد.
+     */
+    public function portalBlockReason(): ?string
+    {
+        if ($this->status === 'terminated') {
+            return __('portal.blocked.terminated');
+        }
+
+        if (! $this->portal_enabled) {
+            return $this->portal_disabled_reason
+                ? __('portal.blocked.suspended', ['reason' => $this->portal_disabled_reason])
+                : __('portal.blocked.not_activated');
+        }
+
+        if (! $this->password) {
+            return __('portal.blocked.not_activated');
+        }
+
+        return null;
+    }
+
+    public function canAccessPortal(): bool
+    {
+        return $this->portalBlockReason() === null;
+    }
 
     // Relations
     public function branch(): BelongsTo

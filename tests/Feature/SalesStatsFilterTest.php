@@ -150,7 +150,7 @@ class SalesStatsFilterTest extends TestCase
         foreach ([['A-1', 'active'], ['A-2', 'active'], ['L-1', 'on_leave']] as [$code, $status]) {
             Employee::create([
                 'branch_id' => $this->branch->id, 'job_title_id' => $this->jobTitle->id,
-                'name' => $code, 'employee_code' => $code, 'phone' => '0100',
+                'name' => $code, 'employee_code' => $code, 'phone' => '+20100' . $code,
                 'status' => $status, 'basic_salary' => 3000,
                 'hire_date' => now()->toDateString(),
             ]);

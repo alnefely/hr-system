@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AdminAccountRequest;
 use App\Models\Admin;
+use App\Models\Employee;
 use App\Models\Role;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -15,6 +17,42 @@ class AdminController extends Controller
     private function roles(): Collection
     {
         return Role::select('id', 'name')->get();
+    }
+
+    /**
+     * الموظفين المتاحين للربط بحساب مشرف (من كل الفروع).
+     * الموظف المربوط بمشرف تاني مابيظهرش — الربط واحد لواحد.
+     */
+    private function linkableEmployees(?Admin $admin = null): Collection
+    {
+        return Employee::withoutGlobalScope('branch')
+            ->where(function ($q) use ($admin) {
+                $q->whereNotIn('id', Admin::whereNotNull('employee_id')
+                    ->when($admin, fn ($q) => $q->whereKeyNot($admin->id))
+                    ->select('employee_id'));
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'employee_code'])
+            ->map(fn ($e) => (object) ['id' => $e->id, 'label' => "{$e->name} ({$e->employee_code})"]);
+    }
+
+    /**
+     * ربط المشرف بملف موظف (أو فك الربط). الربط متسجّل في الجدولين
+     * (admins.employee_id و employees.admin_id) فلازم يفضلوا متطابقين.
+     */
+    private function syncEmployeeLink(Admin $admin, ?int $employeeId): void
+    {
+        $admin->employee_id = $employeeId;
+        $admin->save();
+
+        Employee::withoutGlobalScope('branch')
+            ->where('admin_id', $admin->id)
+            ->when($employeeId, fn ($q) => $q->whereKeyNot($employeeId))
+            ->update(['admin_id' => null]);
+
+        if ($employeeId) {
+            Employee::withoutGlobalScope('branch')->whereKey($employeeId)->update(['admin_id' => $admin->id]);
+        }
     }
 
     private function checkIsMainAdmin(Admin $admin)
@@ -61,7 +99,8 @@ class AdminController extends Controller
     public function create()
     {
         $roles = $this->roles();
-        return view('admin.admins.create', compact('roles'));
+        $employees = $this->linkableEmployees();
+        return view('admin.admins.create', compact('roles', 'employees'));
     }
 
     // store
@@ -73,7 +112,9 @@ class AdminController extends Controller
         $admin->password = bcrypt($request->password);
         $admin->img = $request->img;
         $admin->role_id = $request->role_id;
-        $admin->save();
+
+        DB::transaction(fn () => $this->syncEmployeeLink($admin, $request->integer('employee_id') ?: null));
+
         return redirect()->route('admin.admins')->with('success', __('alert.done_save'));
     }
 
@@ -82,7 +123,8 @@ class AdminController extends Controller
     {
         $this->checkIsMainAdmin($admin);
         $roles = $this->roles()->values()->toArray();
-        return view('admin.admins.edit', compact('admin', 'roles'));
+        $employees = $this->linkableEmployees($admin);
+        return view('admin.admins.edit', compact('admin', 'roles', 'employees'));
     }
 
     // update
@@ -96,7 +138,9 @@ class AdminController extends Controller
         if ($request->filled('password')) {
             $admin->password = bcrypt($request->password);
         }
-        $admin->save();
+
+        DB::transaction(fn () => $this->syncEmployeeLink($admin, $request->integer('employee_id') ?: null));
+
         return redirect()->route('admin.admins')->with('success', __('alert.done_update'));
     }
 

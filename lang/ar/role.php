@@ -27,6 +27,7 @@ return [
     // أسماء الإجراءات المعروضة جنب كل صلاحية
     'action' => [
         'report_employee_statement' => 'كشف حساب الموظف',
+        'employee_portal_manage'    => 'إدارة دخول بوابة الموظف',
         'show'                => 'عرض',
         'create'              => 'إضافة',
         'update'              => 'تعديل',

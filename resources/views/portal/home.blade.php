@@ -1,0 +1,108 @@
+@extends('layouts.portal.app')
+@section('title', __('portal.nav.home'))
+
+@section('content')
+@php($currency = $employee->branch?->currency ?? '')
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">{{ __('portal.home.greeting', ['name' => $employee->name]) }}</h4>
+        <p class="text-muted mb-0">
+            {{ $employee->jobTitle?->name }} · {{ $employee->branch?->name }} ·
+            <span dir="ltr">{{ $employee->employee_code }}</span>
+        </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ route('portal.permissions.index') }}#new" class="btn btn-primary"><i class="fa-solid fa-clock me-1"></i>{{ __('portal.permissions.new') }}</a>
+        <a href="{{ route('portal.leaves.index') }}#new" class="btn btn-label-primary"><i class="fa-solid fa-calendar-plus me-1"></i>{{ __('portal.leaves.new') }}</a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    {{-- أرصدة الإجازات --}}
+    @foreach ([
+        ['annual', 'fa-umbrella-beach', 'success'],
+        ['casual', 'fa-mug-hot',        'info'],
+        ['sick',   'fa-notes-medical',  'warning'],
+    ] as [$type, $icon, $color])
+        <div class="col-sm-6 col-lg-3">
+            <div class="card h-100 portal-stat">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <span class="icon bg-label-{{ $color }}"><i class="fa-solid {{ $icon }} fs-5"></i></span>
+                    <div>
+                        <div class="small text-muted">{{ __('portal.home.balance_' . $type) }}</div>
+                        <div class="fs-5 fw-bold">
+                            {{ $balance ? rtrim(rtrim(number_format((float) $balance->{'remaining_' . $type}, 2), '0'), '.') : '—' }}
+                            <small class="text-muted fw-normal">{{ __('portal.home.days') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
+
+    {{-- الاستئذان هذا الشهر --}}
+    <div class="col-sm-6 col-lg-3">
+        <div class="card h-100 portal-stat">
+            <div class="card-body d-flex align-items-center gap-3">
+                <span class="icon bg-label-primary"><i class="fa-solid fa-clock fs-5"></i></span>
+                <div>
+                    <div class="small text-muted">{{ __('portal.home.permission_hours') }}</div>
+                    <div class="fs-5 fw-bold @if ($permissionHours > $permissionLimit) text-danger @endif">
+                        <span dir="ltr">{{ $permissionHours + 0 }} / {{ $permissionLimit + 0 }}</span>
+                        <small class="text-muted fw-normal">{{ __('portal.home.hours') }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    {{-- طلباتي المعلّقة --}}
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-solid fa-hourglass-half me-2 text-warning"></i>{{ __('portal.home.pending_title') }}</h6></div>
+            <div class="list-group list-group-flush">
+                @foreach ([
+                    ['permissions', 'portal.permissions.index'],
+                    ['leaves',      'portal.leaves.index'],
+                    ['advances',    'portal.advances.index'],
+                ] as [$key, $route])
+                    <a href="{{ route($route) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        {{ __('portal.nav.' . $key) }}
+                        <span class="badge {{ $pending[$key] ? 'bg-warning' : 'bg-label-secondary' }} rounded-pill">{{ $pending[$key] }}</span>
+                    </a>
+                @endforeach
+            </div>
+            @if ($advanceRemaining > 0)
+                <div class="card-footer small text-muted">
+                    <i class="fa-solid fa-hand-holding-dollar me-1"></i>
+                    {{ __('portal.home.advance_remaining') }}:
+                    <strong class="text-danger" dir="ltr">{{ number_format($advanceRemaining, 2) }} {{ $currency }}</strong>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- آخر قسائم الراتب --}}
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="fa-solid fa-file-invoice-dollar me-2 text-success"></i>{{ __('portal.home.latest_payslips') }}</h6>
+                <a href="{{ route('portal.payslips.index') }}" class="small">{{ __('portal.home.view_all') }}</a>
+            </div>
+            <div class="list-group list-group-flush">
+                @forelse ($latestPayslips as $item)
+                    <a href="{{ route('portal.payslips.show', $item->id) }}" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <span dir="ltr">{{ sprintf('%02d / %04d', $item->payroll?->month, $item->payroll?->year) }}</span>
+                        <strong class="text-success" dir="ltr">{{ number_format((float) $item->net_salary, 2) }} {{ $currency }}</strong>
+                    </a>
+                @empty
+                    <div class="list-group-item text-muted small">{{ __('portal.payslips.empty') }}</div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

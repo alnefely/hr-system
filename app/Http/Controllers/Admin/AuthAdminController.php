@@ -54,9 +54,10 @@ class AuthAdminController extends Controller
     {
         auth()->guard($this->guard)->logout();
 
-        // من غيرهم الجلسة القديمة وتوكن CSRF بيفضلوا صالحين بعد الخروج
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // من غيرهم الجلسة القديمة وتوكن CSRF بيفضلوا صالحين بعد الخروج.
+        // اللوحتين مستقلتين: لو نفس المتصفح داخل بوابة الموظف كمان، الخروج
+        // من الإدارة مايخرجوش منها — بنغيّر معرّف الجلسة بس من غير مسحها.
+        \App\Support\PanelSession::end($request, otherGuard: 'employee');
 
         return redirect()->route('admin.login')->with('success', __('auth.done_logout'));
     }

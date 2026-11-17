@@ -32,7 +32,8 @@ return [
         'emergency'            => 'Emergency Contact',
         'hr_settings'          => 'HR, Attendance & Leave Settings',
         'monthly_allowances'   => 'Fixed Monthly Allowances (Auto-included in Payroll)',
-        'login_account'        => 'System Login Account',
+        'login_account'        => 'Admin Panel Account (optional)',
+        'portal_access'        => 'Employee Portal Access',
         'documents'            => 'Documents & Attachments',
         'documents_sub'        => 'Employee Attachments & Documents',
         'notes'                => 'Internal Administrative Notes',
@@ -102,7 +103,7 @@ return [
     ],
 
     'account' => [
-        'create_switch'     => 'Create System Login Account',
+        'create_switch'     => 'Create an admin account (managers, HR and accountants only)',
         'email'             => 'Login Account Email',
         'password'          => 'Password',
         'password_confirm'  => 'Confirm Password',
@@ -186,7 +187,7 @@ return [
         'custom_daily_rate'              => 'Manual daily rate for deductions/penalties, or leave blank to compute automatically (Basic / 30).',
         'custom_hourly_rate'             => 'Manual hourly rate for overtime/deductions, or leave blank to compute automatically.',
         'allowances'                     => 'Fixed monthly allowances such as housing, transportation, or mobile allowance.',
-        'create_account'                 => 'Enable system backoffice portal login credentials for this employee.',
+        'create_account'                 => 'A separate admin panel account with email and role — regular employees only need portal access.',
         'account_email'                  => 'Login username email for portal authentication.',
         'account_password'               => 'Encrypted security password for portal login.',
         'account_password_confirmation'  => 'Confirmation matching the security password.',

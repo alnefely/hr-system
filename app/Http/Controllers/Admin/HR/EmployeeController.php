@@ -126,10 +126,9 @@ class EmployeeController extends Controller
         $branches  = $this->branchService->allActive();
         $jobTitles = $this->jobTitleService->allActive();
         $managers  = $this->employeeService->managersList();
-        $roles     = \App\Models\Role::select('id', 'name')->get();
         $nextCode  = $this->employeeService->getNextEmployeeCode();
 
-        return view('admin.hr.employees.create', compact('branches', 'jobTitles', 'managers', 'roles', 'nextCode'));
+        return view('admin.hr.employees.create', compact('branches', 'jobTitles', 'managers', 'nextCode'));
     }
 
     /**
@@ -158,13 +157,12 @@ class EmployeeController extends Controller
      */
     public function edit(Employee $employee)
     {
-        $employee->load(['allowances', 'admin.role', 'documents']);
+        $employee->load(['allowances', 'documents']);
         $branches  = $this->branchService->allActive();
         $jobTitles = $this->jobTitleService->allActive();
         $managers  = $this->employeeService->managersList($employee->id);
-        $roles     = \App\Models\Role::select('id', 'name')->get();
 
-        return view('admin.hr.employees.edit', compact('employee', 'branches', 'jobTitles', 'managers', 'roles'));
+        return view('admin.hr.employees.edit', compact('employee', 'branches', 'jobTitles', 'managers'));
     }
 
     /**

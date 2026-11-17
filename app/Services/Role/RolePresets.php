@@ -142,6 +142,7 @@ final class RolePresets
             ...self::actions('employee', $manage),
             'employee_salary_view',
             'employee_bank_view',
+            'employee_portal_manage',
             ...self::actions('salary', $manage),
             ...self::actions('document', $manage),
             ...self::actions('skill', $manage),

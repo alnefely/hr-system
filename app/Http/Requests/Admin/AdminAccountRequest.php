@@ -35,6 +35,14 @@ class AdminAccountRequest extends FormRequest
 
         if (! $isProfile) {
             $rules['role_id'] = ['required', 'exists:roles,id'];
+
+            // ربط اختياري بملف موظف: بيحدد فرع المشرف (تقييد البيانات بفرعه)
+            // ومين بيعتمد طلبات مين. الموظف الواحد يتربط بمشرف واحد بس.
+            $rules['employee_id'] = [
+                'nullable', 'integer',
+                Rule::exists('employees', 'id')->whereNull('deleted_at'),
+                Rule::unique('admins', 'employee_id')->ignore($adminId),
+            ];
         }
 
         return $rules;

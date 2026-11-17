@@ -51,6 +51,19 @@
                 </div>
 
                 <div class="col-md-4 mb-4">
+                    <x-inputs.select2
+                        name="employee_id"
+                        label="{{__('admin.linked_employee')}}"
+                        :value="old('employee_id')"
+                        :data="$employees"
+                        data_key="label"
+                        data_value="id"
+                        placeholder="{{ __('admin.no_linked_employee') }}"
+                    />
+                    <div class="form-text">{{ __('admin.linked_employee_hint') }}</div>
+                </div>
+
+                <div class="col-md-4 mb-4">
                     <x-inputs.lfm
                         name="img"
                         label="{{__('admin.img')}}"

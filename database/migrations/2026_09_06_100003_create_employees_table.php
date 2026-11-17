@@ -20,7 +20,8 @@ return new class extends Migration
             $table->enum('gender', ['male', 'female'])->default('male');
             $table->string('marital_status', 50)->nullable();
             $table->string('nationality', 100)->nullable();
-            $table->string('phone', 50);
+            // اسم الدخول لبوابة الموظف — بيتخزّن دولي موحّد من مكوّن الهاتف (+2010...)
+            $table->string('phone', 50)->unique();
             $table->string('phone_country', 10)->default('EG');
             $table->string('alt_phone', 50)->nullable();
             $table->string('alt_phone_country', 10)->nullable();
@@ -64,6 +65,16 @@ return new class extends Migration
 
             // ملاحظات داخلية
             $table->text('notes')->nullable();
+
+            // بوابة الموظف: الدخول برقم الهاتف + كلمة المرور.
+            // مقفول افتراضياً لحد ما الموارد البشرية تفعّل كل موظف لوحده.
+            $table->string('password')->nullable();
+            $table->rememberToken();
+            $table->boolean('portal_enabled')->default(false);
+            $table->boolean('must_change_password')->default(true);
+            $table->text('portal_disabled_reason')->nullable();
+            $table->timestamp('portal_disabled_at')->nullable();
+            $table->timestamp('last_login_at')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

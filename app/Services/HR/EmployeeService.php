@@ -2,7 +2,6 @@
 
 namespace App\Services\HR;
 
-use App\Models\Admin;
 use App\Models\Branch;
 use App\Models\Employee;
 use App\Support\CodeSequence;
@@ -11,7 +10,6 @@ use App\Models\EmployeeDocument;
 use App\Models\EmployeeSalary;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 class EmployeeService
 {
@@ -78,7 +76,7 @@ class EmployeeService
     }
 
     /**
-     * إضافة موظف جديد وحساب الدخول والبدلات والمستندات بـ Transaction واحد
+     * إضافة موظف جديد ودخول البوابة والبدلات والمستندات بـ Transaction واحد
      */
     public function create(array $data): Employee
     {
@@ -104,35 +102,20 @@ class EmployeeService
             // استخراج البيانات الفرعية قبل إنشاء الموظف
             $allowancesData = $data['allowances'] ?? [];
             $documentsData = $data['documents'] ?? [];
-            $createAccount = !empty($data['create_account']) && $data['create_account'] == 1;
-            $accountEmail = $data['account_email'] ?? null;
-            $accountPassword = $data['account_password'] ?? null;
-            $roleId = $data['role_id'] ?? null;
+            $portalPassword = $this->pullPortalPassword($data);
 
             unset(
                 $data['code'], $data['hired_at'], $data['probation_end_at'],
                 $data['employment_type'], $data['email'], $data['img'],
                 $data['bank_account'], $data['salary'], $data['allowances'],
-                $data['documents'], $data['create_account'], $data['account_email'],
-                $data['account_password'], $data['account_password_confirmation'], $data['role_id']
+                $data['documents']
             );
 
             // إنشاء سجل الموظف
             $employee = Employee::create($data);
 
-            // 1. إنشاء حساب الدخول للنظام (إذا تم طلبه)
-            if ($createAccount && !empty($accountEmail) && !empty($accountPassword)) {
-                $admin = Admin::create([
-                    'name'        => $employee->name,
-                    'email'       => $accountEmail,
-                    'password'    => Hash::make($accountPassword),
-                    'role_id'     => $roleId,
-                    'img'         => $employee->avatar,
-                    'employee_id' => $employee->id,
-                ]);
-
-                $employee->update(['admin_id' => $admin->id]);
-            }
+            // 1. دخول بوابة الموظف (لو اتكتبت كلمة مرور)
+            $this->applyPortalPassword($employee, $portalPassword);
 
             // 2. حفظ البدلات الشهرية الثابتة
             $totalAllowances = 0;
@@ -195,7 +178,7 @@ class EmployeeService
     }
 
     /**
-     * تحديث بيانات الموظف والبدلات وحساب الدخول
+     * تحديث بيانات الموظف والبدلات ودخول البوابة
      */
     public function update(Employee $employee, array $data): Employee
     {
@@ -234,48 +217,23 @@ class EmployeeService
                 unset($data['basic_salary'], $data['salary'], $data['custom_hourly_rate']);
             }
 
-            // استخراج البدلات والحساب
+            // استخراج البدلات والمستندات
             $allowancesData = $data['allowances'] ?? null;
             $documentsData = $data['documents'] ?? null;
-            $createAccount = !empty($data['create_account']) && $data['create_account'] == 1;
-            $accountEmail = $data['account_email'] ?? null;
-            $accountPassword = $data['account_password'] ?? null;
-            $roleId = $data['role_id'] ?? null;
+            $portalPassword = $this->pullPortalPassword($data);
 
             unset(
                 $data['code'], $data['hired_at'], $data['probation_end_at'],
                 $data['employment_type'], $data['email'], $data['img'],
                 $data['bank_account'], $data['salary'], $data['allowances'],
-                $data['documents'], $data['create_account'], $data['account_email'],
-                $data['account_password'], $data['account_password_confirmation'], $data['role_id']
+                $data['documents']
             );
 
             // تحديث بيانات الموظف
             $employee->update($data);
 
-            // 1. إدارة حساب الدخول للنظام
-            if ($createAccount && !empty($accountEmail)) {
-                if ($employee->admin_id && $employee->admin) {
-                    $updateAdmin = [
-                        'email'   => $accountEmail,
-                        'role_id' => $roleId,
-                    ];
-                    if (!empty($accountPassword)) {
-                        $updateAdmin['password'] = Hash::make($accountPassword);
-                    }
-                    $employee->admin->update($updateAdmin);
-                } else {
-                    $admin = Admin::create([
-                        'name'        => $employee->name,
-                        'email'       => $accountEmail,
-                        'password'    => Hash::make($accountPassword ?: '12345678'),
-                        'role_id'     => $roleId,
-                        'img'         => $employee->avatar,
-                        'employee_id' => $employee->id,
-                    ]);
-                    $employee->update(['admin_id' => $admin->id]);
-                }
-            }
+            // 1. دخول بوابة الموظف: كلمة مرور جديدة = تفعيل / إعادة تعيين
+            $this->applyPortalPassword($employee, $portalPassword);
 
             // 2. تحديث البدلات الشهرية الثابتة إذا أُرسلت
             if ($allowancesData !== null && is_array($allowancesData)) {
@@ -406,6 +364,34 @@ class EmployeeService
             'skills',
             'admin:id,name,email,role_id',
         ]);
+    }
+
+    /**
+     * يسحب كلمة مرور البوابة من البيانات (ومايسيبهاش تتحفظ كعمود عادي).
+     *
+     * بتتطبّق بس لو اللي بيحفظ عنده صلاحية إدارة البوابة — الحقل ممكن
+     * يتبعت يدوياً حتى لو الجزء مخفي من الفورم.
+     */
+    protected function pullPortalPassword(array &$data): ?string
+    {
+        $password = $data['portal_password'] ?? null;
+
+        unset($data['portal_password'], $data['portal_password_confirmation'], $data['password']);
+
+        return $password && admin_can('employee_portal_manage') ? $password : null;
+    }
+
+    /**
+     * تفعيل دخول البوابة بكلمة المرور (أو إعادة تعيينها لو مفعّل).
+     * الموظف المنتهي خدمته مابيتفعّلش — الحقول أصلاً مخفية له في الفورم.
+     */
+    protected function applyPortalPassword(Employee $employee, ?string $password): void
+    {
+        if (! $password || $employee->status === 'terminated') {
+            return;
+        }
+
+        app(\App\Services\Portal\PortalAccessService::class)->enable($employee, $password);
     }
 
     /**

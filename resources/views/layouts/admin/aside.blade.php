@@ -1,6 +1,6 @@
 <aside id="layout-menu" class="layout-menu menu-vertical menu">
     <div class="app-brand demo ">
-        <a href="{{ url('/') }}" target="_blank" class="app-brand-link">
+        <a href="{{ route('admin.home') }}" class="app-brand-link">
             <span class="app-brand-logo demo">
                 <img src="{{ setting('site_logo') }}" alt="Logo" class="w-px-40 h-auto rounded-circle">
             </span>

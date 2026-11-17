@@ -4,9 +4,14 @@
 use Illuminate\Support\Facades\Route;
 use UniSharp\LaravelFilemanager\Lfm;
 
+// الصفحة الرئيسية: اختيار اللوحة (بوابة الموظف أو لوحة الإدارة).
+// كل لوحة ليها حارس دخول وجلسة مستقلة تماماً.
 Route::get('/', function () {
-    return redirect()->route('admin.home');
-});
+    return view('landing', [
+        'admin'    => auth('admin')->user(),
+        'employee' => auth('employee')->user(),
+    ]);
+})->middleware('throttle:WebRateLimiter')->name('home');
 
 Route::middleware('throttle:WebRateLimiter')->group(function () {
     Route::prefix('admin')->name('admin.')->group(base_path('routes/admin.php'));

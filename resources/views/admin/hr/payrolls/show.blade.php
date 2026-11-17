@@ -143,7 +143,7 @@
     </div>
 </div>
 
-<form id="bulk_print_form" action="{{ route('admin.payrolls.bulk-payslips', $payroll->id) }}" method="POST" target="_blank">
+<form id="bulk_print_form" action="{{ route('admin.payrolls.bulk-payslips', $payroll->id) }}" method="POST" target="_blank" data-no-confirm>
     @csrf
     <input type="hidden" name="item_ids" id="bulk_item_ids" value="">
 </form>
@@ -657,14 +657,26 @@ $(document).ready(function() {
             return;
         }
 
-        if (confirm('{{ __('payroll.messages.confirm_pay_selected') }}')) {
+        // نفس شكل التأكيد في باقي النظام (بدل confirm() المدمج في المتصفح)
+        Swal.fire({
+            title: @json(__('confirm.title')),
+            text: @json(__('payroll.messages.confirm_pay_selected')),
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: @json(__('confirm.button')),
+            cancelButtonText: @json(__('confirm.cancel')),
+            customClass: { confirmButton: 'btn btn-primary me-2', cancelButton: 'btn btn-label-secondary' },
+            buttonsStyling: false,
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+
             let form = $('#bulk_pay_form');
             form.find('.bulk-pay-hidden-ids').remove();
             selected.forEach(function(id) {
                 form.append(`<input type="hidden" name="item_ids[]" class="bulk-pay-hidden-ids" value="${id}">`);
             });
-            form.submit();
-        }
+            form.submit();   // submit() مابيطلقش التأكيد العام تاني
+        });
     });
 
     // Add Allowance Row inside Modal

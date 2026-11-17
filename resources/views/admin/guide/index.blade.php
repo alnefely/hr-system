@@ -69,6 +69,7 @@
                 <nav class="nav nav-pills flex-column gap-1" id="guideToc">
                     <a class="nav-link py-2 px-3" href="#sec-dashboard"><i class="fa-solid fa-gauge-high"></i><span class="toc-text">لوحة التحكم والمؤشرات</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-employees"><i class="fa-solid fa-users"></i><span class="toc-text">الموظفون والفروع والمسميات</span><span class="badge bg-label-success ms-1">جديد</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-portal"><i class="fa-solid fa-door-open"></i><span class="toc-text">بوابة الموظف</span><span class="badge bg-label-success ms-1">جديد</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-formula"><i class="fa-solid fa-calculator"></i><span class="toc-text">1. معادلة صافي الراتب والشرح بالعربي</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-example"><i class="fa-solid fa-receipt"></i><span class="toc-text">2. مثال عملي رقمي خطوة بخطوة</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-permissions"><i class="fa-solid fa-clock"></i><span class="toc-text">3. الأذونات والاستئذان وحساب الساعات</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
@@ -289,11 +290,12 @@
                                 <td class="small">مهارات الموظف ومستواها، للعرض في ملفه.</td>
                             </tr>
                             <tr>
-                                <td class="fw-bold">حساب الدخول</td>
+                                <td class="fw-bold">دخول البوابة</td>
                                 <td class="small">
-                                    عند إضافة الموظف يمكن إنشاء حساب دخول له مباشرة واختيار
-                                    <a href="#sec-roles">دوره</a>. الحساب يُربط بالموظف، فيرى بيانات
-                                    <a href="#sec-branch-isolation">فرعه فقط</a>.
+                                    في شاشة الإضافة والتعديل جزء <strong>"دخول بوابة الموظف"</strong>: كتابة كلمة مرور تفعّل دخوله
+                                    <a href="#sec-portal">للبوابة</a> برقم هاتفه (أو تعيد تعيينها لو مفعّل). لا يوجد فيها حساب للوحة التحكم —
+                                    حسابات الإدارة منفصلة تماماً وتُنشأ من شاشة <strong>المشرفين</strong>، ويمكن هناك ربط المشرف بملف موظف
+                                    ليرى بيانات <a href="#sec-branch-isolation">فرعه فقط</a>.
                                 </td>
                             </tr>
                         </tbody>
@@ -319,6 +321,72 @@
                                 (يُولَّد تلقائياً من الدولة: <span dir="ltr">EG-01</span>، <span dir="ltr">SA-01</span>...).
                                 الفرع أو المسمى المرتبط بموظفين لا يُحذف.
                             </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- بوابة الموظف --}}
+        <div class="card border-0 shadow-sm mb-4" id="sec-portal">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold text-primary">
+                    <i class="fa-solid fa-door-open me-2"></i> بوابة الموظف (الخدمة الذاتية)
+                </h5>
+                <span class="badge bg-label-success font-monospace">جديد</span>
+            </div>
+            <div class="card-body pt-4">
+
+                <p class="text-muted mb-4">
+                    بوابة منفصلة على <a href="{{ route('portal.login') }}" target="_blank" dir="ltr">{{ route('portal.login') }}</a>
+                    يدخلها كل موظف برقم <strong>هاتفه الأساسي</strong> وكلمة المرور، ليقدّم طلباته بنفسه ويتابعها.
+                    منفصلة تماماً عن لوحة التحكم: جلسة الموظف لا تصل لأي شاشة إدارية، ولا يرى إلا بياناته هو،
+                    والخروج من إحدى اللوحتين لا يُخرج من الأخرى لو كانتا مفتوحتين في نفس المتصفح.
+                </p>
+                <p class="text-muted mb-4">
+                    الصفحة الرئيسية للنظام <a href="{{ route('home') }}" target="_blank" dir="ltr">{{ route('home') }}</a>
+                    تعرض اختيار اللوحة: <strong>بوابة الموظف</strong> أو <strong>لوحة الإدارة</strong> — أرسل هذا الرابط للجميع.
+                </p>
+
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr><th style="width:26%">الشاشة</th><th>ماذا يفعل فيها الموظف</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="fw-bold">الرئيسية</td><td class="small">أرصدة إجازاته المتبقية، ساعات الاستئذان هذا الشهر مقابل حده، طلباته المعلّقة، المتبقي من سلفه، وآخر قسائم راتبه.</td></tr>
+                            <tr><td class="fw-bold">استئذاناتي</td><td class="small">طلب استئذان (التاريخ ووقت الخروج والعودة — الساعات تُحسب تلقائياً) ومتابعة حالته وسبب الرفض.</td></tr>
+                            <tr><td class="fw-bold">إجازاتي</td><td class="small">طلب إجازة بنفس قواعد لوحة التحكم (لا تداخل، أيام منطقية) مع عرض رصيده لكل نوع.</td></tr>
+                            <tr><td class="fw-bold">سلفي</td><td class="small">طلب سلفة بالمبلغ وعدد الأقساط وبداية الخصم، ومتابعة القسط والمتبقي.</td></tr>
+                            <tr><td class="fw-bold">قسائم الراتب</td><td class="small">القسائم <strong>المصروفة فقط</strong> للعرض والطباعة — البند قبل الصرف قد يتغيّر.</td></tr>
+                            <tr><td class="fw-bold">بياناتي</td><td class="small">بيانات العمل ومستنداته وتواريخ انتهائها — للعرض فقط؛ التعديل عن طريق الموارد البشرية.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="alert alert-primary mb-0 h-100">
+                            <h6 class="alert-heading fw-bold"><i class="fa-solid fa-user-gear me-1"></i> التفعيل والإيقاف (الموارد البشرية)</h6>
+                            <ul class="small mb-0 ps-3">
+                                <li>الدخول <strong>مقفول افتراضياً</strong>. يُفعَّل لكل موظف بكلمة مرور أولية تُسلَّم له: من ملفه، أو من شاشة إضافته أو تعديله.</li>
+                                <li>الموظف <strong>مُلزَم بتغييرها</strong> عند أول دخول، وكذلك بعد أي إعادة تعيين.</li>
+                                <li>الإيقاف يتطلب <strong>سبباً يظهر للموظف</strong> عند محاولة الدخول، ويُطلَّع فوراً لو كان داخل البوابة.</li>
+                                <li>الموظف المنتهية خدمته لا يدخل أبداً.</li>
+                                <li>الصلاحية: <code dir="ltr">employee_portal_manage</code> (مدير الموارد البشرية والمدير العام).</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-info mb-0 h-100">
+                            <h6 class="alert-heading fw-bold"><i class="fa-solid fa-route me-1"></i> مسار الطلب</h6>
+                            <ul class="small mb-0 ps-3">
+                                <li>الطلب يصل <strong>معلّقاً</strong> للوحة التحكم مع <a href="#sec-notifications">إشعار</a> لمن لديه صلاحية مراجعته في فرع الموظف.</li>
+                                <li>الاعتماد والرفض يتمّان من لوحة التحكم بنفس <a href="#sec-roles">الأدوار</a> الحالية، والنتيجة تظهر للموظف في البوابة مع سبب الرفض.</li>
+                                <li>يستطيع الموظف <strong>إلغاء طلبه</strong> ما دام معلّقاً.</li>
+                                <li>رقم الهاتف <strong>فريد</strong> لكل موظف لأنه اسم الدخول، ونسيان كلمة المرور يُحَل بإعادة تعيينها من الموارد البشرية.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -1976,7 +2044,7 @@
                             <tr>
                                 <td><span class="badge bg-label-success">نتيجة طلب الإجازة</span></td>
                                 <td class="small">عند الاعتماد أو الرفض</td>
-                                <td class="small">الموظف صاحب الإجازة (لو له حساب دخول)</td>
+                                <td class="small">الموظف صاحب الإجازة (لو مربوط بحساب مشرف)</td>
                             </tr>
                             <tr>
                                 <td><span class="badge bg-label-info">طلب سلفة جديد</span></td>
@@ -1986,7 +2054,7 @@
                             <tr>
                                 <td><span class="badge bg-label-success">نتيجة طلب السلفة</span></td>
                                 <td class="small">عند الاعتماد أو الرفض</td>
-                                <td class="small">الموظف صاحب السلفة (لو له حساب دخول)</td>
+                                <td class="small">الموظف صاحب السلفة (لو مربوط بحساب مشرف)</td>
                             </tr>
                             <tr>
                                 <td><span class="badge bg-label-info">مسير بانتظار الاعتماد</span></td>

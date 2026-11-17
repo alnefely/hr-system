@@ -16,6 +16,7 @@ enum NotificationType: string
 
     case LeaveRequested        = 'leave_requested';
     case LeaveDecided          = 'leave_decided';
+    case PermissionRequested   = 'permission_requested';
     case AdvanceRequested      = 'advance_requested';
     case AdvanceDecided        = 'advance_decided';
     case PayrollAwaitingReview = 'payroll_awaiting_review';
@@ -42,6 +43,8 @@ enum NotificationType: string
     {
         return match ($this) {
             self::LeaveRequested, self::LeaveDecided     => 'fa-solid fa-calendar-check',
+            self::PermissionRequested                    => 'fa-solid fa-clock',
+            self::PermissionRequested                    => 'fa-solid fa-clock',
             self::AdvanceRequested, self::AdvanceDecided => 'fa-solid fa-hand-holding-dollar',
             self::PayrollAwaitingReview                  => 'fa-solid fa-money-check-dollar',
             self::SubscriptionDueSoon                    => 'fa-solid fa-repeat',
@@ -65,6 +68,7 @@ enum NotificationType: string
     {
         return match ($this) {
             self::LeaveRequested, self::LeaveDecided     => 'leave_show',
+            self::PermissionRequested                    => 'permission_show',
             self::AdvanceRequested, self::AdvanceDecided => 'advance_show',
             self::PayrollAwaitingReview                  => 'payroll_show',
             self::SubscriptionDueSoon                    => 'vendor_subscription_show',

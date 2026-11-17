@@ -3,9 +3,14 @@
 namespace App\Http\Requests\Admin\Permission;
 
 use App\Rules\AccessibleEmployee;
-use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * طلب استئذان من لوحة الإدارة.
+ *
+ * hours_count مطلوب في الفورم لكنه مابيتحفظش زي ما هو — PermissionService
+ * بيحسبه من وقت الخروج والعودة.
+ */
 class StorePermissionRequest extends FormRequest
 {
     public function authorize(): bool
@@ -25,19 +30,14 @@ class StorePermissionRequest extends FormRequest
         ];
     }
 
-    /**
-     * البيانات الجاهزة للحفظ.
-     *
-     * الساعات بتتحسب من الوقت مش من إدخال المستخدم: كان ممكن يسجّل إذن
-     * من 9 لـ 10 ويكتب 8 ساعات، والمسير يخصم على أساسها.
-     */
-    public function permissionData(): array
+    /** البيانات للحفظ — من غير الساعات المكتوبة يدوياً. */
+    public function validated($key = null, $default = null)
     {
-        $data = $this->validated();
+        $data = parent::validated($key, $default);
 
-        $start = Carbon::createFromFormat('H:i', $data['start_time']);
-        $end   = Carbon::createFromFormat('H:i', $data['end_time']);
-        $data['hours_count'] = round($start->floatDiffInHours($end), 2);
+        if ($key === null) {
+            unset($data['hours_count']);
+        }
 
         return $data;
     }

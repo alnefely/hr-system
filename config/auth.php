@@ -46,7 +46,13 @@ return [
         'admin' => [
             'driver' => 'session',
             'provider' => 'admins',
-        ]
+        ],
+
+        // بوابة الموظف: منفصلة تماماً عن admin — جلسة الموظف ماتوصلش لأي مسار إداري
+        'employee' => [
+            'driver' => 'session',
+            'provider' => 'employees',
+        ],
 
     ],
 
@@ -75,6 +81,14 @@ return [
         'admins' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_ADMIN_MODEL', Admin::class),
+        ],
+
+        // من غير عزل الفروع: لو فيه جلسة مشرف فرع مفتوحة في نفس المتصفح،
+        // الـ Global Scope كان هيخفي موظف من فرع تاني ويطلّعه من البوابة.
+        // (App\Auth\EmployeeUserProvider — متسجّل في AppServiceProvider)
+        'employees' => [
+            'driver' => 'employee_eloquent',
+            'model' => App\Models\Employee::class,
         ],
 
         // 'users' => [
