@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 return [
     'title'          => 'Petty Cash & Expenses',

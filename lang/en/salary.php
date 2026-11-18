@@ -38,4 +38,13 @@ return [
         'force_deleted' => 'Salary record permanently deleted',
         'empty_trash'   => 'Salary history trash is empty',
     ],
+
+    // شرح الحقول (أيقونة ؟ جنب العنوان)
+    'hints' => [
+        'basic_salary'   => 'The new basic. The latest effective record becomes the salary used in payroll and for daily/hourly rates.',
+        'allowances'     => 'Total allowances at the time of this change — for history. Actual allowances are managed in the employee file.',
+        'effective_date' => 'When the new salary takes effect. The record with the latest date is the current one.',
+        'change_reason'  => 'Shown in the salary history and to the employee in their portal.',
+    ],
+
 ];

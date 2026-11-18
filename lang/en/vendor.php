@@ -40,4 +40,12 @@ return [
         'updated'       => 'Vendor details updated successfully',
         'deleted'       => 'Vendor deleted successfully',
     ],
+
+    // شرح الحقول (أيقونة ؟ جنب العنوان)
+    'hints' => [
+        'code'       => 'A short unique code for search and reports (e.g. V-001).',
+        'tax_number' => 'Tax or commercial registration number — used for audits and invoices.',
+        'is_active'  => 'An inactive vendor is hidden when adding a new subscription or payment; its history stays.',
+    ],
+
 ];

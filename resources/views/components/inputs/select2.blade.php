@@ -1,7 +1,8 @@
-﻿@props([
+@props([
     'name'        => null,
     'value'       => null,
     'label'       => null,
+    'tooltip'     => null,   // شرح يظهر في أيقونة (؟) جنب العنوان
     'class'       => '',
     'id'          => null,
     'required'    => false,
@@ -19,7 +20,7 @@
 @endphp
 
 @if ($label)
-    <label class="form-label" for="{{ $uniqueId }}">{{ $label }} @if($required)<strong class="text-danger">*</strong>@endif</label>
+    <label class="form-label" for="{{ $uniqueId }}">{{ $label }} @if($required)<strong class="text-danger">*</strong>@endif<x-inputs.tip :text="$tooltip" /></label>
 @endif
 
 <select 

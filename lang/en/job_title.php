@@ -28,4 +28,10 @@ return [
         'cannot_delete' => 'Cannot delete job title because it is assigned to employees',
         'empty_trash'   => 'Job titles trash is empty',
     ],
+
+    // شرح الحقول (أيقونة ؟ جنب العنوان)
+    'hints' => [
+        'is_active' => 'An inactive title is hidden when adding new employees; current employees holding it are not affected.',
+    ],
+
 ];

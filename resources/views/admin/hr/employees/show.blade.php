@@ -627,11 +627,11 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">{{ __('salary.fields.basic_salary') }} <span class="text-danger">*</span></label>
+                    <label class="form-label">{{ __('salary.fields.basic_salary') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('salary.hints.basic_salary')" /></label>
                     <input type="number" step="0.01" name="basic_salary" id="modal_basic_salary" class="form-control" value="{{ $basicAmount }}" required dir="ltr">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('salary.fields.allowances') }}</label>
+                    <label class="form-label">{{ __('salary.fields.allowances') }} <x-inputs.tip :text="__('salary.hints.allowances')" /></label>
                     <input type="number" step="0.01" name="allowances" id="modal_allowances" class="form-control" value="{{ $totalAllowances }}" dir="ltr">
                 </div>
                 <div class="mb-3">
@@ -641,11 +641,11 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('salary.fields.effective_date') }} <span class="text-danger">*</span></label>
+                    <label class="form-label">{{ __('salary.fields.effective_date') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('salary.hints.effective_date')" /></label>
                     <input type="date" name="effective_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('salary.fields.change_reason') }} <span class="text-danger">*</span></label>
+                    <label class="form-label">{{ __('salary.fields.change_reason') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('salary.hints.change_reason')" /></label>
                     <select name="change_reason" class="form-select select2" required>
                         @foreach (__('salary.reasons') as $key => $reason)
                             <option value="{{ $key }}">{{ $reason }}</option>
@@ -702,7 +702,7 @@
                 </div>
                 <div class="row g-2 mb-3">
                     <div class="col-6">
-                        <label class="form-label">{{ __('document.fields.issue_date') }}</label>
+                        <label class="form-label">{{ __('document.fields.issue_date') }} <x-inputs.tip :text="__('document.hints.issue_date')" /></label>
                         <input type="date" name="issue_date" class="form-control">
                     </div>
                     <div class="col-6">
@@ -712,7 +712,7 @@
                 </div>
                 <div class="mb-3 form-check form-switch">
                     <input type="checkbox" name="is_verified" value="1" id="is_verified_doc" class="form-check-input" checked>
-                    <label class="form-check-label" for="is_verified_doc">{{ __('document.fields.verified') }}</label>
+                    <label class="form-check-label" for="is_verified_doc">{{ __('document.fields.verified') }} <x-inputs.tip :text="__('document.hints.verified')" /></label>
                 </div>
             </div>
             <div class="modal-footer">
@@ -741,7 +741,7 @@
                     <input type="text" name="skill_name" class="form-control" placeholder="مثال: تحليل مالي، تصميم، برمجة PHP" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('skill.fields.proficiency_level') }} <span class="text-danger">*</span></label>
+                    <label class="form-label">{{ __('skill.fields.proficiency_level') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('skill.hints.proficiency_level')" /></label>
                     <select name="proficiency_level" class="form-select select2" required>
                         @foreach (__('skill.levels') as $key => $lvl)
                             <option value="{{ $key }}">{{ $lvl }}</option>
@@ -753,7 +753,7 @@
                     <input type="number" name="years_of_experience" class="form-control" value="1" min="0" max="60">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('skill.fields.evaluation_source') }} <span class="text-danger">*</span></label>
+                    <label class="form-label">{{ __('skill.fields.evaluation_source') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('skill.hints.evaluation_source')" /></label>
                     <select name="evaluation_source" class="form-select select2" required>
                         @foreach (__('skill.sources') as $key => $src)
                             <option value="{{ $key }}">{{ $src }}</option>
@@ -762,7 +762,7 @@
                 </div>
                 <div class="mb-3 form-check form-switch">
                     <input type="checkbox" name="is_core" value="1" id="is_core_skill" class="form-check-input">
-                    <label class="form-check-label" for="is_core_skill">{{ __('skill.fields.is_core') }}</label>
+                    <label class="form-check-label" for="is_core_skill">{{ __('skill.fields.is_core') }} <x-inputs.tip :text="__('skill.hints.is_core')" /></label>
                 </div>
             </div>
             <div class="modal-footer">

@@ -461,7 +461,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label">{{ __('payroll.fields.payment_method') }} <span class="text-danger">*</span></label>
+                                    <label class="form-label">{{ __('payroll.fields.payment_method') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('payroll.hints.payment_method')" /></label>
                                     <select name="payment_method" class="form-select select2" required>
                                         <option value="bank_transfer" {{ $item->payment_method == 'bank_transfer' ? 'selected' : '' }}>{{ __('payroll.enums.bank_transfer') }}</option>
                                         <option value="cash" {{ $item->payment_method == 'cash' ? 'selected' : '' }}>{{ __('payroll.enums.cash') }}</option>
@@ -497,7 +497,7 @@
                         
                         {{-- Allowances & Bonuses Section --}}
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="fw-bold text-success mb-0"><i class="fa-solid fa-plus-circle me-1"></i> {{ __('payroll.fields.allowances_bonuses') }}</h6>
+                            <h6 class="fw-bold text-success mb-0"><i class="fa-solid fa-plus-circle me-1"></i> {{ __('payroll.fields.allowances_bonuses') }} <x-inputs.tip :text="__('payroll.hints.manual_allowances')" /></h6>
                             @if($payroll->status == 'draft' || $payroll->status == 'rejected')
                                 <button type="button" class="btn btn-sm btn-outline-success add-allowance-row-btn" data-item="{{ $item->id }}">
                                     <i class="fa-solid fa-plus me-1"></i> {{ __('payroll.fields.add_allowance_row') }}
@@ -541,7 +541,7 @@
 
                         {{-- Deductions Section --}}
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="fw-bold text-danger mb-0"><i class="fa-solid fa-minus-circle me-1"></i> {{ __('payroll.fields.deductions_penalties') }}</h6>
+                            <h6 class="fw-bold text-danger mb-0"><i class="fa-solid fa-minus-circle me-1"></i> {{ __('payroll.fields.deductions_penalties') }} <x-inputs.tip :text="__('payroll.hints.manual_deductions')" /></h6>
                             @if($payroll->status == 'draft' || $payroll->status == 'rejected')
                                 <button type="button" class="btn btn-sm btn-outline-danger add-deduction-row-btn" data-item="{{ $item->id }}">
                                     <i class="fa-solid fa-plus me-1"></i> {{ __('payroll.fields.add_deduction_row') }}
@@ -585,14 +585,14 @@
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('payroll.fields.payment_method') }}</label>
+                                <label class="form-label">{{ __('payroll.fields.payment_method') }} <x-inputs.tip :text="__('payroll.hints.payment_method')" /></label>
                                 <select name="payment_method" class="form-select select2" {{ ($payroll->status != 'draft' && $payroll->status != 'rejected') ? 'disabled' : '' }}>
                                     <option value="bank_transfer" {{ $item->payment_method == 'bank_transfer' ? 'selected' : '' }}>{{ __('payroll.enums.bank_transfer') }}</option>
                                     <option value="cash" {{ $item->payment_method == 'cash' ? 'selected' : '' }}>{{ __('payroll.enums.cash') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <x-inputs.field name="notes" label="{{ __('payroll.fields.notes') }}" :value="$item->notes" :readonly="$payroll->status != 'draft' && $payroll->status != 'rejected'" />
+                                <x-inputs.field name="notes" label="{{ __('payroll.fields.notes') }}" :tooltip="__('payroll.hints.item_notes')" :value="$item->notes" :readonly="$payroll->status != 'draft' && $payroll->status != 'rejected'" />
                             </div>
                         </div>
 

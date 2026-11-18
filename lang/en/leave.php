@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 return [
     'trash'          => 'Trash',
@@ -77,6 +77,11 @@ return [
     ],
 
     'hints' => [
+        'leave_type' => 'Annual, casual and sick use the employee’s balance. Unpaid does not, but its days are deducted from salary.',
+        'days_count' => 'Filled from the dates automatically and can be edited (to exclude Fridays or holidays, or for a half day). A leave crossing month end is split between both months in payroll.',
+        'attachment' => 'Optional supporting document (e.g. a medical report).',
+        'entitled'   => 'Days the employee is entitled to this year for this type.',
+        'used'       => 'Calculated from approved leaves — not edited manually.',
         'employee_filter' => 'Pick an employee to see only their leaves, or leave it empty to see everyone',
     ],
 

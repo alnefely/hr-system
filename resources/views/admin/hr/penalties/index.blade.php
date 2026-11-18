@@ -139,7 +139,7 @@
                                 </select>
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label">{{ __('penalty.fields.penalty_type') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('penalty.fields.penalty_type') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('penalty.hints.penalty_type')" /></label>
                                 <select name="penalty_type" id="penalty_type_select" class="form-select select2" required>
                                     @foreach (__('penalty.type_enums') as $typeKey => $typeLabel)
                                         <option value="{{ $typeKey }}">{{ $typeLabel }}</option>
@@ -147,20 +147,20 @@
                                 </select>
                             </div>
                             <div class="col-md-6" id="days_count_wrapper">
-                                <label class="form-label">{{ __('penalty.fields.days_count') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('penalty.fields.days_count') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('penalty.hints.days_count')" /></label>
                                 <input type="number" step="0.5" min="0.5" name="days_count" id="penalty_days_count" class="form-control" value="1" dir="ltr" />
                                 <div id="penalty_calc_preview" class="small text-danger fw-semibold mt-1"></div>
                             </div>
                             <div class="col-md-6 d-none" id="deduction_amount_wrapper">
-                                <label class="form-label">{{ __('penalty.fields.deduction_amount') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('penalty.fields.deduction_amount') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('penalty.hints.deduction_amount')" /></label>
                                 <input type="number" step="0.01" min="0.01" name="deduction_amount" id="penalty_deduction_amount" class="form-control" placeholder="0.00" disabled dir="ltr" />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('penalty.fields.penalty_date') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('penalty.fields.penalty_date') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('penalty.hints.penalty_date')" /></label>
                                 <input type="date" name="penalty_date" class="form-control" value="{{ date('Y-m-d') }}" required />
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label">{{ __('penalty.fields.reason') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('penalty.fields.reason') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('penalty.hints.reason')" /></label>
                                 <textarea name="reason" class="form-control" rows="2" required placeholder="سبب الجزاء أو المخالفة بالتفصيل..."></textarea>
                             </div>
                             <div class="col-md-12">

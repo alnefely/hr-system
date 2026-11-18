@@ -45,4 +45,11 @@ return [
         'approve' => 'Approve',
         'reject' => 'Reject',
     ],
+
+    // شرح الحقول (أيقونة ؟ جنب العنوان)
+    'hints' => [
+        'times'       => 'Leave and return time — the hours are calculated from them automatically.',
+        'hours_count' => 'Calculated from the times. If the month’s approved hours exceed the employee’s limit, the excess is deducted at the hourly rate.',
+    ],
+
 ];

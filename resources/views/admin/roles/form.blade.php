@@ -12,7 +12,7 @@
     <div class="col-md-4 mb-4">
         <label for="name" class="form-label">
             {{ __('role.name') }} <span class="text-danger">*</span>
-        </label>
+         <x-inputs.tip :text="__('role.hints.name')" /></label>
         <input type="text" id="name" name="name" required maxlength="100"
                class="form-control @error('name') is-invalid @enderror"
                value="{{ old('name', $isEdit ? $role->name : '') }}">
@@ -39,6 +39,7 @@
             <h6 class="fw-bold text-primary mb-0">
                 <i class="fa-solid fa-key me-1"></i>{{ __('role.permissions') }}
                 <span class="text-danger">*</span>
+                <x-inputs.tip :text="__('role.hints.permissions')" />
             </h6>
             <div class="form-check form-switch mb-0">
                 <input class="form-check-input" type="checkbox" id="toggle_all_permissions">

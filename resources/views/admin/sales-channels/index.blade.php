@@ -61,7 +61,7 @@
                     <div class="modal-body pt-3">
                         <div class="row g-3">
                             <div class="col-md-12">
-                                <label class="form-label">{{ __('sales_channel.fields.code') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('sales_channel.fields.code') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('sales_channel.hints.code')" /></label>
                                 <input type="text" name="code" class="form-control" required placeholder="CH-001" dir="ltr" />
                             </div>
                             <div class="col-md-12">
@@ -69,7 +69,7 @@
                                 <input type="text" name="name" class="form-control" required placeholder="اسم التطبيق أو المنصة..." />
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label">{{ __('sales_channel.fields.type') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('sales_channel.fields.type') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('sales_channel.hints.type')" /></label>
                                 <select name="type" class="form-select select2" required>
                                     @foreach (__('sales_channel.type_enums') as $typeKey => $typeLabel)
                                         <option value="{{ $typeKey }}">{{ $typeLabel }}</option>
@@ -83,7 +83,7 @@
                             <div class="col-md-12">
                                 <div class="form-check form-switch">
                                     <input type="checkbox" name="is_active" class="form-check-input" id="chan_create_is_active" value="1" checked />
-                                    <label class="form-check-label" for="chan_create_is_active">{{ __('sales_channel.enums.active') }}</label>
+                                    <label class="form-check-label" for="chan_create_is_active">{{ __('sales_channel.enums.active') }} <x-inputs.tip :text="__('sales_channel.hints.is_active')" /></label>
                                 </div>
                             </div>
                         </div>
@@ -115,7 +115,7 @@
                     <div class="modal-body pt-3">
                         <div class="row g-3">
                             <div class="col-md-12">
-                                <label class="form-label">{{ __('sales_channel.fields.code') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('sales_channel.fields.code') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('sales_channel.hints.code')" /></label>
                                 <input type="text" name="code" id="edit_chan_code" class="form-control" required dir="ltr" />
                             </div>
                             <div class="col-md-12">
@@ -123,7 +123,7 @@
                                 <input type="text" name="name" id="edit_chan_name" class="form-control" required />
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label">{{ __('sales_channel.fields.type') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('sales_channel.fields.type') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('sales_channel.hints.type')" /></label>
                                 <select name="type" id="edit_chan_type" class="form-select select2" required>
                                     @foreach (__('sales_channel.type_enums') as $typeKey => $typeLabel)
                                         <option value="{{ $typeKey }}">{{ $typeLabel }}</option>
@@ -137,7 +137,7 @@
                             <div class="col-md-12">
                                 <div class="form-check form-switch">
                                     <input type="checkbox" name="is_active" class="form-check-input" id="edit_chan_is_active" value="1" />
-                                    <label class="form-check-label" for="edit_chan_is_active">{{ __('sales_channel.enums.active') }}</label>
+                                    <label class="form-check-label" for="edit_chan_is_active">{{ __('sales_channel.enums.active') }} <x-inputs.tip :text="__('sales_channel.hints.is_active')" /></label>
                                 </div>
                             </div>
                         </div>

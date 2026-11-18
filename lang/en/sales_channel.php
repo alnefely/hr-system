@@ -48,4 +48,12 @@ return [
         'updated'        => 'Sales channel updated successfully',
         'deleted'        => 'Sales channel deleted successfully',
     ],
+
+    // شرح الحقول (أيقونة ؟ جنب العنوان)
+    'hints' => [
+        'code'      => 'A short unique code for the channel (e.g. WEB, APP).',
+        'type'      => 'Channel category — sales are grouped by it in the dashboard and reports.',
+        'is_active' => 'An inactive channel is hidden when recording a new sale; its past sales stay in reports.',
+    ],
+
 ];

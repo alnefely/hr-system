@@ -41,4 +41,12 @@ return [
         'force_deleted' => 'Skill permanently deleted',
         'empty_trash'   => 'Skills trash is empty',
     ],
+
+    // شرح الحقول (أيقونة ؟ جنب العنوان)
+    'hints' => [
+        'proficiency_level' => 'How well the employee masters the skill — for evaluation and reports.',
+        'evaluation_source' => 'Where this rating came from (test, manager, certificate…) to judge how reliable it is.',
+        'is_core'           => 'A skill essential to the employee’s job — highlighted in their file.',
+    ],
+
 ];

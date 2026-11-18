@@ -11,7 +11,7 @@
     </div>
 
     <div class="col-md-3 mb-3">
-        <label for="code" class="form-label">{{ __('branch.fields.code') }}</label>
+        <label for="code" class="form-label">{{ __('branch.fields.code') }} <x-inputs.tip :text="__('branch.hints.code')" /></label>
         <input type="text" id="code" name="code" class="form-control @error('code') is-invalid @enderror"
                value="{{ old('code', $isEdit ? $branch->code : '') }}" placeholder="EG-01">
         @error('code')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -38,14 +38,14 @@
     </div>
 
     <div class="col-md-4 mb-3">
-        <label for="currency" class="form-label">{{ __('branch.fields.currency') }} <span class="text-danger">*</span></label>
+        <label for="currency" class="form-label">{{ __('branch.fields.currency') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('branch.hints.currency')" /></label>
         <input type="text" id="currency" name="currency" class="form-control @error('currency') is-invalid @enderror"
                value="{{ old('currency', $isEdit ? $branch->currency : 'EGP') }}" required maxlength="10">
         @error('currency')<div class="invalid-feedback">{{ $message }}</div>@enderror
     </div>
 
     <div class="col-md-4 mb-3">
-        <label for="timezone" class="form-label">{{ __('branch.fields.timezone') }} <span class="text-danger">*</span></label>
+        <label for="timezone" class="form-label">{{ __('branch.fields.timezone') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('branch.hints.timezone')" /></label>
         <input type="text" id="timezone" name="timezone" class="form-control @error('timezone') is-invalid @enderror"
                value="{{ old('timezone', $isEdit ? $branch->timezone : 'Africa/Cairo') }}" required maxlength="50">
         @error('timezone')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -69,7 +69,7 @@
         <div class="form-check form-switch">
             <input type="checkbox" id="is_active" name="is_active" value="1" class="form-check-input"
                    @checked(old('is_active', $isEdit ? $branch->is_active : true))>
-            <label class="form-check-label fw-bold" for="is_active">{{ __('branch.fields.status') }} ({{ __('branch.fields.active') }})</label>
+            <label class="form-check-label fw-bold" for="is_active">{{ __('branch.fields.status') }} ({{ __('branch.fields.active') }}) <x-inputs.tip :text="__('branch.hints.is_active')" /></label>
         </div>
     </div>
 

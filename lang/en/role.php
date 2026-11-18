@@ -53,4 +53,11 @@ return [
         'reward_approve' => 'Approve Reward',
         'reward_reject' => 'Reject Reward',
 ],
+
+    // شرح الحقول (أيقونة ؟ جنب العنوان)
+    'hints' => [
+        'name'        => 'A clear job name (e.g. Branch Accountant). Shown when assigning a role to an admin.',
+        'permissions' => 'Tick what the role holder can do. “Show” must be on for a screen to appear in the menu.',
+    ],
+
 ];

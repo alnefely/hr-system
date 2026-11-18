@@ -94,4 +94,15 @@ return [
         'cheque'        => 'Bank cheque',
     ],
 
+    // شرح الحقول (أيقونة ؟ جنب العنوان)
+    'hints' => [
+        'branch'            => 'The branch bearing the cost. Leave empty for a company-wide subscription.',
+        'type'              => 'A recurring subscription, a project contract, or a one-time service.',
+        'billing_cycle'     => 'How often it is paid — used to compute monthly and yearly cost in reports.',
+        'cost'              => 'Amount of one payment for the billing cycle (e.g. a yearly plan = the yearly price).',
+        'status'            => 'Only active subscriptions trigger renewal alerts and count as running cost.',
+        'next_billing_date' => 'Next payment date. An alert is sent 7 days before; it shows in “upcoming renewals” 30 days before.',
+        'auto_renew'        => 'For reference: whether the vendor renews it automatically. Update the next billing date after each renewal.',
+    ],
+
 ];

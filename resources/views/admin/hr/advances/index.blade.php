@@ -165,11 +165,11 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">{{ __('advance.amount') }} <span class="text-danger">*</span></label>
+                                <label class="form-label fw-bold">{{ __('advance.amount') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('advance.hints.amount')" /></label>
                                 <input type="number" step="0.01" min="1" name="amount" id="advance_amount_input" class="form-control" required dir="ltr" />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">{{ __('advance.installments_count') }} <span class="text-danger">*</span></label>
+                                <label class="form-label fw-bold">{{ __('advance.installments_count') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('advance.hints.installments_count')" /></label>
                                 <input type="number" min="1" max="60" name="installments_count" id="advance_installments_input" class="form-control" value="1" required dir="ltr" />
                             </div>
                             <div class="col-md-12">
@@ -179,11 +179,11 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">{{ __('advance.advance_date') }} <span class="text-danger">*</span></label>
+                                <label class="form-label fw-bold">{{ __('advance.advance_date') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('advance.hints.advance_date')" /></label>
                                 <input type="date" name="advance_date" class="form-control" value="{{ date('Y-m-d') }}" required />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">{{ __('advance.start_date') }} <span class="text-danger">*</span></label>
+                                <label class="form-label fw-bold">{{ __('advance.start_date') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('advance.hints.start_date')" /></label>
                                 <input type="date" name="start_date" class="form-control" value="{{ date('Y-m-d') }}" required />
                             </div>
                             <div class="col-md-12">
@@ -262,7 +262,7 @@
                         @csrf
                         <div class="row g-2 align-items-end">
                             <div class="col-md-4">
-                                <label class="form-label small fw-bold">مبلغ الدفعة <span class="text-danger">*</span></label>
+                                <label class="form-label small fw-bold">مبلغ الدفعة <span class="text-danger">*</span> <x-inputs.tip :text="__('advance.hints.payment_amount')" /></label>
                                 <input type="number" step="0.01" min="0.01" name="amount" id="rep_input_amount" class="form-control form-control-sm" required dir="ltr" />
                             </div>
                             <div class="col-md-3">
@@ -305,7 +305,7 @@
                     </div>
                     <div class="row g-3">
                         <div class="col-md-12">
-                            <label class="form-label fw-bold">المبلغ المراد إسقاطه / إعفاؤه <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold">المبلغ المراد إسقاطه / إعفاؤه <span class="text-danger">*</span> <x-inputs.tip :text="__('advance.hints.waive_amount')" /></label>
                             <div class="input-group">
                                 <input type="number" step="0.01" min="0.01" name="waived_amount" id="waive_amount_input" class="form-control" required dir="ltr" />
                                 <button type="button" class="btn btn-outline-warning" id="waive_all_btn">إسقاط كامل المتبقي</button>

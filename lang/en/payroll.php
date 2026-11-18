@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 return [
     'title'          => 'Payroll Management',
@@ -184,6 +184,10 @@ return [
     ],
 
     'hints' => [
+        'manual_allowances' => 'Manual additions for this employee this month only (not repeated). Approved rewards are added automatically.',
+        'manual_deductions' => 'Manual deductions this month only. Penalties, installments, unpaid leave and excess permission hours are automatic.',
+        'payment_method'    => 'How this salary is paid — shown on the payslip and payment reports.',
+        'item_notes'        => 'A note shown on the employee’s payslip.',
         'period_range' => 'Filters on the month and year the payroll covers, not its creation date',
         'branch_filter' => 'Show payrolls for a single branch, or leave empty to see all',
         'period' => 'The month this payroll covers. The system collects all entitlements and deductions for it automatically.',

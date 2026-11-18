@@ -42,4 +42,13 @@ return [
         'cannot_delete' => 'Cannot delete branch because it contains active employees',
         'empty_trash'   => 'Branches trash is currently empty',
     ],
+
+    // شرح الحقول (أيقونة ؟ جنب العنوان)
+    'hints' => [
+        'code'      => 'Prefix for the branch employees’ codes (e.g. CAI → CAI-0001). Avoid changing it after adding employees.',
+        'currency'  => 'Currency of the branch salaries, expenses and sales (e.g. EGP, SAR). All branch amounts are shown in it.',
+        'timezone'  => 'The branch local timezone in international format (e.g. Africa/Cairo) — for reference.',
+        'is_active' => 'An inactive branch is hidden from selection lists (new employee, expense, payroll); its existing data stays.',
+    ],
+
 ];

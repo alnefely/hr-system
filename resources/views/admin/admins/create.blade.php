@@ -22,6 +22,7 @@
                     <x-inputs.field
                         name="email"
                         label="{{__('global.email')}}"
+                        :tooltip="__('admin.hints.email')"
                         :value="old('email')"
                         type="email"
                         dir="ltr"
@@ -42,6 +43,7 @@
                     <x-inputs.select2
                         name="role_id"
                         label="{{__('role.name')}}"
+                        :tooltip="__('admin.hints.role')"
                         :value="old('role_id')"
                         :data="$roles"
                         data_key="name"

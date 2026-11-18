@@ -112,7 +112,7 @@
                 <form action="{{ route('admin.rewards.store') }}" method="POST">
                     @csrf
                     <div class="modal-header border-bottom">
-                        <h5 class="modal-title fw-bold text-success"><i class="fa-solid fa-award me-2"></i> {{ __('reward.create_title') }}</h5>
+                        <h5 class="modal-title fw-bold text-success"><i class="fa-solid fa-award me-2"></i> {{ __('reward.create_title') }} <x-inputs.tip :text="__('reward.hints.approval')" /></h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body pt-3">
@@ -129,7 +129,7 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('reward.fields.reward_type') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('reward.fields.reward_type') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('reward.hints.reward_type')" /></label>
                                 <select name="reward_type" class="form-select select2" required>
                                     <option value="bonus">{{ __('reward.type_enums.bonus') }}</option>
                                     <option value="incentive">{{ __('reward.type_enums.incentive') }}</option>
@@ -138,15 +138,15 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('reward.fields.amount') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('reward.fields.amount') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('reward.hints.amount')" /></label>
                                 <input type="number" step="0.01" min="0.01" name="amount" class="form-control" placeholder="0.00" required dir="ltr" />
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label">{{ __('reward.fields.title') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('reward.fields.title') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('reward.hints.title')" /></label>
                                 <input type="text" name="title" class="form-control" placeholder="مثال: مكافأة إتمام مشروع الربع الأول / بدل سفر استثنائي" required />
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label">{{ __('reward.fields.reward_date') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('reward.fields.reward_date') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('reward.hints.reward_date')" /></label>
                                 <input type="date" name="reward_date" class="form-control" value="{{ date('Y-m-d') }}" required />
                             </div>
                             <div class="col-md-12">

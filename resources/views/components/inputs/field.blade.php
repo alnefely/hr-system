@@ -8,6 +8,7 @@
     'value'       => null,      // القيمة
     'placeholder' => null,      // placeholder
     'hint'        => null,      // نص مساعد
+    'tooltip'     => null,      // شرح يظهر في أيقونة (؟) جنب العنوان
     'required'    => false,     // مطلوب
     'disabled'    => false,     // معطل
     'readonly'    => false,     // للقراءة فقط
@@ -43,6 +44,7 @@
             @if($required)
                 <span class="text-danger">*</span>
             @endif
+            <x-inputs.tip :text="$tooltip" />
         </label>
     @endif
 

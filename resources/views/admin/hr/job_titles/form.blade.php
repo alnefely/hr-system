@@ -15,7 +15,7 @@
         <div class="form-check form-switch">
             <input type="checkbox" id="is_active" name="is_active" value="1" class="form-check-input"
                    @checked(old('is_active', $isEdit ? $jobTitle->is_active : true))>
-            <label class="form-check-label fw-bold" for="is_active">{{ __('job_title.fields.status') }}</label>
+            <label class="form-check-label fw-bold" for="is_active">{{ __('job_title.fields.status') }} <x-inputs.tip :text="__('job_title.hints.is_active')" /></label>
         </div>
     </div>
 

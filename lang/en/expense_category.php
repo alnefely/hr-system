@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 return [
     'title'          => 'Expense Categories',
@@ -33,4 +33,11 @@ return [
 ],
     'trash' => 'Trash',
     'back' => 'Back to list',
+
+    // شرح الحقول (أيقونة ؟ جنب العنوان)
+    'hints' => [
+        'code'      => 'Optional short code (e.g. FUEL) — for reports and export.',
+        'is_active' => 'An inactive category is hidden when recording a new expense; existing expenses keep it.',
+    ],
+
 ];

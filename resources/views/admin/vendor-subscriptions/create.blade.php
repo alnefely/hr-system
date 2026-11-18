@@ -34,7 +34,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('vendor_subscription.fields.branch') }}</label>
+                            <label class="form-label">{{ __('vendor_subscription.fields.branch') }} <x-inputs.tip :text="__('vendor_subscription.hints.branch')" /></label>
                             <select name="branch_id" class="form-select select2">
                                 <option value="">{{ __('vendor_subscription.fields.all_branches') }}</option>
                                 @foreach($branches as $b)
@@ -44,7 +44,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('vendor_subscription.fields.type') }} <span class="text-danger">*</span></label>
+                            <label class="form-label">{{ __('vendor_subscription.fields.type') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('vendor_subscription.hints.type')" /></label>
                             <select name="type" class="form-select select2" required>
                                 <option value="subscription" {{ old('type') == 'subscription' ? 'selected' : '' }}>{{ __('vendor_subscription.type_enums.subscription') }}</option>
                                 <option value="contract" {{ old('type') == 'contract' ? 'selected' : '' }}>{{ __('vendor_subscription.type_enums.contract') }}</option>
@@ -53,7 +53,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('vendor_subscription.fields.billing_cycle') }} <span class="text-danger">*</span></label>
+                            <label class="form-label">{{ __('vendor_subscription.fields.billing_cycle') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('vendor_subscription.hints.billing_cycle')" /></label>
                             <select name="billing_cycle" class="form-select select2" required>
                                 <option value="monthly" {{ old('billing_cycle') == 'monthly' ? 'selected' : '' }}>{{ __('vendor_subscription.cycle_enums.monthly') }}</option>
                                 <option value="quarterly" {{ old('billing_cycle') == 'quarterly' ? 'selected' : '' }}>{{ __('vendor_subscription.cycle_enums.quarterly') }}</option>
@@ -64,7 +64,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('vendor_subscription.fields.cost') }} <span class="text-danger">*</span></label>
+                            <label class="form-label">{{ __('vendor_subscription.fields.cost') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('vendor_subscription.hints.cost')" /></label>
                             <input type="number" step="0.01" min="0" name="cost" class="form-control" required value="{{ old('cost') }}" placeholder="0.00" dir="ltr" />
                         </div>
 
@@ -80,7 +80,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('vendor_subscription.fields.status') }} <span class="text-danger">*</span></label>
+                            <label class="form-label">{{ __('vendor_subscription.fields.status') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('vendor_subscription.hints.status')" /></label>
                             <select name="status" class="form-select select2" required>
                                 <option value="active" {{ old('status', 'active') == 'active' ? 'selected' : '' }}>{{ __('vendor_subscription.statuses.active') }}</option>
                                 <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>{{ __('vendor_subscription.statuses.pending') }}</option>
@@ -95,7 +95,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label">{{ __('vendor_subscription.fields.next_billing_date') }}</label>
+                            <label class="form-label">{{ __('vendor_subscription.fields.next_billing_date') }} <x-inputs.tip :text="__('vendor_subscription.hints.next_billing_date')" /></label>
                             <input type="date" name="next_billing_date" class="form-control" value="{{ old('next_billing_date') }}" />
                         </div>
 
@@ -112,7 +112,7 @@
                         <div class="col-md-12">
                             <div class="form-check form-switch">
                                 <input type="checkbox" name="auto_renew" class="form-check-input" id="auto_renew_switch" value="1" {{ old('auto_renew', 1) ? 'checked' : '' }} />
-                                <label class="form-check-label" for="auto_renew_switch">{{ __('vendor_subscription.fields.auto_renew') }}</label>
+                                <label class="form-check-label" for="auto_renew_switch">{{ __('vendor_subscription.fields.auto_renew') }} <x-inputs.tip :text="__('vendor_subscription.hints.auto_renew')" /></label>
                             </div>
                         </div>
                     </div>

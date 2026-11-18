@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 return [
     'title'               => 'Advances & Loans',
@@ -105,6 +105,16 @@ return [
         'all_employees' => '-- All employees --',
         'from_date'     => 'From date',
         'to_date'       => 'To date',
+    ],
+
+    // شرح الحقول (أيقونة ؟ جنب العنوان)
+    'hints' => [
+        'amount'             => 'Total amount of the advance paid to the employee.',
+        'installments_count' => 'Number of months to repay it. Monthly installment = amount ÷ installments, deducted automatically in each payroll.',
+        'advance_date'       => 'The date the advance was actually paid to the employee.',
+        'start_date'         => 'First month installments are deducted from salary. Payrolls before this month deduct nothing.',
+        'payment_amount'     => 'A manual repayment outside payroll (e.g. cash) — reduces the remaining amount immediately.',
+        'waive_amount'       => 'Part forgiven for the employee — reduces the remaining amount without any payment, recorded with the reason.',
     ],
 
 ];

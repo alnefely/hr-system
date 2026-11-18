@@ -158,7 +158,7 @@
                                 <input type="date" name="permission_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('permission.fields.start_time') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('permission.fields.start_time') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('permission.hints.times')" /></label>
                                 <input type="time" name="start_time" class="form-control" required />
                             </div>
                             <div class="col-md-6">
@@ -166,7 +166,7 @@
                                 <input type="time" name="end_time" class="form-control" required />
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label">{{ __('permission.fields.hours_count') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('permission.fields.hours_count') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('permission.hints.hours_count')" /></label>
                                 <input type="number" step="0.01" min="0.1" max="12" name="hours_count" class="form-control" value="1" required dir="ltr" />
                             </div>
                             <div class="col-md-12">

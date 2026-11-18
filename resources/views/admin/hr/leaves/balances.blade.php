@@ -106,27 +106,27 @@
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">الرصيد السنوي المستحق <span class="text-danger">*</span></label>
+                                <label class="form-label fw-bold">الرصيد السنوي المستحق <span class="text-danger">*</span> <x-inputs.tip :text="__('leave.hints.entitled')" /></label>
                                 <input type="number" step="0.5" min="0" name="annual_balance" id="modal_annual_balance" class="form-control" required dir="ltr" />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label text-muted">السنوي المستهلك (محسوب آلياً)</label>
+                                <label class="form-label text-muted">السنوي المستهلك (محسوب آلياً) <x-inputs.tip :text="__('leave.hints.used')" /></label>
                                 <input type="text" id="modal_used_annual" class="form-control bg-transparent text-muted" readonly dir="ltr" />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">الرصيد العارض المستحق <span class="text-danger">*</span></label>
+                                <label class="form-label fw-bold">الرصيد العارض المستحق <span class="text-danger">*</span> <x-inputs.tip :text="__('leave.hints.entitled')" /></label>
                                 <input type="number" step="0.5" min="0" name="casual_balance" id="modal_casual_balance" class="form-control" required dir="ltr" />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label text-muted">العارض المستهلك (محسوب آلياً)</label>
+                                <label class="form-label text-muted">العارض المستهلك (محسوب آلياً) <x-inputs.tip :text="__('leave.hints.used')" /></label>
                                 <input type="text" id="modal_used_casual" class="form-control bg-transparent text-muted" readonly dir="ltr" />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">الرصيد المرضي المستحق <span class="text-danger">*</span></label>
+                                <label class="form-label fw-bold">الرصيد المرضي المستحق <span class="text-danger">*</span> <x-inputs.tip :text="__('leave.hints.entitled')" /></label>
                                 <input type="number" step="0.5" min="0" name="sick_balance" id="modal_sick_balance" class="form-control" required dir="ltr" />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label text-muted">المرضي المستهلك (محسوب آلياً)</label>
+                                <label class="form-label text-muted">المرضي المستهلك (محسوب آلياً) <x-inputs.tip :text="__('leave.hints.used')" /></label>
                                 <input type="text" id="modal_used_sick" class="form-control bg-transparent text-muted" readonly dir="ltr" />
                             </div>
                         </div>

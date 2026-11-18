@@ -59,4 +59,14 @@ return [
         'reject' => 'Reject Penalty',
         'add_new' => 'Record New Penalty',
     ],
+
+    // شرح الحقول (أيقونة ؟ جنب العنوان)
+    'hints' => [
+        'penalty_type'     => 'Days: days × daily rate. Amount: a fixed amount. Warning: recorded in the file with no deduction.',
+        'days_count'       => 'Multiplied by the daily rate (basic ÷ 30, or the employee’s custom daily rate). Half days allowed.',
+        'deduction_amount' => 'Deducted as-is from net salary.',
+        'penalty_date'     => 'Determines which month’s payroll deducts it.',
+        'reason'           => 'Shown to the employee in their portal — write it clearly.',
+    ],
+
 ];

@@ -76,7 +76,7 @@
                             <x-inputs.field name="name" label="{{ __('expense_category.fields.name') }}" required />
                         </div>
                         <div class="mb-3">
-                            <x-inputs.field name="code" label="{{ __('expense_category.fields.code') }}" />
+                            <x-inputs.field name="code" label="{{ __('expense_category.fields.code') }}" :tooltip="__('expense_category.hints.code')" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">{{ __('expense_category.fields.description') }}</label>
@@ -84,7 +84,7 @@
                         </div>
                         <div class="form-check form-switch mb-3">
                             <input type="checkbox" name="is_active" class="form-check-input" id="create_is_active" value="1" checked />
-                            <label class="form-check-label" for="create_is_active">{{ __('expense_category.enums.active') }}</label>
+                            <label class="form-check-label" for="create_is_active">{{ __('expense_category.enums.active') }} <x-inputs.tip :text="__('expense_category.hints.is_active')" /></label>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -117,7 +117,7 @@
                             <input type="text" name="name" id="edit_name_input" class="form-control" required />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">{{ __('expense_category.fields.code') }}</label>
+                            <label class="form-label">{{ __('expense_category.fields.code') }} <x-inputs.tip :text="__('expense_category.hints.code')" /></label>
                             <input type="text" name="code" id="edit_code_input" class="form-control" />
                         </div>
                         <div class="mb-3">
@@ -126,7 +126,7 @@
                         </div>
                         <div class="form-check form-switch mb-3">
                             <input type="checkbox" name="is_active" class="form-check-input" id="edit_is_active_input" value="1" />
-                            <label class="form-check-label" for="edit_is_active_input">{{ __('expense_category.enums.active') }}</label>
+                            <label class="form-check-label" for="edit_is_active_input">{{ __('expense_category.enums.active') }} <x-inputs.tip :text="__('expense_category.hints.is_active')" /></label>
                         </div>
                     </div>
                     <div class="modal-footer">

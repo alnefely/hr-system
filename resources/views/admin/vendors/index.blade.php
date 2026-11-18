@@ -96,7 +96,7 @@
                     <div class="modal-body pt-3">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('vendor.fields.code') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('vendor.fields.code') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('vendor.hints.code')" /></label>
                                 <input type="text" name="code" class="form-control" required placeholder="VEND-001" dir="ltr" />
                             </div>
                             <div class="col-md-6">
@@ -120,7 +120,7 @@
                                 <input type="email" name="email" class="form-control" placeholder="vendor@example.com" dir="ltr" />
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label">{{ __('vendor.fields.tax_number') }}</label>
+                                <label class="form-label">{{ __('vendor.fields.tax_number') }} <x-inputs.tip :text="__('vendor.hints.tax_number')" /></label>
                                 <input type="text" name="tax_number" class="form-control" placeholder="السجل التجاري أو البطاقة الضريبية..." dir="ltr" />
                             </div>
                             <div class="col-md-12">
@@ -130,7 +130,7 @@
                             <div class="col-md-12">
                                 <div class="form-check form-switch">
                                     <input type="checkbox" name="is_active" class="form-check-input" id="vendor_create_is_active" value="1" checked />
-                                    <label class="form-check-label" for="vendor_create_is_active">{{ __('vendor.enums.active') }}</label>
+                                    <label class="form-check-label" for="vendor_create_is_active">{{ __('vendor.enums.active') }} <x-inputs.tip :text="__('vendor.hints.is_active')" /></label>
                                 </div>
                             </div>
                         </div>
@@ -162,7 +162,7 @@
                     <div class="modal-body pt-3">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('vendor.fields.code') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('vendor.fields.code') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('vendor.hints.code')" /></label>
                                 <input type="text" name="code" id="edit_vendor_code" class="form-control" required dir="ltr" />
                             </div>
                             <div class="col-md-6">
@@ -186,7 +186,7 @@
                                 <input type="email" name="email" id="edit_vendor_email" class="form-control" dir="ltr" />
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label">{{ __('vendor.fields.tax_number') }}</label>
+                                <label class="form-label">{{ __('vendor.fields.tax_number') }} <x-inputs.tip :text="__('vendor.hints.tax_number')" /></label>
                                 <input type="text" name="tax_number" id="edit_vendor_tax" class="form-control" dir="ltr" />
                             </div>
                             <div class="col-md-12">
@@ -196,7 +196,7 @@
                             <div class="col-md-12">
                                 <div class="form-check form-switch">
                                     <input type="checkbox" name="is_active" class="form-check-input" id="edit_vendor_is_active" value="1" />
-                                    <label class="form-check-label" for="edit_vendor_is_active">{{ __('vendor.enums.active') }}</label>
+                                    <label class="form-check-label" for="edit_vendor_is_active">{{ __('vendor.enums.active') }} <x-inputs.tip :text="__('vendor.hints.is_active')" /></label>
                                 </div>
                             </div>
                         </div>

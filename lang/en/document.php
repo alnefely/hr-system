@@ -54,6 +54,8 @@ return [
     ],
 
     'hints' => [
+        'issue_date' => 'The document issue date — for reference.',
+        'verified'   => 'HR has checked the original. Who verified it and when is recorded.',
         'title' => 'Leave empty to use the document type name. Only fill it when you have more than one document of the same type.',
         'expiry' => 'Leave empty for documents that never expire (qualifications, certificates).',
     ],

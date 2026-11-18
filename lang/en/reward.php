@@ -56,4 +56,14 @@ return [
     'actions' => [
         'reject' => 'Reject Reward',
     ],
+
+    // شرح الحقول (أيقونة ؟ جنب العنوان)
+    'hints' => [
+        'reward_type' => 'A category for reports only — all types are added to salary the same way.',
+        'amount'      => 'Added to the employee’s net salary in that month’s payroll, after approval only.',
+        'title'       => 'Shown as a line on the employee’s payslip and in their portal.',
+        'reward_date' => 'Determines which month’s payroll pays the reward.',
+        'approval'    => 'A reward must be approved before entering payroll, and whoever recorded it cannot approve it.',
+    ],
+
 ];
