@@ -3,103 +3,54 @@
 
 @section('content')
 
-{{-- ═══════════ ما يحتاج إجراءً ═══════════ --}}
-@php
-    $totalPending = $pending['leaves'] + $pending['permissions'] + $pending['advances'] + $pending['penalties']
-                  + $pending['rewards'] + $pending['payrolls'];
-    $totalAlerts  = $alerts['overdue_invoices'] + $alerts['due_subscriptions'];
-@endphp
+@push('css')
+<style>
+    /* ═══ نظام موحّد للرئيسية: كارت واحد للأرقام، عناوين أقسام واحدة، ألوان بمعنى ثابت ═══ */
+    .dash-section-title { font-size: .95rem; font-weight: 700; margin: 0 0 .85rem; display: flex; align-items: center; gap: .5rem; }
+    .dash-section-title i { color: var(--bs-primary); }
 
-@if ($totalPending > 0 || $totalAlerts > 0)
-    <div class="card border-0 shadow-sm mb-4" style="border-right: 4px solid var(--bs-warning) !important;">
-        <div class="card-body py-3">
-            <div class="d-flex align-items-center flex-wrap gap-3">
-                <h6 class="mb-0 fw-bold text-dark">
-                    <i class="fa-solid fa-bell text-warning me-1"></i>
-                    {{ __('dashboard.needs_attention') }}
-                </h6>
+    .dash-stat .card-body { padding: 1.1rem 1.25rem; }
+    .dash-stat-icon { width: 2.6rem; height: 2.6rem; border-radius: .6rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.05rem; }
+    .dash-stat-label { font-size: .8rem; color: var(--bs-secondary-color); margin-bottom: .15rem; white-space: nowrap; }
+    .dash-stat-value { font-size: 1.3rem; font-weight: 700; line-height: 1.3; color: var(--bs-heading-color); white-space: nowrap; }
+    .dash-stat-suffix { font-size: .75rem; font-weight: 500; color: var(--bs-secondary-color); margin-inline-start: .2rem; }
 
-                @if ($pending['leaves'])
-                    <a href="{{ route('admin.leaves.index', ['status' => 'pending']) }}" class="btn btn-sm btn-label-warning">
-                        <i class="fa-solid fa-calendar-check me-1"></i>
-                        {{ __('dashboard.pending.leaves') }}
-                        <span class="badge bg-warning ms-1">{{ $pending['leaves'] }}</span>
-                    </a>
-                @endif
+    .dash-action { display: flex; align-items: center; gap: .6rem; padding: .55rem .75rem; border-radius: .5rem; border: 1px solid var(--bs-border-color); color: var(--bs-body-color); text-decoration: none; transition: border-color .15s, background-color .15s; height: 100%; }
+    .dash-action:hover { border-color: var(--bs-primary); background: rgba(var(--bs-primary-rgb), .04); color: var(--bs-body-color); }
+    .dash-action i { color: var(--bs-warning); width: 1.1rem; text-align: center; }
+    .dash-action .dash-action-count { margin-inline-start: auto; font-weight: 700; }
 
-                @if ($pending['permissions'])
-                    <a href="{{ route('admin.permissions.index', ['status' => 'pending']) }}" class="btn btn-sm btn-label-warning">
-                        <i class="fa-solid fa-clock me-1"></i>
-                        {{ __('dashboard.pending.permissions') }}
-                        <span class="badge bg-warning ms-1">{{ $pending['permissions'] }}</span>
-                    </a>
-                @endif
+    .dash-rank { width: 1.9rem; height: 1.9rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: .8rem; font-weight: 700; background: rgba(var(--bs-primary-rgb), .1); color: var(--bs-primary); }
+    .min-w-0 { min-width: 0; }
+</style>
+@endpush
 
-                @if ($pending['advances'])
-                    <a href="{{ route('admin.advances.index', ['status' => 'pending']) }}" class="btn btn-sm btn-label-warning">
-                        <i class="fa-solid fa-hand-holding-dollar me-1"></i>
-                        {{ __('dashboard.pending.advances') }}
-                        <span class="badge bg-warning ms-1">{{ $pending['advances'] }}</span>
-                    </a>
-                @endif
-
-                @if ($pending['penalties'])
-                    <a href="{{ route('admin.penalties.index') }}" class="btn btn-sm btn-label-danger">
-                        <i class="fa-solid fa-gavel me-1"></i>
-                        {{ __('dashboard.pending.penalties') }}
-                        <span class="badge bg-danger ms-1">{{ $pending['penalties'] }}</span>
-                    </a>
-                @endif
-
-                @if ($pending['rewards'])
-                    <a href="{{ route('admin.rewards.index') }}" class="btn btn-sm btn-label-success">
-                        <i class="fa-solid fa-award me-1"></i>
-                        {{ __('dashboard.pending.rewards') }}
-                        <span class="badge bg-success ms-1">{{ $pending['rewards'] }}</span>
-                    </a>
-                @endif
-
-                @if ($pending['payrolls'])
-                    <a href="{{ route('admin.payrolls.index') }}" class="btn btn-sm btn-label-info">
-                        <i class="fa-solid fa-money-check-dollar me-1"></i>
-                        {{ __('dashboard.pending.payrolls') }}
-                        <span class="badge bg-info ms-1">{{ $pending['payrolls'] }}</span>
-                    </a>
-                @endif
-
-                @if ($alerts['overdue_invoices'])
-                    {{-- overdue=1 بيعرض نفس الفواتير اللي العدّاد بيعدّها (غير المدفوعة والمدفوعة جزئياً بعد 30 يوم) --}}
-                    <a href="{{ route('admin.sales.index', ['overdue' => 1]) }}" class="btn btn-sm btn-label-danger">
-                        <i class="fa-solid fa-file-invoice-dollar me-1"></i>
-                        {{ __('dashboard.alerts.overdue_invoices') }}
-                        <span class="badge bg-danger ms-1">{{ $alerts['overdue_invoices'] }}</span>
-                    </a>
-                @endif
-
-                @if ($alerts['due_subscriptions'])
-                    <a href="{{ route('admin.vendor-subscriptions.index') }}" class="btn btn-sm btn-label-warning">
-                        <i class="fa-solid fa-repeat me-1"></i>
-                        {{ __('dashboard.alerts.due_subscriptions') }}
-                        <span class="badge bg-warning ms-1">{{ $alerts['due_subscriptions'] }}</span>
-                    </a>
-                @endif
-            </div>
-        </div>
-    </div>
-@endif
-
-
-{{-- ═══════════ فلاتر اللوحة ═══════════ --}}
-<div class="card border-0 shadow-sm mb-4">
+{{-- ═══════════ الشريط العلوي: العنوان والفترة والفلاتر ═══════════ --}}
+<div class="card mb-4">
     <div class="card-body py-3">
-        <form id="dashboardFilters" class="row g-2 align-items-end">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <div>
+                <h5 class="mb-1 fw-bold">{{ __('dashboard.title') }}</h5>
+                <div class="small text-muted d-flex align-items-center gap-2">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="periodLabel">{{ $period['label'] }}</span>
+                    <span class="spinner-border spinner-border-sm text-primary d-none" id="dashboardSpinner"></span>
+                </div>
+            </div>
 
+            @if (admin_can('report_financial_pl'))
+                <a href="{{ route('admin.reports.financial-pl') }}" class="btn btn-sm btn-label-primary">
+                    <i class="fa-solid fa-file-lines me-1"></i> {{ __('dashboard.view_full_report') }}
+                </a>
+            @endif
+        </div>
+
+        <form id="dashboardFilters" class="row g-2 align-items-end">
             {{-- الأعمدة بتتوزّع على 12 في الحالتين: بحقول الفترة
-                 المخصصة (3+4+4+1) ومن غيرها (5+6+1) --}}
+                 المخصصة (3+4+4+1) ومن غيرها (5+6+1) — الـ JS بيبدّلها --}}
             <div class="col-md-{{ $filter['preset'] === 'custom' ? '3' : '5' }}" id="presetCol">
                 <label class="form-label small mb-1">
-                    {{ __('dashboard.filters.period') }}
-                    <x-inputs.help :text="__('dashboard.hints.period')" />
+                    {{ __('dashboard.filters.period') }} <x-inputs.tip :text="__('dashboard.hints.period')" />
                 </label>
                 <select name="preset" id="filterPreset" class="form-select select2">
                     @foreach (__('dashboard.presets') as $presetKey => $presetLabel)
@@ -110,21 +61,17 @@
 
             <div class="col-md-4 {{ $filter['preset'] === 'custom' ? '' : 'd-none' }}" id="customRange">
                 <label class="form-label small mb-1">
-                    {{ __('dashboard.filters.range_label') }}
-                    <x-inputs.help :text="__('dashboard.hints.range')" />
+                    {{ __('dashboard.filters.range_label') }} <x-inputs.tip :text="__('dashboard.hints.range')" />
                 </label>
                 <div class="input-group">
-                    <input type="date" name="date_from" class="form-control px-2" style="height: 38px;"
-                           value="{{ $filter['date_from'] }}">
-                    <input type="date" name="date_to" class="form-control px-2" style="height: 38px;"
-                           value="{{ $filter['date_to'] }}">
+                    <input type="date" name="date_from" class="form-control px-2" style="height: 38px;" value="{{ $filter['date_from'] }}">
+                    <input type="date" name="date_to" class="form-control px-2" style="height: 38px;" value="{{ $filter['date_to'] }}">
                 </div>
             </div>
 
             <div class="col-md-{{ $filter['preset'] === 'custom' ? '4' : '6' }}" id="branchCol">
                 <label class="form-label small mb-1">
-                    {{ __('dashboard.filters.branch') }}
-                    <x-inputs.help :text="__('dashboard.hints.branch')" />
+                    {{ __('dashboard.filters.branch') }} <x-inputs.tip :text="__('dashboard.hints.branch')" />
                 </label>
                 <select name="branch_id" class="form-select select2">
                     <option value="">{{ __('dashboard.filters.all_branches') }}</option>
@@ -134,627 +81,116 @@
                 </select>
             </div>
 
-
             <div class="col-md-1 d-grid">
-                <button type="button" id="resetDashboardFilters" class="btn btn-label-secondary"
-                        style="height: 38px;"
+                <button type="button" id="resetDashboardFilters" class="btn btn-label-secondary" style="height: 38px;"
                         data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}">
                     <i class="fa-solid fa-rotate-left"></i>
                 </button>
             </div>
-
         </form>
     </div>
 </div>
 
-{{-- ═══════════ الملخص المالي ═══════════ --}}
-<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-    <h5 class="mb-0 fw-bold text-dark">
-        <i class="fa-solid fa-chart-line text-primary me-2"></i>
-        {{ __('dashboard.financial_summary') }}
-        <span class="badge bg-label-primary ms-1" id="periodLabel">{{ $period['label'] }}</span>
-        <span class="spinner-border spinner-border-sm text-primary ms-1 d-none" id="dashboardSpinner"></span>
-    </h5>
+{{-- ═══════════ يحتاج إجراء: شكل واحد لكل البنود ═══════════ --}}
+@php
+    $actions = array_filter([
+        ['count' => $pending['leaves'],      'icon' => 'fa-calendar-check',       'label' => __('dashboard.pending.leaves'),      'url' => route('admin.leaves.index', ['status' => 'pending'])],
+        ['count' => $pending['permissions'], 'icon' => 'fa-clock',                'label' => __('dashboard.pending.permissions'), 'url' => route('admin.permissions.index', ['status' => 'pending'])],
+        ['count' => $pending['advances'],    'icon' => 'fa-hand-holding-dollar',  'label' => __('dashboard.pending.advances'),    'url' => route('admin.advances.index', ['status' => 'pending'])],
+        ['count' => $pending['penalties'],   'icon' => 'fa-gavel',                'label' => __('dashboard.pending.penalties'),   'url' => route('admin.penalties.index')],
+        ['count' => $pending['rewards'],     'icon' => 'fa-award',                'label' => __('dashboard.pending.rewards'),     'url' => route('admin.rewards.index')],
+        ['count' => $pending['payrolls'],    'icon' => 'fa-money-check-dollar',   'label' => __('dashboard.pending.payrolls'),    'url' => route('admin.payrolls.index')],
+        // overdue=1 بيعرض نفس الفواتير اللي العدّاد بيعدّها
+        ['count' => $alerts['overdue_invoices'],  'icon' => 'fa-file-invoice-dollar', 'label' => __('dashboard.alerts.overdue_invoices'),  'url' => route('admin.sales.index', ['overdue' => 1])],
+        ['count' => $alerts['due_subscriptions'], 'icon' => 'fa-repeat',              'label' => __('dashboard.alerts.due_subscriptions'), 'url' => route('admin.vendor-subscriptions.index')],
+    ], fn ($a) => $a['count'] > 0);
+@endphp
 
-    @if (admin_can('report_financial_pl'))
-        <a href="{{ route('admin.reports.financial-pl') }}" class="btn btn-sm btn-label-primary">
-            <i class="fa-solid fa-file-lines me-1"></i> {{ __('dashboard.view_full_report') }}
-        </a>
-    @endif
-</div>
-
-<div id="financialSummary">
-@forelse ($financial as $row)
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row g-3 align-items-center">
-
-                        <div class="col-md-2 text-center border-end">
-                            <span class="badge bg-label-primary fs-6 px-3 py-2">{{ $row['currency'] }}</span>
-                            <div class="small text-muted mt-2" data-bs-toggle="tooltip"
-                                 title="{{ __('dashboard.hints.invoice_count') }}">
-                                <span dir="ltr">{{ $row['invoices'] }}</span> {{ __('dashboard.invoice_count') }}
-                            </div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="avatar avatar-sm rounded bg-label-success d-flex align-items-center justify-content-center">
-                                    <i class="fa-solid fa-arrow-trend-up"></i>
-                                </span>
-                                <div>
-                                    <div class="small text-muted">{{ __('dashboard.revenue') }} <x-inputs.help :text="__('dashboard.hints.revenue')" /></div>
-                                    <h6 class="mb-0 fw-bold text-success" dir="ltr">{{ number_format($row['revenue'], 2) }}</h6>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="avatar avatar-sm rounded bg-label-warning d-flex align-items-center justify-content-center">
-                                    <i class="fa-solid fa-arrow-trend-down"></i>
-                                </span>
-                                <div>
-                                    <div class="small text-muted">{{ __('dashboard.expenses') }} <x-inputs.help :text="__('dashboard.hints.expenses')" /></div>
-                                    <h6 class="mb-0 fw-bold text-warning" dir="ltr">{{ number_format($row['expenses'], 2) }}</h6>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-2">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="avatar avatar-sm rounded bg-label-{{ $row['net'] >= 0 ? 'primary' : 'danger' }} d-flex align-items-center justify-content-center">
-                                    <i class="fa-solid fa-scale-balanced"></i>
-                                </span>
-                                <div>
-                                    <div class="small text-muted">{{ __('dashboard.net') }} <x-inputs.help :text="__('dashboard.hints.net')" /></div>
-                                    <h6 class="mb-0 fw-bold text-{{ $row['net'] >= 0 ? 'primary' : 'danger' }}" dir="ltr">
-                                        {{ $row['net'] >= 0 ? '+' : '' }}{{ number_format($row['net'], 2) }}
-                                    </h6>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-2">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="avatar avatar-sm rounded bg-label-danger d-flex align-items-center justify-content-center">
-                                    <i class="fa-solid fa-clock"></i>
-                                </span>
-                                <div>
-                                    <div class="small text-muted">{{ __('dashboard.outstanding') }} <x-inputs.help :text="__('dashboard.hints.outstanding')" /></div>
-                                    <h6 class="mb-0 fw-bold text-danger" dir="ltr">{{ number_format($row['due'], 2) }}</h6>
-                                </div>
-                            </div>
-                        </div>
-
+@if ($actions)
+    <div class="card mb-4">
+        <div class="card-body py-3">
+            <h6 class="dash-section-title"><i class="fa-solid fa-bell" style="color: var(--bs-warning)"></i>{{ __('dashboard.needs_attention') }}</h6>
+            <div class="row g-2">
+                @foreach ($actions as $action)
+                    <div class="col-sm-6 col-lg-4 col-xxl-3">
+                        <a href="{{ $action['url'] }}" class="dash-action">
+                            <i class="fa-solid {{ $action['icon'] }}"></i>
+                            <span class="text-truncate">{{ $action['label'] }}</span>
+                            <span class="dash-action-count badge bg-label-warning">{{ $action['count'] }}</span>
+                        </a>
                     </div>
-                </div>
+                @endforeach
             </div>
         </div>
     </div>
-@empty
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body text-center py-5">
-            <i class="fa-solid fa-chart-simple text-muted mb-3" style="font-size: 2.5rem; opacity: .25;"></i>
-            <h6 class="text-muted">{{ __('dashboard.no_financial_data') }}</h6>
-            <p class="small text-muted mb-0">{{ __('dashboard.no_financial_hint') }}</p>
-        </div>
-    </div>
-@endforelse
-</div>
+@endif
 
+{{-- ═══════════ الملخص المالي ═══════════ --}}
+<h6 class="dash-section-title"><i class="fa-solid fa-chart-line"></i>{{ __('dashboard.financial_summary') }}</h6>
+<div id="financialSummary" class="mb-4">
+    @include('admin.home.partials.financial', ['financial' => $financial])
+</div>
 
 {{-- ═══════════ الرسوم البيانية ═══════════ --}}
 <div class="row g-4 mb-4">
-
-    {{-- اتجاه الإيرادات والمصروفات --}}
-    <div class="col-lg-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
-                <h6 class="card-title mb-0 fw-bold">
-                    <i class="fa-solid fa-chart-area text-primary me-2"></i>
-                    {{ __('dashboard.charts.trend') }}
-                </h6>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-label-secondary" id="trendCurrency" data-bs-toggle="tooltip"
-                          title="{{ __('dashboard.hints.trend_currency') }}">
-                        {{ __('dashboard.all_currencies') }}
-                    </span>
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-label-secondary dropdown-toggle chart-type-btn"
-                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
-                            data-target="trend"
-                            aria-expanded="false"
-                            title="{{ __('dashboard.chart_types.change') }}">
-                        <i class="fa-solid fa-chart-simple"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                        <li><h6 class="dropdown-header">{{ __('dashboard.chart_types.change') }}</h6></li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="trend" data-type="line">
-                                <i class="fa-solid fa-chart-line fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.line') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="trend" data-type="area">
-                                <i class="fa-solid fa-chart-area fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.area') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="trend" data-type="column">
-                                <i class="fa-solid fa-chart-column fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.column') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="trend" data-type="bar">
-                                <i class="fa-solid fa-chart-bar fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.bar') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="trend" data-type="donut">
-                                <i class="fa-solid fa-chart-pie fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.donut') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="trend" data-type="pie">
-                                <i class="fa-solid fa-circle-half-stroke fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.pie') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="trend" data-type="pieLabeled">
-                                <i class="fa-solid fa-share-nodes fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.pieLabeled') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="trend" data-type="radar">
-                                <i class="fa-solid fa-spider fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.radar') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="trend" data-type="treemap">
-                                <i class="fa-solid fa-table-cells-large fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.treemap') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="trend" data-type="polarArea">
-                                <i class="fa-solid fa-bullseye fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.polarArea') }}</span>
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <div id="chartTrend"></div>
-            </div>
-        </div>
+    <div class="col-xl-8">
+        @include('admin.home.partials.chart-card', [
+            'target' => 'trend', 'chartId' => 'chartTrend', 'icon' => 'fa-chart-area',
+            'title' => __('dashboard.charts.trend'), 'badgeId' => 'trendCurrency',
+        ])
     </div>
-
-    {{-- توزيع المصروفات --}}
-    <div class="col-lg-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
-                <h6 class="card-title mb-0 fw-bold">
-                    <i class="fa-solid fa-chart-pie text-warning me-2"></i>
-                    {{ __('dashboard.charts.expense_split') }}
-                    <x-inputs.help :text="__('dashboard.hints.expense_split')" />
-                </h6>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-label-warning" id="expenseCurrency">{{ __('dashboard.all_currencies') }}</span>
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-label-warning dropdown-toggle chart-type-btn"
-                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
-                            data-target="expenses"
-                            aria-expanded="false"
-                            title="{{ __('dashboard.chart_types.change') }}">
-                        <i class="fa-solid fa-chart-simple"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                        <li><h6 class="dropdown-header">{{ __('dashboard.chart_types.change') }}</h6></li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="expenses" data-type="line">
-                                <i class="fa-solid fa-chart-line fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.line') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="expenses" data-type="area">
-                                <i class="fa-solid fa-chart-area fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.area') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="expenses" data-type="column">
-                                <i class="fa-solid fa-chart-column fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.column') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="expenses" data-type="bar">
-                                <i class="fa-solid fa-chart-bar fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.bar') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="expenses" data-type="donut">
-                                <i class="fa-solid fa-chart-pie fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.donut') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="expenses" data-type="pie">
-                                <i class="fa-solid fa-circle-half-stroke fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.pie') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="expenses" data-type="pieLabeled">
-                                <i class="fa-solid fa-share-nodes fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.pieLabeled') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="expenses" data-type="radar">
-                                <i class="fa-solid fa-spider fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.radar') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="expenses" data-type="treemap">
-                                <i class="fa-solid fa-table-cells-large fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.treemap') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="expenses" data-type="polarArea">
-                                <i class="fa-solid fa-bullseye fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.polarArea') }}</span>
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <div id="chartExpenses"></div>
-            </div>
-        </div>
+    <div class="col-xl-4">
+        @include('admin.home.partials.chart-card', [
+            'target' => 'expenses', 'chartId' => 'chartExpenses', 'icon' => 'fa-chart-pie',
+            'title' => __('dashboard.charts.expense_split'), 'hint' => __('dashboard.hints.expense_split'),
+            'badgeId' => 'expenseCurrency',
+        ])
     </div>
-
 </div>
 
 <div class="row g-4 mb-4">
-
-    {{-- المبيعات حسب القناة --}}
-    <div class="col-lg-5">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
-                <h6 class="card-title mb-0 fw-bold">
-                    <i class="fa-solid fa-store text-info me-2"></i>
-                    {{ __('dashboard.charts.sales_channels') }}
-                    <x-inputs.help :text="__('dashboard.hints.sales_channels')" />
-                </h6>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-label-info" id="channelsCurrency">{{ __('dashboard.all_currencies') }}</span>
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-label-info dropdown-toggle chart-type-btn"
-                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
-                            data-target="channels"
-                            aria-expanded="false"
-                            title="{{ __('dashboard.chart_types.change') }}">
-                        <i class="fa-solid fa-chart-simple"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                        <li><h6 class="dropdown-header">{{ __('dashboard.chart_types.change') }}</h6></li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="channels" data-type="line">
-                                <i class="fa-solid fa-chart-line fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.line') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="channels" data-type="area">
-                                <i class="fa-solid fa-chart-area fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.area') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="channels" data-type="column">
-                                <i class="fa-solid fa-chart-column fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.column') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="channels" data-type="bar">
-                                <i class="fa-solid fa-chart-bar fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.bar') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="channels" data-type="donut">
-                                <i class="fa-solid fa-chart-pie fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.donut') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="channels" data-type="pie">
-                                <i class="fa-solid fa-circle-half-stroke fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.pie') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="channels" data-type="pieLabeled">
-                                <i class="fa-solid fa-share-nodes fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.pieLabeled') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="channels" data-type="radar">
-                                <i class="fa-solid fa-spider fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.radar') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="channels" data-type="treemap">
-                                <i class="fa-solid fa-table-cells-large fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.treemap') }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                    data-target="channels" data-type="polarArea">
-                                <i class="fa-solid fa-bullseye fa-fw"></i>
-                                <span>{{ __('dashboard.chart_types.polarArea') }}</span>
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-                </div>
+    <div class="col-xl-5">
+        @include('admin.home.partials.chart-card', [
+            'target' => 'channels', 'chartId' => 'chartChannels', 'icon' => 'fa-store',
+            'title' => __('dashboard.charts.sales_channels'), 'hint' => __('dashboard.hints.sales_channels'),
+            'badgeId' => 'channelsCurrency',
+        ])
+    </div>
+    <div class="col-xl-7">
+        <div class="card h-100">
+            <div class="card-header">
+                <h6 class="card-title mb-0 fw-bold"><i class="fa-solid fa-crown text-primary me-2"></i>{{ __('dashboard.top_customers') }}</h6>
             </div>
-            <div class="card-body p-0">
-                <div id="chartChannels"></div>
+            <div class="card-body pt-2" id="topCustomers">
+                @include('admin.home.partials.top-customers', ['topCustomers' => $topCustomers])
             </div>
         </div>
     </div>
-
-    {{-- أعلى العملاء --}}
-    <div class="col-lg-7">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-bottom">
-                <h6 class="card-title mb-0 fw-bold">
-                    <i class="fa-solid fa-crown text-warning me-2"></i>
-                    {{ __('dashboard.top_customers') }}
-                </h6>
-            </div>
-            <div class="card-body">
-                @forelse ($topCustomers as $i => $customer)
-                    <div class="d-flex align-items-center gap-3 {{ !$loop->last ? 'mb-3 pb-3 border-bottom' : '' }}">
-                        <span class="badge bg-label-{{ ['primary','info','success','warning','secondary'][$i] ?? 'secondary' }} rounded-circle"
-                              style="width:32px;height:32px;line-height:22px;">{{ $i + 1 }}</span>
-
-                        <div class="flex-grow-1">
-                            <h6 class="mb-0 fw-semibold">{{ $customer['label'] }}</h6>
-                            <small class="text-muted">{{ $customer['invoices'] }} {{ __('dashboard.invoice_count') }}</small>
-                        </div>
-
-                        <h6 class="mb-0 fw-bold text-success" dir="ltr">{{ number_format($customer['total'], 2) }}</h6>
-                    </div>
-                @empty
-                    <p class="text-muted text-center small py-5 mb-0">{{ __('dashboard.no_data') }}</p>
-                @endforelse
-            </div>
-        </div>
-    </div>
-
 </div>
-
 
 {{-- ═══════════ الموارد البشرية ═══════════ --}}
-<h5 class="mb-3 fw-bold text-dark">
-    <i class="fa-solid fa-users text-primary me-2"></i> {{ __('dashboard.hr_summary') }}
-</h5>
-
+<h6 class="dash-section-title"><i class="fa-solid fa-users"></i>{{ __('dashboard.hr_summary') }}</h6>
 <div class="row g-4 mb-4">
-
-    <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h3 class="mb-0 fw-bold text-success">{{ $hr['active'] }}</h3>
-                        <small class="text-muted">{{ __('dashboard.hr.active') }}</small>
-                    </div>
-                    <span class="avatar rounded bg-label-success d-flex align-items-center justify-content-center">
-                        <i class="fa-solid fa-user-check"></i>
-                    </span>
-                </div>
-            </div>
+    @foreach ([
+        ['total',     'fa-users',             'primary'],
+        ['active',    'fa-user-check',        'success'],
+        ['on_leave',  'fa-plane-departure',   'warning'],
+        ['new_hires', 'fa-user-plus',         'info'],
+    ] as [$key, $icon, $color])
+        <div class="col-sm-6 col-xl-3">
+            @include('admin.home.partials.stat', [
+                'label' => __('dashboard.hr.' . $key), 'value' => $hr[$key], 'icon' => $icon, 'color' => $color,
+            ])
         </div>
-    </div>
-
-    <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 border-start border-warning border-4">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h3 class="mb-0 fw-bold text-warning">{{ $hr['on_leave'] }}</h3>
-                        <small class="text-muted">{{ __('dashboard.hr.on_leave') }}</small>
-                    </div>
-                    <span class="avatar rounded bg-label-warning d-flex align-items-center justify-content-center">
-                        <i class="fa-solid fa-plane-departure"></i>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 border-start border-info border-4">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h3 class="mb-0 fw-bold text-info">{{ $hr['new_hires'] }}</h3>
-                        <small class="text-muted">{{ __('dashboard.hr.new_hires') }}</small>
-                    </div>
-                    <span class="avatar rounded bg-label-info d-flex align-items-center justify-content-center">
-                        <i class="fa-solid fa-user-plus"></i>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 border-start border-primary border-4">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h3 class="mb-0 fw-bold text-primary">{{ $hr['total'] }}</h3>
-                        <small class="text-muted">{{ __('dashboard.hr.total') }}</small>
-                    </div>
-                    <span class="avatar rounded bg-label-primary d-flex align-items-center justify-content-center">
-                        <i class="fa-solid fa-users"></i>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    @endforeach
 </div>
 
 @if (count($hr['by_branch']) > 1)
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header border-bottom d-flex justify-content-between align-items-center">
-            <h6 class="card-title mb-0 fw-bold">
-                <i class="fa-solid fa-building text-primary me-2"></i>
-                {{ __('dashboard.charts.employees_by_branch') }}
-            </h6>
-            <div class="dropdown">
-                <button class="btn btn-sm btn-label-primary dropdown-toggle chart-type-btn"
-                        type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
-                        data-target="branches" aria-expanded="false"
-                        title="{{ __('dashboard.chart_types.change') }}">
-                    <i class="fa-solid fa-chart-simple"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                    <li><h6 class="dropdown-header">{{ __('dashboard.chart_types.change') }}</h6></li>
-                    <li>
-                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                data-target="branches" data-type="line">
-                            <i class="fa-solid fa-chart-line fa-fw"></i>
-                            <span>{{ __('dashboard.chart_types.line') }}</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                data-target="branches" data-type="area">
-                            <i class="fa-solid fa-chart-area fa-fw"></i>
-                            <span>{{ __('dashboard.chart_types.area') }}</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                data-target="branches" data-type="column">
-                            <i class="fa-solid fa-chart-column fa-fw"></i>
-                            <span>{{ __('dashboard.chart_types.column') }}</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                data-target="branches" data-type="bar">
-                            <i class="fa-solid fa-chart-bar fa-fw"></i>
-                            <span>{{ __('dashboard.chart_types.bar') }}</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                data-target="branches" data-type="donut">
-                            <i class="fa-solid fa-chart-pie fa-fw"></i>
-                            <span>{{ __('dashboard.chart_types.donut') }}</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                data-target="branches" data-type="pie">
-                            <i class="fa-solid fa-circle-half-stroke fa-fw"></i>
-                            <span>{{ __('dashboard.chart_types.pie') }}</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                data-target="branches" data-type="pieLabeled">
-                            <i class="fa-solid fa-share-nodes fa-fw"></i>
-                            <span>{{ __('dashboard.chart_types.pieLabeled') }}</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                data-target="branches" data-type="radar">
-                            <i class="fa-solid fa-spider fa-fw"></i>
-                            <span>{{ __('dashboard.chart_types.radar') }}</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                data-target="branches" data-type="treemap">
-                            <i class="fa-solid fa-table-cells-large fa-fw"></i>
-                            <span>{{ __('dashboard.chart_types.treemap') }}</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" class="dropdown-item chart-type-option d-flex align-items-center gap-2"
-                                data-target="branches" data-type="polarArea">
-                            <i class="fa-solid fa-bullseye fa-fw"></i>
-                            <span>{{ __('dashboard.chart_types.polarArea') }}</span>
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="card-body">
-            <div id="chartBranches"></div>
-        </div>
+    <div class="mb-4">
+        @include('admin.home.partials.chart-card', [
+            'target' => 'branches', 'chartId' => 'chartBranches', 'icon' => 'fa-building',
+            'title' => __('dashboard.charts.employees_by_branch'),
+        ])
     </div>
 @endif
 
@@ -1608,6 +1044,34 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleCustomRange();
     }
 
+    /**
+     * الملخص المالي وأعلى العملاء بيترندروا من السيرفر بنفس الـ partials
+     * بتاعة الصفحة (financialHtml / topCustomersHtml) — مصدر واحد للشكل.
+     */
+    function renderServerHtml(data) {
+        var financial = document.querySelector('#financialSummary');
+        if (financial && typeof data.financialHtml === 'string') {
+            financial.innerHTML = data.financialHtml;
+        } else {
+            renderFinancial(data.financial || []);
+        }
+
+        var customers = document.querySelector('#topCustomers');
+        if (customers && typeof data.topCustomersHtml === 'string') {
+            customers.innerHTML = data.topCustomersHtml;
+        }
+
+        // أيقونات الشرح (؟) الجديدة محتاجة تتفعّل
+        if (window.bootstrap && bootstrap.Tooltip) {
+            [financial, customers].forEach(function (box) {
+                if (!box) return;
+                box.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+                    bootstrap.Tooltip.getOrCreateInstance(el);
+                });
+            });
+        }
+    }
+
     function cell(label, value, cls) {
         return '<div class="col-md-2"><div class="small text-muted">' + label + '</div>'
              + '<h6 class="mb-0 fw-bold ' + cls + '" dir="ltr">' + value + '</h6></div>';
@@ -1677,7 +1141,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var label = document.querySelector('#periodLabel');
             if (label && data.filter) label.textContent = data.filter.label;
 
-            renderFinancial(data.financial || []);
+            renderServerHtml(data);
 
             trendChart.render(data.trend || { labels: [], series: [] });
             expenseChart.render(data.expenseSplit || { groups: [] });

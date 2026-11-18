@@ -30,9 +30,13 @@ class HomeController extends Controller
      */
     public function dashboardData(Request $request, DashboardService $dashboard): JsonResponse
     {
-        $filtered = $dashboard->withFilter(DashboardFilter::fromRequest($request));
+        $payload = $dashboard->withFilter(DashboardFilter::fromRequest($request))->filteredPayload();
 
-        return response()->json($filtered->filteredPayload());
+        // نفس partials الصفحة: الشكل له مصدر واحد بدل HTML مكتوب يدوي في الـ JS
+        $payload['financialHtml'] = view('admin.home.partials.financial', ['financial' => $payload['financial']])->render();
+        $payload['topCustomersHtml'] = view('admin.home.partials.top-customers', ['topCustomers' => $payload['topCustomers']])->render();
+
+        return response()->json($payload);
     }
 
     // error_403
