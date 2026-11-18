@@ -18,6 +18,32 @@
     </div>
 </div>
 
+{{-- تنبيه المستندات: المنتهية أو اللي هتنتهي خلال المدة --}}
+@if ($expiringDocuments->isNotEmpty())
+    <div class="alert alert-warning d-flex gap-3 mb-4" role="alert">
+        <i class="fa-solid fa-triangle-exclamation fa-lg mt-1"></i>
+        <div class="flex-grow-1">
+            <h6 class="alert-heading fw-bold mb-2">{{ __('portal.home.documents_alert') }}</h6>
+            <ul class="mb-1 ps-3">
+                @foreach ($expiringDocuments as $doc)
+                    @php($days = (int) now()->startOfDay()->diffInDays($doc->expiry_date, false))
+                    <li>
+                        <strong>{{ $doc->title ?: __('document.types.' . $doc->document_type) }}</strong> —
+                        @if ($days < 0)
+                            <span class="text-danger">{{ __('portal.home.document_expired', ['date' => $doc->expiry_date->format('Y-m-d')]) }}</span>
+                        @elseif ($days === 0)
+                            {{ __('portal.home.document_expires_today') }}
+                        @else
+                            {{ __('portal.home.document_expires_in', ['days' => $days, 'date' => $doc->expiry_date->format('Y-m-d')]) }}
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+            <small>{{ __('portal.home.documents_alert_hint') }}</small>
+        </div>
+    </div>
+@endif
+
 <div class="row g-4 mb-4">
     {{-- أرصدة الإجازات --}}
     @foreach ([

@@ -41,45 +41,24 @@
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header"><h6 class="mb-0 fw-bold">{{ __('portal.permissions.title') }}</h6></div>
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 align-middle">
-                    <thead>
-                        <tr>
-                            <th>{{ __('portal.permissions.date') }}</th>
-                            <th>{{ __('portal.permissions.time') }}</th>
-                            <th>{{ __('portal.permissions.hours') }}</th>
-                            <th>{{ __('portal.fields.status') }}</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($permissions as $p)
-                            <tr>
-                                <td dir="ltr" class="text-nowrap">{{ $p->permission_date?->format('Y-m-d') }}</td>
-                                <td dir="ltr" class="text-nowrap">{{ $p->start_time }} - {{ $p->end_time }}</td>
-                                <td>{{ $p->hours_count + 0 }}</td>
-                                <td>
-                                    {!! \App\Enums\ApprovalStatus::badgeFor($p->status, 'permission.status_enums') !!}
-                                    @if ($p->rejection_reason)
-                                        <div class="small text-danger mt-1">{{ $p->rejection_reason }}</div>
-                                    @endif
-                                </td>
-                                <td class="text-end">
-                                    @include('portal.partials.cancel-button', [
-                                        'pending' => $p->status === \App\Enums\ApprovalStatus::Pending->value,
-                                        'action'  => route('portal.permissions.destroy', $p->id),
-                                    ])
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="5" class="text-center text-muted py-4">{{ __('portal.requests.empty') }}</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            <div class="card-body border-bottom">
+                @include('portal.partials.date-filter', ['period' => $period])
             </div>
-            @if ($permissions->hasPages())
-                <div class="card-footer">{{ $permissions->links() }}</div>
-            @endif
+            <div class="card-body">
+                <x-dataTable.table
+                    id="portal-permissions"
+                    :columns="[__('portal.permissions.date'), __('portal.permissions.time'), __('portal.permissions.hours'), __('portal.fields.status'), '']"
+                    :fields="[
+                        'permission_date',
+                        ['data' => 'time', 'orderable' => false, 'searchable' => false],
+                        'hours_count',
+                        ['data' => 'status_badge', 'name' => 'status', 'searchable' => false],
+                        ['data' => 'action', 'orderable' => false, 'searchable' => false, 'className' => 'text-end'],
+                    ]"
+                    :order="[[0, 'desc']]"
+                    :exportable="false"
+                    :searchable="false" />
+            </div>
         </div>
     </div>
 </div>

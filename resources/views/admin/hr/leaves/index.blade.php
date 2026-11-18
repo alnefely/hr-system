@@ -150,7 +150,7 @@
                                 </select>
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label">{{ __('leave.fields.leave_type') }} <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('leave.fields.leave_type') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('leave.hints.leave_type')" /></label>
                                 <select name="leave_type" class="form-select select2" required>
                                     <option value="annual">{{ __('leave.type_enums.annual') }}</option>
                                     <option value="casual">{{ __('leave.type_enums.casual') }}</option>
@@ -160,22 +160,22 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">{{ __('leave.fields.start_date') }} <span class="text-danger">*</span></label>
-                                <input type="date" name="start_date" class="form-control" value="{{ date('Y-m-d') }}" required>
+                                <input type="date" name="start_date" id="leave_start_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">{{ __('leave.fields.end_date') }} <span class="text-danger">*</span></label>
-                                <input type="date" name="end_date" class="form-control" value="{{ date('Y-m-d') }}" required>
+                                <input type="date" name="end_date" id="leave_end_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label">{{ __('leave.fields.days_count') }} <span class="text-danger">*</span></label>
-                                <input type="number" step="0.5" min="0.5" name="days_count" class="form-control" value="1" required dir="ltr">
+                                <label class="form-label">{{ __('leave.fields.days_count') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('leave.hints.days_count')" /></label>
+                                <input type="number" step="0.5" min="0.5" name="days_count" id="leave_days_count" class="form-control" value="1" required dir="ltr">
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">{{ __('leave.fields.reason') }}</label>
                                 <textarea name="reason" class="form-control" rows="2" placeholder="سبب طلب الإجازة..."></textarea>
                             </div>
                             <div class="col-md-12">
-                                <x-inputs.lfm name="attachment" label="{{ __('leave.fields.attachment') }}" type="file" :showClear="true" />
+                                <x-inputs.lfm name="attachment" label="{{ __('leave.fields.attachment') }}" :tooltip="__('leave.hints.attachment')" type="file" :showClear="true" />
                             </div>
                         </div>
                     </div>
@@ -216,6 +216,33 @@
     </div>
 @endif
 @endsection
+
+@push('js')
+<script>
+    // عدد الأيام بيتملّى تلقائياً من التاريخين (شاملين الاتنين) لما أي تاريخ يتغيّر،
+    // ويفضل قابل للتعديل: الموارد البشرية ممكن تستثني الجمعة أو الإجازات الرسمية أو تكتب نص يوم.
+    (function () {
+        const start = document.getElementById('leave_start_date');
+        const end = document.getElementById('leave_end_date');
+        const days = document.getElementById('leave_days_count');
+        if (!start || !end || !days) return;
+
+        function fill() {
+            if (!start.value || !end.value) return;
+            const n = Math.round((new Date(end.value) - new Date(start.value)) / 86400000) + 1;
+            if (n >= 1) days.value = n;
+        }
+
+        start.addEventListener('change', function () {
+            end.min = start.value;
+            if (!end.value || end.value < start.value) end.value = start.value;
+            fill();
+        });
+        end.addEventListener('change', fill);
+        end.min = start.value;
+    })();
+</script>
+@endpush
 
 @push('js')
 <script>

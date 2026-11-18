@@ -62,6 +62,16 @@ class EmployeePortalTest extends TestCase
         return $this->post(route('portal.login.attempt'), ['phone' => $phone, 'password' => $password]);
     }
 
+    /**
+     * صفوف جدول البوابة زي ما DataTables بيطلبها (ajax على نفس رابط الصفحة).
+     *
+     * @return \Illuminate\Support\Collection<int, array>
+     */
+    private function rows(string $url): \Illuminate\Support\Collection
+    {
+        return collect($this->get($url, ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->json('data'));
+    }
+
     /** دخول وكلمة المرور الأولية اتغيّرت — للاختبارات اللي مش بتختبر الدخول نفسه. */
     private function actingAsEmployee(?Employee $employee = null): void
     {
@@ -257,7 +267,17 @@ class EmployeePortalTest extends TestCase
             'status' => 'pending', 'reason' => 'COLLEAGUE-SECRET',
         ]);
 
+        $mine = EmployeeLeave::create([
+            'employee_id' => $this->employee->id, 'leave_type' => 'annual',
+            'start_date' => '2026-12-12', 'end_date' => '2026-12-12', 'days_count' => 1,
+            'status' => 'pending', 'reason' => 'MINE',
+        ]);
+
         $this->actingAsEmployee();
+
+        // الجدول (server-side): صف واحد بس — بتاعي
+        $rows = $this->rows(route('portal.leaves.index'));
+        $this->assertSame([$mine->id], $rows->pluck('id')->all());
 
         $this->get(route('portal.leaves.index'))->assertOk()->assertDontSee('COLLEAGUE-SECRET');
         $this->get(route('portal.home'))->assertOk();
@@ -291,6 +311,59 @@ class EmployeePortalTest extends TestCase
         $this->get(route('portal.payslips.show', $paid->id))->assertOk();
         $this->get(route('portal.payslips.show', $theirs->id))->assertNotFound();
         $this->get(route('portal.payslips.show', $unpaid->id))->assertNotFound();
+
+        // الجدول (server-side): المصروفة بتاعتي بس
+        $this->assertSame([$paid->id], $this->rows(route('portal.payslips.index'))->pluck('id')->all());
+    }
+
+    /** أيام الإجازة بتتحسب من التاريخين — المكتوب بيتجاهل، ونص اليوم لليوم الواحد بس. */
+    public function test_portal_leave_days_are_calculated_from_dates(): void
+    {
+        $this->actingAsEmployee();
+
+        $this->post(route('portal.leaves.store'), [
+            'leave_type' => 'annual', 'start_date' => '2026-12-01', 'end_date' => '2026-12-03', 'days_count' => 99,
+        ])->assertSessionHasNoErrors();
+        $this->assertEquals(3, EmployeeLeave::whereDate('start_date', '2026-12-01')->sole()->days_count);
+
+        $this->post(route('portal.leaves.store'), [
+            'leave_type' => 'casual', 'start_date' => '2026-12-10', 'end_date' => '2026-12-10', 'half_day' => 1,
+        ])->assertSessionHasNoErrors();
+        $this->assertEquals(0.5, EmployeeLeave::whereDate('start_date', '2026-12-10')->sole()->days_count);
+
+        // نص يوم لأكتر من يوم: مرفوض
+        $this->post(route('portal.leaves.store'), [
+            'leave_type' => 'casual', 'start_date' => '2026-12-20', 'end_date' => '2026-12-21', 'half_day' => 1,
+        ])->assertSessionHasErrors('half_day');
+    }
+
+    /** جداول الطلبات (server-side) بتتفلتر بالتاريخ ومابتعرضش غير طلباتي. */
+    public function test_request_tables_are_server_side_and_date_filtered(): void
+    {
+        $this->actingAsEmployee();
+
+        $perm = fn (Employee $e, string $date) => \App\Models\EmployeePermission::create([
+            'employee_id' => $e->id, 'permission_date' => $date, 'start_time' => '10:00', 'end_time' => '11:00',
+            'hours_count' => 1, 'status' => 'pending',
+        ]);
+
+        $nov = $perm($this->employee, '2026-11-10');
+        $oct = $perm($this->employee, '2026-10-10');
+        $perm($this->colleague, '2026-11-10');
+
+        $this->assertEqualsCanonicalizing([$nov->id, $oct->id], $this->rows(route('portal.permissions.index'))->pluck('id')->all());
+        $this->assertSame([$nov->id], $this->rows(route('portal.permissions.index', ['from_date' => '2026-11-01', 'to_date' => '2026-11-30']))->pluck('id')->all());
+
+        // زرار الإلغاء جاي جاهز مع الصف المعلّق
+        $this->assertStringContainsString(route('portal.permissions.destroy', $nov->id), $this->rows(route('portal.permissions.index'))->firstWhere('id', $nov->id)['action']);
+
+        // السلف
+        \App\Models\EmployeeAdvance::create([
+            'employee_id' => $this->employee->id, 'amount' => 1200, 'installments_count' => 3, 'monthly_installment' => 400,
+            'remaining_amount' => 1200, 'advance_date' => '2026-11-01', 'start_date' => '2026-12-01', 'status' => 'pending', 'reason' => 'x',
+        ]);
+        $this->assertCount(1, $this->rows(route('portal.advances.index')));
+        $this->assertCount(0, $this->rows(route('portal.advances.index', ['from_date' => '2026-12-01'])));
     }
 
     /** كل شاشات البوابة بتفتح من غير أخطاء. */
@@ -301,7 +374,9 @@ class EmployeePortalTest extends TestCase
         $this->actingAsEmployee();
 
         foreach (['portal.home', 'portal.profile', 'portal.password.edit', 'portal.permissions.index',
-                  'portal.leaves.index', 'portal.advances.index', 'portal.payslips.index'] as $route) {
+                  'portal.leaves.index', 'portal.advances.index', 'portal.payslips.index',
+                  'portal.rewards.index', 'portal.penalties.index', 'portal.expenses.index',
+                  'portal.documents.index', 'portal.salary.index'] as $route) {
             $this->get(route($route))->assertOk();
         }
 
@@ -601,6 +676,241 @@ class EmployeePortalTest extends TestCase
         auth('admin')->logout();
         auth('employee')->logout();
         $this->get(route('portal.login'))->assertDontSee('__confirmSubmitBound', false);
+    }
+
+    /** مكافآتي: المعتمد والمصروف بتوعي بس — لا المعلّق ولا المرفوض ولا بتوع زميلي. */
+    public function test_employee_sees_only_own_approved_and_paid_rewards(): void
+    {
+        $make = fn (Employee $e, string $title, string $status, float $amount) => \App\Models\EmployeeReward::create([
+            'employee_id' => $e->id, 'reward_type' => 'bonus', 'title' => $title,
+            'amount' => $amount, 'reward_date' => now()->toDateString(), 'status' => $status,
+        ]);
+
+        $make($this->employee, 'Approved One', 'approved', 300);
+        $make($this->employee, 'Paid One', 'paid', 200);
+        $make($this->employee, 'Pending One', 'pending', 999);
+        $make($this->employee, 'Rejected One', 'rejected', 888);
+        $make($this->colleague, 'Colleague Reward', 'approved', 777);
+
+        $this->actingAsEmployee();
+
+        // الجدول: المعتمد والمصروف بتوعي بس
+        $titles = $this->rows(route('portal.rewards.index'))->pluck('title')->implode(' ');
+        $this->assertStringContainsString('Approved One', $titles);
+        $this->assertStringContainsString('Paid One', $titles);
+        foreach (['Pending One', 'Rejected One', 'Colleague Reward'] as $hidden) {
+            $this->assertStringNotContainsString($hidden, $titles);
+        }
+
+        // الكروت الملخّصة
+        $this->get(route('portal.rewards.index'))->assertOk()
+            ->assertSee('500.00')   // إجمالي الفترة
+            ->assertSee('300.00')   // معتمد لسه هيتصرف
+            ->assertSee('200.00');  // تم صرفه
+
+        // فلتر بفترة قديمة: مفيش حاجة
+        $old = ['from_date' => '2020-01-01', 'to_date' => '2020-12-31'];
+        $this->assertCount(0, $this->rows(route('portal.rewards.index', $old)));
+    }
+
+    /** جزاءاتي: المعتمد بتاعي بس، والمبلغ بنفس حساب المسير. */
+    public function test_employee_sees_only_own_approved_penalties(): void
+    {
+        $make = fn (Employee $e, string $reason, string $status, array $extra = []) => \App\Models\EmployeePenalty::create([
+            'employee_id' => $e->id, 'penalty_date' => now()->toDateString(), 'reason' => $reason, 'status' => $status,
+        ] + $extra + ['penalty_type' => 'amount_deduction', 'deduction_amount' => 150]);
+
+        $make($this->employee, 'Late arrival', 'approved');
+        // خصم أيام من غير مبلغ مخزّن: يوم × (6000 / 30) = 200
+        $make($this->employee, 'Absent day', 'approved', ['penalty_type' => 'days_deduction', 'days_count' => 1, 'deduction_amount' => 0]);
+        $make($this->employee, 'Pending case', 'pending');
+        $make($this->employee, 'Rejected case', 'rejected');
+        $make($this->colleague, 'Colleague case', 'approved');
+
+        $this->actingAsEmployee();
+
+        $rows = $this->rows(route('portal.penalties.index'));
+        $this->assertEqualsCanonicalizing(['Late arrival', 'Absent day'], $rows->pluck('reason')->all());
+
+        $deductions = $rows->pluck('deduction')->implode(' ');
+        $this->assertStringContainsString('-150.00', $deductions);
+        $this->assertStringContainsString('-200.00', $deductions);
+
+        $this->get(route('portal.penalties.index'))->assertOk()->assertSee('350.00');   // إجمالي الفترة
+    }
+
+    /** مصروفات عهدتي: بتاعتي في الشهر المختار بس، والإجمالي لكل عملة. */
+    public function test_employee_sees_own_custody_expenses_by_month(): void
+    {
+        $category = \App\Models\ExpenseCategory::create(['name' => 'Fuel', 'code' => 'FUEL', 'is_active' => true]);
+
+        $make = fn (?Employee $e, string $title, string $date, float $amount, string $currency = 'EGP') => \App\Models\Expense::create([
+            'title' => $title, 'expense_category_id' => $category->id, 'branch_id' => $this->branch->id,
+            'employee_id' => $e?->id, 'amount' => $amount, 'currency' => $currency,
+            'expense_date' => $date, 'payment_method' => 'cash',
+        ]);
+
+        $make($this->employee, 'Taxi November', '2026-11-05', 120);
+        $make($this->employee, 'Printer ink', '2026-11-20', 80);
+        $make($this->employee, 'Hotel USD', '2026-11-21', 50, 'USD');
+        $make($this->employee, 'October fuel', '2026-10-10', 300);
+        $make($this->colleague, 'Colleague taxi', '2026-11-06', 999);
+        $make(null, 'Branch rent', '2026-11-01', 5000);
+
+        $this->actingAsEmployee();
+
+        $november = ['from_date' => '2026-11-01', 'to_date' => '2026-11-30'];
+
+        $titles = $this->rows(route('portal.expenses.index', $november))->pluck('title')->implode(' ');
+        foreach (['Taxi November', 'Printer ink', 'Hotel USD'] as $shown) {
+            $this->assertStringContainsString($shown, $titles);
+        }
+        foreach (['October fuel', 'Colleague taxi', 'Branch rent'] as $hidden) {
+            $this->assertStringNotContainsString($hidden, $titles);
+        }
+
+        // الإجمالي لكل عملة لوحدها
+        $this->get(route('portal.expenses.index', $november))->assertOk()
+            ->assertSee('200.00')     // EGP: 120 + 80
+            ->assertSee('50.00');     // USD لوحده
+
+        $october = $this->rows(route('portal.expenses.index', ['from_date' => '2026-10-01', 'to_date' => '2026-10-31']));
+        $this->assertStringContainsString('October fuel', $october->pluck('title')->implode(' '));
+        $this->assertCount(1, $october);
+
+        // "كل الفترات" (فاضي صراحةً): الأربعة بتوعي
+        $this->assertCount(4, $this->rows(route('portal.expenses.index', ['from_date' => '', 'to_date' => ''])));
+
+        // تاريخ بصيغة غلط بيتجاهل من غير خطأ
+        $this->get(route('portal.expenses.index', ['from_date' => 'bad', 'to_date' => '2026-13-45']))->assertOk();
+    }
+
+    /** بياناتي: الراتب الحالي والبدلات وسجل التعديلات. */
+    public function test_profile_shows_salary_allowances_and_history(): void
+    {
+        $this->employee->allowances()->create(['name' => 'Transport', 'amount' => 500]);
+        \App\Models\EmployeeSalary::create([
+            'employee_id' => $this->employee->id, 'basic_salary' => 5000, 'allowances' => 0,
+            'currency' => 'EGP', 'effective_date' => '2025-01-01', 'change_reason' => 'hiring',
+        ]);
+        \App\Models\EmployeeSalary::create([
+            'employee_id' => $this->employee->id, 'basic_salary' => 6000, 'allowances' => 500,
+            'currency' => 'EGP', 'effective_date' => '2026-01-01', 'change_reason' => 'annual_raise',
+        ]);
+
+        $this->actingAsEmployee();
+
+        $this->get(route('portal.salary.index'))->assertOk()
+            ->assertSee(__('portal.profile.salary'))
+            ->assertSee('Transport')
+            ->assertSee('6,500.00')                       // 6000 + 500
+            ->assertSee(__('salary.reasons.annual_raise'))
+            ->assertSee(__('salary.reasons.hiring'));
+    }
+
+    /** الرئيسية بتنبّه بالمستندات المنتهية أو القريبة من الانتهاء بس. */
+    public function test_home_alerts_about_expiring_documents(): void
+    {
+        $doc = fn (string $title, ?string $expiry) => $this->employee->documents()->create([
+            'document_type' => 'other', 'title' => $title, 'file_path' => '/x.pdf', 'expiry_date' => $expiry,
+        ]);
+
+        $doc('Old Passport', now()->subDays(3)->toDateString());
+        $doc('National ID', now()->addDays(10)->toDateString());
+        $doc('Driving License', now()->addDays(90)->toDateString());
+        $doc('Degree', null);
+
+        $this->actingAsEmployee();
+
+        $this->get(route('portal.home'))->assertOk()
+            ->assertSee(__('portal.home.documents_alert'))
+            ->assertSee('Old Passport')->assertSee('National ID')
+            ->assertDontSee('Driving License')->assertDontSee('Degree');
+    }
+
+    /**
+     * طلب من البوابة بيوصل إشعاره للمشرف حتى لو نفس المتصفح داخل لوحة
+     * الإدارة كمان. قبل كده المشرف كان بيتستبعد كأنه هو اللي قدّم الطلب.
+     */
+    public function test_portal_request_notifies_admin_logged_in_same_browser(): void
+    {
+        $admin = $this->actingAsAdmin(['permission_show', 'leave_show', 'advance_show']);
+        $this->actingAsEmployee();
+
+        $this->post(route('portal.permissions.store'), [
+            'permission_date' => '2026-12-01', 'start_time' => '10:00', 'end_time' => '11:00',
+        ])->assertSessionHasNoErrors();
+
+        $notification = \App\Models\AdminNotification::where('admin_id', $admin->id)
+            ->where('type', \App\Enums\NotificationType::PermissionRequested->value)
+            ->sole();
+
+        // صاحب الحدث الموظف، مش المشرف اللي في نفس الجلسة
+        $this->assertNull($notification->causer_id);
+
+        // وبيظهر في كارت "يحتاج إجراء" في رئيسية الإدارة
+        $this->actingAs(Admin::create([
+            'name' => 'Boss', 'email' => 'boss@test.com', 'password' => bcrypt('password'),
+            'main' => true, 'role_id' => Role::create(['name' => 'All', 'roles' => all_roles()])->id,
+        ]), 'admin');
+        $this->get(route('admin.home'))->assertOk()
+            ->assertSee(__('dashboard.pending.permissions'))
+            ->assertSee(route('admin.permissions.index', ['status' => 'pending']), false);
+    }
+
+    /** مشرف فرع تاني في نفس المتصفح مايفلترش بيانات الموظف في البوابة. */
+    public function test_branch_admin_in_same_browser_does_not_filter_portal_data(): void
+    {
+        $other = Branch::create(['name' => 'Other', 'code' => 'OT', 'country' => 'Egypt', 'currency' => 'EGP', 'is_active' => true]);
+        $otherEmp = Employee::create([
+            'branch_id' => $other->id, 'job_title_id' => $this->jobTitle->id, 'name' => 'Other Emp',
+            'employee_code' => 'OT-0001', 'phone' => '+201000000077', 'status' => 'active', 'basic_salary' => 5000, 'hire_date' => '2024-01-01',
+        ]);
+        $this->actingAsAdmin(['permission_show'], $otherEmp->id);   // مقيّد بفرع Other
+
+        $leave = EmployeeLeave::create([
+            'employee_id' => $this->employee->id, 'leave_type' => 'annual',
+            'start_date' => '2026-12-01', 'end_date' => '2026-12-01', 'days_count' => 1, 'status' => 'pending',
+        ]);
+
+        $this->actingAsEmployee();
+        \App\Support\BranchScopeResolver::forget();
+
+        $this->assertSame([$leave->id], $this->rows(route('portal.leaves.index'))->pluck('id')->all());
+    }
+
+    /** مستنداتي: بتاعتي بس، مع حالة الانتهاء ورابط الملف. */
+    public function test_documents_page_lists_own_documents_with_expiry_state(): void
+    {
+        $this->employee->documents()->create([
+            'document_type' => 'other', 'title' => 'My Passport', 'file_path' => '/files/passport.pdf',
+            'expiry_date' => now()->subDay()->toDateString(),
+        ]);
+        $this->colleague->documents()->create([
+            'document_type' => 'other', 'title' => 'Colleague ID', 'file_path' => '/files/x.pdf',
+        ]);
+
+        $this->actingAsEmployee();
+
+        $this->get(route('portal.documents.index'))->assertOk()
+            ->assertSee('My Passport')
+            ->assertSee('/files/passport.pdf', false)
+            ->assertSee(__('portal.documents.expired'))
+            ->assertDontSee('Colleague ID');
+
+        // بياناتي فيها اختصار للصفحتين
+        $this->get(route('portal.profile'))->assertOk()
+            ->assertSee(route('portal.documents.index'), false)
+            ->assertSee(route('portal.salary.index'), false);
+    }
+
+    /** زرار الخروج من البوابة مايسألش تأكيد. */
+    public function test_portal_logout_form_skips_confirmation(): void
+    {
+        $this->actingAsEmployee();
+
+        $this->get(route('portal.home'))->assertOk()
+            ->assertSee('action="' . route('portal.logout') . '" method="POST" class="m-0" data-no-confirm', false);
     }
 
     /** الصفحة الرئيسية بتعرض اختيار اللوحتين. */

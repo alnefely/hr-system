@@ -206,6 +206,17 @@ class Employee extends Model implements Authenticatable
         return $this->hasMany(EmployeePenalty::class)->orderBy('penalty_date', 'desc');
     }
 
+    public function rewards(): HasMany
+    {
+        return $this->hasMany(EmployeeReward::class)->orderBy('reward_date', 'desc');
+    }
+
+    /** مصروفات العهدة المسجّلة على الموظف (هو اللي صرفها من العهدة). */
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class)->orderBy('expense_date', 'desc')->orderBy('id', 'desc');
+    }
+
     public function advances(): HasMany
     {
         return $this->hasMany(EmployeeAdvance::class)->orderBy('advance_date', 'desc');

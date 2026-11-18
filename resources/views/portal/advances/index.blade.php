@@ -38,42 +38,25 @@
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header"><h6 class="mb-0 fw-bold">{{ __('portal.advances.title') }}</h6></div>
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 align-middle">
-                    <thead>
-                        <tr>
-                            <th>{{ __('portal.advances.date') }}</th>
-                            <th>{{ __('portal.advances.amount') }}</th>
-                            <th>{{ __('portal.advances.installment') }}</th>
-                            <th>{{ __('portal.advances.remaining') }}</th>
-                            <th>{{ __('portal.fields.status') }}</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($advances as $a)
-                            <tr>
-                                <td dir="ltr" class="text-nowrap">{{ $a->advance_date?->format('Y-m-d') }}</td>
-                                <td dir="ltr" class="text-nowrap">{{ number_format((float) $a->amount, 2) }}</td>
-                                <td dir="ltr" class="text-nowrap">{{ number_format((float) $a->monthly_installment, 2) }} <small class="text-muted">&times; {{ $a->installments_count }}</small></td>
-                                <td dir="ltr" class="text-nowrap fw-bold {{ (float) $a->remaining_amount > 0 ? 'text-danger' : 'text-success' }}">{{ number_format((float) $a->remaining_amount, 2) }}</td>
-                                <td>{!! \App\Enums\AdvanceStatus::badgeFor($a->status, 'advance.status_enums') !!}</td>
-                                <td class="text-end">
-                                    @include('portal.partials.cancel-button', [
-                                        'pending' => $a->status === \App\Enums\AdvanceStatus::Pending->value,
-                                        'action'  => route('portal.advances.destroy', $a->id),
-                                    ])
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="6" class="text-center text-muted py-4">{{ __('portal.requests.empty') }}</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            <div class="card-body border-bottom">
+                @include('portal.partials.date-filter', ['period' => $period])
             </div>
-            @if ($advances->hasPages())
-                <div class="card-footer">{{ $advances->links() }}</div>
-            @endif
+            <div class="card-body">
+                <x-dataTable.table
+                    id="portal-advances"
+                    :columns="[__('portal.advances.date'), __('portal.advances.amount'), __('portal.advances.installment'), __('portal.advances.remaining'), __('portal.fields.status'), '']"
+                    :fields="[
+                        'advance_date',
+                        ['data' => 'amount', 'searchable' => false],
+                        ['data' => 'monthly_installment', 'searchable' => false],
+                        ['data' => 'remaining_amount', 'searchable' => false],
+                        ['data' => 'status_badge', 'name' => 'status', 'searchable' => false],
+                        ['data' => 'action', 'orderable' => false, 'searchable' => false, 'className' => 'text-end'],
+                    ]"
+                    :order="[[0, 'desc']]"
+                    :exportable="false"
+                    :searchable="false" />
+            </div>
         </div>
     </div>
 </div>

@@ -1,6 +1,11 @@
 <!doctype html>
+{{--
+    قالب بوابة الموظف — نفس هيكل لوحة الإدارة (Vuexy): قائمة جانبية +
+    شريط علوي منفصل فيه تبديل الوضع الليلي وقائمة المستخدم. الموظف اللي
+    بيستخدم اللوحتين بيلاقي نفس الشكل ونفس أماكن الحاجات.
+--}}
 <html lang="{{ vuexy_setting('lang') }}" dir="{{ vuexy_setting('dir') }}"
-      class="layout-wide customizer-hide"
+      class="{{ vuexy_setting('class') }}"
       data-skin="{{ vuexy_setting('data_skin') }}"
       data-bs-theme="{{ vuexy_setting('data_bs_theme') }}"
       data-assets-path="{{ vuexy_setting('data_assets_path') }}"
@@ -18,98 +23,266 @@
     <link rel="stylesheet" href="/admin/vendor/libs/node-waves/node-waves.css" />
     <link rel="stylesheet" href="/admin/vendor/css/core.css" />
     <link rel="stylesheet" href="/admin/css/demo.css" />
+    <link rel="stylesheet" href="/admin/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <script src="/admin/vendor/js/helpers.js"></script>
     <script src="/admin/js/config.js"></script>
+    @include('layouts.partials.theme-init')
     <link rel="stylesheet" href="{{ asset('admin/custom.css') }}" />
     <style>
-        body { background: var(--bs-body-bg); }
-        .portal-nav .nav-link.active { color: var(--bs-primary) !important; font-weight: 600; }
         .portal-stat .icon { width: 2.75rem; height: 2.75rem; display: inline-flex; align-items: center; justify-content: center; border-radius: .5rem; }
     </style>
     <link rel="stylesheet" href="/admin/vendor/libs/sweetalert2/sweetalert2.css" />
     @stack('css')
 </head>
 <body>
-@php($me = auth('employee')->user())
+{{-- @php كبلوك مش سطر: لو @php(...) جه قبل بلوك @php ... @endphp في نفس الملف Blade بيبلع اللي بينهم --}}
+@php
+    $me = auth('employee')->user();
 
-<nav class="navbar navbar-expand-lg bg-body shadow-sm portal-nav mb-4">
-    <div class="container-xxl">
-        <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="{{ route('portal.home') }}">
-            @if (setting('site_logo'))
-                <img src="{{ setting('site_logo') }}" alt="" height="32">
-            @endif
-            <span>{{ __('portal.title') }}</span>
-        </a>
+    $mainMenu = [
+        ['portal.home',              'fa-house',               'home',        'portal.home'],
+        ['portal.permissions.index', 'fa-clock',               'permissions', 'portal.permissions.*'],
+        ['portal.leaves.index',      'fa-calendar-check',      'leaves',      'portal.leaves.*'],
+        ['portal.advances.index',    'fa-hand-holding-dollar', 'advances',    'portal.advances.*'],
+        ['portal.documents.index',   'fa-folder-open',         'documents',   'portal.documents.*'],
+    ];
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#portalNav" aria-controls="portalNav" aria-expanded="false" aria-label="menu">
-            <i class="fa-solid fa-bars"></i>
-        </button>
+    // الشاشات المالية (عرض بس) في مجموعة واحدة
+    $finance = [
+        ['portal.salary.index',    'fa-sack-dollar',         'salary',    'portal.salary.*'],
+        ['portal.payslips.index',  'fa-file-invoice-dollar', 'payslips',  'portal.payslips.*'],
+        ['portal.rewards.index',   'fa-gift',                'rewards',   'portal.rewards.*'],
+        ['portal.penalties.index', 'fa-scale-balanced',      'penalties', 'portal.penalties.*'],
+        ['portal.expenses.index',  'fa-wallet',              'expenses',  'portal.expenses.*'],
+    ];
+    $financeActive = request()->routeIs(...array_column($finance, 3));
+@endphp
 
-        <div class="collapse navbar-collapse" id="portalNav">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-lg-1">
-                @foreach ([
-                    ['portal.home',              'fa-house',               'home',        'portal.home'],
-                    ['portal.permissions.index', 'fa-clock',               'permissions', 'portal.permissions.*'],
-                    ['portal.leaves.index',      'fa-calendar-check',      'leaves',      'portal.leaves.*'],
-                    ['portal.advances.index',    'fa-hand-holding-dollar', 'advances',    'portal.advances.*'],
-                    ['portal.payslips.index',    'fa-file-invoice-dollar', 'payslips',    'portal.payslips.*'],
-                ] as [$route, $icon, $label, $pattern])
-                    <li class="nav-item">
-                        <a class="nav-link @if (request()->routeIs($pattern)) active @endif" href="{{ route($route) }}">
-                            <i class="fa-solid {{ $icon }} me-1"></i> {{ __('portal.nav.' . $label) }}
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+
+        {{-- القائمة الجانبية --}}
+        <aside id="layout-menu" class="layout-menu menu-vertical menu">
+            <div class="app-brand demo">
+                <a href="{{ route('portal.home') }}" class="app-brand-link">
+                    @if (setting('site_logo'))
+                        <span class="app-brand-logo demo">
+                            <img src="{{ setting('site_logo') }}" alt="Logo" class="w-px-40 h-auto rounded-circle">
+                        </span>
+                    @endif
+                    <span class="app-brand-text demo menu-text fw-bold ms-3">{{ __('portal.title') }}</span>
+                </a>
+                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+                    <i class="icon-base ti menu-toggle-icon d-none d-xl-block"></i>
+                    <i class="icon-base ti tabler-x d-block d-xl-none"></i>
+                </a>
+            </div>
+            <div class="menu-inner-shadow"></div>
+
+            <ul class="menu-inner py-1">
+                @foreach ($mainMenu as [$route, $icon, $label, $pattern])
+                    <li class="menu-item @if (request()->routeIs($pattern)) active @endif">
+                        <a href="{{ route($route) }}" class="menu-link">
+                            <i class="fa-solid {{ $icon }}"></i>
+                            <div>{{ __('portal.nav.' . $label) }}</div>
                         </a>
                     </li>
                 @endforeach
-            </ul>
 
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="{{ $me->avatar_url }}" alt="" class="rounded-circle" width="32" height="32" style="object-fit: cover">
-                    <span>{{ $me->name }}</span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="{{ route('portal.profile') }}"><i class="fa-solid fa-id-card me-2"></i>{{ __('portal.nav.profile') }}</a></li>
-                    <li><a class="dropdown-item" href="{{ route('portal.password.edit') }}"><i class="fa-solid fa-key me-2"></i>{{ __('portal.nav.change_password') }}</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form action="{{ route('portal.logout') }}" method="POST" class="m-0">
-                            @csrf
-                            <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i>{{ __('portal.nav.logout') }}</button>
-                        </form>
-                    </li>
-                </ul>
+                <li class="menu-item @if ($financeActive) active open @endif">
+                    <a href="javascript:void(0);" class="menu-link menu-toggle">
+                        <i class="fa-solid fa-coins"></i>
+                        <div>{{ __('portal.nav.finance') }}</div>
+                    </a>
+                    <ul class="menu-sub">
+                        @foreach ($finance as [$route, $icon, $label, $pattern])
+                            <li class="menu-item @if (request()->routeIs($pattern)) active @endif">
+                                <a href="{{ route($route) }}" class="menu-link">
+                                    <div>{{ __('portal.nav.' . $label) }}</div>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </li>
+
+                <li class="menu-item @if (request()->routeIs('portal.profile')) active @endif">
+                    <a href="{{ route('portal.profile') }}" class="menu-link">
+                        <i class="fa-solid fa-id-card"></i>
+                        <div>{{ __('portal.nav.profile') }}</div>
+                    </a>
+                </li>
+
+                <li class="menu-item @if (request()->routeIs('portal.password.*')) active @endif">
+                    <a href="{{ route('portal.password.edit') }}" class="menu-link">
+                        <i class="fa-solid fa-key"></i>
+                        <div>{{ __('portal.nav.change_password') }}</div>
+                    </a>
+                </li>
+
+                <li class="menu-item">
+                    <form action="{{ route('portal.logout') }}" method="POST" class="m-0" data-no-confirm>
+                        @csrf
+                        <a href="#" class="menu-link" onclick="event.preventDefault(); this.closest('form').submit();">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <div>{{ __('portal.nav.logout') }}</div>
+                        </a>
+                    </form>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="menu-mobile-toggler d-xl-none rounded-1">
+            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+                <i class="ti tabler-menu icon-base"></i>
+                <i class="ti tabler-chevron-right icon-base"></i>
+            </a>
+        </div>
+
+        <div class="layout-page">
+
+            {{-- الشريط العلوي — نفس شريط لوحة الإدارة --}}
+            <nav class="layout-navbar container-fluid navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme" id="layout-navbar">
+                <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+                    <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                        <i class="icon-base ti tabler-menu-2 icon-md"></i>
+                    </a>
+                </div>
+
+                <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
+                    {{-- الوضع الليلي --}}
+                    <div class="navbar-nav align-items-center">
+                        <div class="nav-item dropdown me-2 me-xl-0">
+                            <a class="nav-link dropdown-toggle hide-arrow" id="nav-theme" href="javascript:void(0);" data-bs-toggle="dropdown">
+                                <i class="icon-base ti tabler-sun icon-md theme-icon-active"></i>
+                                <span class="d-none ms-2" id="nav-theme-text">Toggle theme</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="nav-theme-text">
+                                <li>
+                                    <button type="button" class="dropdown-item align-items-center active" data-bs-theme-value="light" aria-pressed="false">
+                                        <span><i class="icon-base ti tabler-sun icon-md me-3" data-icon="sun"></i>Light</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button type="button" class="dropdown-item align-items-center" data-bs-theme-value="dark" aria-pressed="true">
+                                        <span><i class="icon-base ti tabler-moon-stars icon-md me-3" data-icon="moon-stars"></i>Dark</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button type="button" class="dropdown-item align-items-center" data-bs-theme-value="system" aria-pressed="false">
+                                        <span><i class="icon-base ti tabler-device-desktop-analytics icon-md me-3" data-icon="device-desktop-analytics"></i>System</span>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+                        {{-- اختصار: طلب جديد --}}
+                        <li class="nav-item me-2 me-xl-3 d-none d-sm-block">
+                            <a class="btn btn-sm btn-label-primary waves-effect" href="{{ route('portal.permissions.index') }}#new">
+                                <i class="fa-solid fa-plus me-1"></i> {{ __('portal.permissions.new') }}
+                            </a>
+                        </li>
+
+                        {{-- المستخدم --}}
+                        <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                            <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
+                                <div class="avatar avatar-online">
+                                    <img src="{{ $me->avatar_url }}" alt="{{ $me->name }}" class="rounded-circle" style="object-fit: cover" />
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('portal.profile') }}">
+                                        <div class="d-flex">
+                                            <div class="flex-shrink-0 me-3">
+                                                <div class="avatar avatar-online">
+                                                    <img src="{{ $me->avatar_url }}" alt="{{ $me->name }}" class="w-px-40 h-auto rounded-circle" style="object-fit: cover" />
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-0">{{ $me->name }}</h6>
+                                                <small class="text-body-secondary" dir="ltr">{{ $me->employee_code }}</small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li><div class="dropdown-divider my-1 mx-n2"></div></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('portal.profile') }}">
+                                        <i class="icon-base ti tabler-user icon-md me-3"></i><span>{{ __('portal.nav.profile') }}</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('portal.password.edit') }}">
+                                        <i class="icon-base ti tabler-key icon-md me-3"></i><span>{{ __('portal.nav.change_password') }}</span>
+                                    </a>
+                                </li>
+                                <li><div class="dropdown-divider my-1 mx-n2"></div></li>
+                                <li>
+                                    {{-- الخروج بـ submit() مباشرة: مالوش تأكيد --}}
+                                    <form action="{{ route('portal.logout') }}" method="POST" class="m-0" data-no-confirm>
+                                        @csrf
+                                        <a class="dropdown-item" href="#" onclick="event.preventDefault(); this.closest('form').submit();">
+                                            <i class="icon-base ti tabler-power icon-md me-3"></i><span>{{ __('portal.nav.logout') }}</span>
+                                        </a>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="content-wrapper">
+                <div class="container-fluid flex-grow-1 container-p-y">
+                    @foreach (['success' => 'success', 'error' => 'danger'] as $key => $class)
+                        @if (session($key))
+                            <div class="alert alert-{{ $class }} alert-dismissible">
+                                {{ session($key) }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        @endif
+                    @endforeach
+
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0 ps-3">
+                                @foreach ($errors->all() as $message)
+                                    <li>{{ $message }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @yield('content')
+                </div>
+
+                <footer class="content-footer footer bg-footer-theme">
+                    <div class="container-fluid">
+                        <div class="footer-container d-flex align-items-center justify-content-between py-4 flex-md-row flex-column">
+                            <div class="text-body">Copyright &copy; {{ date('Y') }} {{ setting('site_name') }}. All rights reserved.</div>
+                        </div>
+                    </div>
+                </footer>
+
+                <div class="content-backdrop fade"></div>
             </div>
         </div>
     </div>
-</nav>
 
-<main class="container-xxl pb-5">
-    @foreach (['success' => 'success', 'error' => 'danger'] as $key => $class)
-        @if (session($key))
-            <div class="alert alert-{{ $class }} alert-dismissible">
-                {{ session($key) }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-    @endforeach
-
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0 ps-3">
-                @foreach ($errors->all() as $message)
-                    <li>{{ $message }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    @yield('content')
-</main>
+    <div class="layout-overlay layout-menu-toggle"></div>
+    <div class="drag-target"></div>
+</div>
 
 <script src="/admin/vendor/libs/jquery/jquery.js"></script>
 <script src="/admin/vendor/libs/popper/popper.js"></script>
 <script src="/admin/vendor/js/bootstrap.js"></script>
 <script src="/admin/vendor/libs/node-waves/node-waves.js"></script>
+<script src="/admin/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+<script src="/admin/vendor/libs/hammer/hammer.js"></script>
+<script src="/admin/vendor/js/menu.js"></script>
+<script src="/admin/js/main.js"></script>
 <script src="/admin/vendor/libs/sweetalert2/sweetalert2.js"></script>
 @include('layouts.partials.confirm-submit')
 @stack('js')

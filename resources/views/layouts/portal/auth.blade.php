@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="/admin/vendor/css/pages/page-auth.css" />
     <script src="/admin/vendor/js/helpers.js"></script>
     <script src="/admin/js/config.js"></script>
+    @include('layouts.partials.theme-init')
     <link rel="stylesheet" href="{{ asset('admin/custom.css') }}" />
     @stack('css')
 </head>

@@ -1,6 +1,41 @@
 @extends('layouts.portal.app')
 @section('title', __('portal.nav.leaves'))
 
+@push('js')
+<script>
+    // عدد أيام الإجازة من التاريخين (شاملين الاتنين) — ونص يوم متاح بس لليوم الواحد.
+    // السيرفر بيحسبه تاني (PortalLeaveRequest)، الرقم هنا للعرض بس.
+    (function () {
+        const start = document.getElementById('start_date');
+        const end = document.getElementById('end_date');
+        const half = document.getElementById('half_day');
+        const halfWrap = document.getElementById('half_day_wrapper');
+        const preview = document.getElementById('leave_days_preview');
+        if (!start || !end || !preview) return;
+
+        function refresh() {
+            const days = start.value && end.value
+                ? Math.round((new Date(end.value) - new Date(start.value)) / 86400000) + 1
+                : 0;
+
+            halfWrap.classList.toggle('d-none', days !== 1);
+            if (days !== 1) half.checked = false;
+            preview.textContent = days < 1 ? '—' : (days === 1 && half.checked ? '0.5' : String(days));
+        }
+
+        start.addEventListener('change', function () {
+            end.min = start.value;
+            if (!end.value || end.value < start.value) end.value = start.value;
+            refresh();
+        });
+        end.addEventListener('change', refresh);
+        half.addEventListener('change', refresh);
+        end.min = start.value;
+        refresh();
+    })();
+</script>
+@endpush
+
 @section('content')
 <div class="row g-4">
     <div class="col-lg-4">
@@ -44,10 +79,16 @@
                             <input type="date" class="form-control" id="end_date" name="end_date" value="{{ old('end_date') }}" required>
                         </div>
                     </div>
+                    {{-- عدد الأيام بيتحسب من التاريخين (والسيرفر بيحسبه تاني — الرقم ده للعرض بس) --}}
                     <div class="mb-3">
-                        <label class="form-label" for="days_count">{{ __('portal.leaves.days') }}</label>
-                        <input type="number" step="0.5" min="0.5" class="form-control" id="days_count" name="days_count" value="{{ old('days_count') }}" required>
-                        <div class="form-text">{{ __('portal.leaves.days_hint') }}</div>
+                        <label class="form-label">{{ __('portal.leaves.days') }}</label>
+                        <div class="form-control bg-light fw-bold" id="leave_days_preview">—</div>
+                        <div class="form-text">{{ __('portal.leaves.days_auto') }}</div>
+                    </div>
+                    <div class="mb-3 form-check d-none" id="half_day_wrapper">
+                        <input type="hidden" name="half_day" value="0">
+                        <input class="form-check-input" type="checkbox" id="half_day" name="half_day" value="1" @checked(old('half_day'))>
+                        <label class="form-check-label" for="half_day">{{ __('portal.leaves.half_day') }}</label>
                     </div>
                     <div class="mb-3">
                         <label class="form-label" for="reason">{{ __('portal.fields.reason') }}</label>
@@ -62,45 +103,24 @@
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header"><h6 class="mb-0 fw-bold">{{ __('portal.leaves.title') }}</h6></div>
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 align-middle">
-                    <thead>
-                        <tr>
-                            <th>{{ __('portal.leaves.type') }}</th>
-                            <th>{{ __('portal.leaves.period') }}</th>
-                            <th>{{ __('portal.leaves.days') }}</th>
-                            <th>{{ __('portal.fields.status') }}</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($leaves as $l)
-                            <tr>
-                                <td>{!! \App\Enums\LeaveType::fromValue($l->leave_type)?->badgeHtml() ?? e($l->leave_type) !!}</td>
-                                <td dir="ltr" class="text-nowrap">{{ $l->start_date?->format('Y-m-d') }} → {{ $l->end_date?->format('Y-m-d') }}</td>
-                                <td>{{ $l->days_count + 0 }}</td>
-                                <td>
-                                    {!! \App\Enums\LeaveStatus::badgeFor($l->status) !!}
-                                    @if ($l->rejection_reason)
-                                        <div class="small text-danger mt-1">{{ $l->rejection_reason }}</div>
-                                    @endif
-                                </td>
-                                <td class="text-end">
-                                    @include('portal.partials.cancel-button', [
-                                        'pending' => $l->status === \App\Enums\LeaveStatus::Pending->value,
-                                        'action'  => route('portal.leaves.destroy', $l->id),
-                                    ])
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="5" class="text-center text-muted py-4">{{ __('portal.requests.empty') }}</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            <div class="card-body border-bottom">
+                @include('portal.partials.date-filter', ['period' => $period])
             </div>
-            @if ($leaves->hasPages())
-                <div class="card-footer">{{ $leaves->links() }}</div>
-            @endif
+            <div class="card-body">
+                <x-dataTable.table
+                    id="portal-leaves"
+                    :columns="[__('portal.leaves.type'), __('portal.leaves.period'), __('portal.leaves.days'), __('portal.fields.status'), '']"
+                    :fields="[
+                        ['data' => 'type_badge', 'name' => 'leave_type', 'searchable' => false],
+                        ['data' => 'start_date', 'searchable' => false],
+                        'days_count',
+                        ['data' => 'status_badge', 'name' => 'status', 'searchable' => false],
+                        ['data' => 'action', 'orderable' => false, 'searchable' => false, 'className' => 'text-end'],
+                    ]"
+                    :order="[[1, 'desc']]"
+                    :exportable="false"
+                    :searchable="false" />
+            </div>
         </div>
     </div>
 </div>

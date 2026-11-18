@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="/admin/css/demo.css" />
     <script src="/admin/vendor/js/helpers.js"></script>
     <script src="/admin/js/config.js"></script>
+    @include('layouts.partials.theme-init')
     <link rel="stylesheet" href="{{ asset('admin/custom.css') }}" />
     <style>
         .landing { min-height: 100vh; display: flex; align-items: center; padding: 2rem 1rem; }

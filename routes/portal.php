@@ -2,11 +2,16 @@
 
 use App\Http\Controllers\Portal\AdvanceController;
 use App\Http\Controllers\Portal\AuthController;
+use App\Http\Controllers\Portal\DocumentController;
+use App\Http\Controllers\Portal\SalaryController;
+use App\Http\Controllers\Portal\ExpenseController;
+use App\Http\Controllers\Portal\PenaltyController;
 use App\Http\Controllers\Portal\HomeController;
 use App\Http\Controllers\Portal\LeaveController;
 use App\Http\Controllers\Portal\PayslipController;
 use App\Http\Controllers\Portal\PermissionController;
 use App\Http\Controllers\Portal\ProfileController;
+use App\Http\Controllers\Portal\RewardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,6 +38,8 @@ Route::prefix('portal')->name('portal.')->middleware('throttle:WebRateLimiter')-
 
         Route::get('/', [HomeController::class, 'index'])->name('home');
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+        Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+        Route::get('/salary', [SalaryController::class, 'index'])->name('salary.index');
 
         Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
         Route::post('/permissions', [PermissionController::class, 'store'])->name('permissions.store');
@@ -45,6 +52,11 @@ Route::prefix('portal')->name('portal.')->middleware('throttle:WebRateLimiter')-
         Route::get('/advances', [AdvanceController::class, 'index'])->name('advances.index');
         Route::post('/advances', [AdvanceController::class, 'store'])->name('advances.store');
         Route::delete('/advances/{id}', [AdvanceController::class, 'destroy'])->name('advances.destroy');
+
+        // عرض بس — التسجيل من لوحة الإدارة
+        Route::get('/rewards', [RewardController::class, 'index'])->name('rewards.index');
+        Route::get('/penalties', [PenaltyController::class, 'index'])->name('penalties.index');
+        Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
 
         Route::get('/payslips', [PayslipController::class, 'index'])->name('payslips.index');
         Route::get('/payslips/{id}', [PayslipController::class, 'show'])->name('payslips.show');
