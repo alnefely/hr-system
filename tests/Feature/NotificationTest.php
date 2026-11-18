@@ -310,6 +310,53 @@ class NotificationTest extends TestCase
         $this->assertNotNull($notification->fresh()->read_at, 'الإشعار مااتعلّمش كمقروء');
     }
 
+    /**
+     * الضغط على إشعار في الجرس: بيتعلّم مقروء (JSON) والعداد بيقل.
+     * قبل كده الجرس كان رابط مباشر للصفحة ومابيعدّيش على مسار القراءة،
+     * فالإشعار كان بيفضل غير مقروء.
+     */
+    public function test_bell_marks_notification_read_before_navigating(): void
+    {
+        $this->actingAs($this->mainAdmin, 'admin');
+
+        $make = fn () => AdminNotification::create([
+            'admin_id' => $this->mainAdmin->id, 'type' => 'leave_requested', 'title' => 'طلب',
+            'url' => route('admin.leaves.index'),
+        ]);
+        $first = $make();
+        $make();
+
+        // الجرس بيعلّم الإشعار وبيعرف حالته
+        $html = $this->get(route('admin.notifications.index'))->assertOk()->getContent();
+        $this->assertStringContainsString('data-unread=', $html);
+        $this->assertStringContainsString('notification-item', $html);
+        $this->assertStringContainsString(str_replace('/', '\/', route('admin.notifications.read', ['notification' => '__ID__'])), $html);
+
+        // نفس الطلب اللي الجرس بيبعته
+        $this->postJson(route('admin.notifications.read', $first->id))
+            ->assertOk()
+            ->assertJson(['success' => true, 'unread_count' => 1]);
+
+        $this->assertNotNull($first->fresh()->read_at);
+        $this->getJson(route('admin.notifications.latest'))->assertJson(['unread_count' => 1]);
+    }
+
+    /** أزرار القراءة في شاشة الإشعارات مالهاش نافذة تأكيد (مش إجراء مهم). */
+    public function test_notification_read_forms_skip_confirmation(): void
+    {
+        $this->actingAs($this->mainAdmin, 'admin');
+
+        AdminNotification::create([
+            'admin_id' => $this->mainAdmin->id, 'type' => 'leave_requested', 'title' => 'طلب',
+            'url' => route('admin.leaves.index'),
+        ]);
+
+        $html = $this->get(route('admin.notifications.index'))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/notifications\/read-all"[^>]*data-no-confirm/', $html);
+        $this->assertMatchesRegularExpression('/notifications\/\d+\/read"[^>]*data-no-confirm/', $html);
+    }
+
     /** لو الرابط هو نفس الصفحة الحالية بنوضّح بدل التحويل الصامت. */
     public function test_same_page_link_explains_instead_of_reloading(): void
     {

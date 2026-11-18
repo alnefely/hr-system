@@ -13,7 +13,7 @@
         </h5>
 
         @if($unreadCount > 0)
-            <form action="{{ route('admin.notifications.read-all') }}" method="POST" class="d-inline">
+            <form action="{{ route('admin.notifications.read-all') }}" method="POST" class="d-inline" data-no-confirm>
                 @csrf
                 <button type="submit" class="btn btn-label-primary waves-effect">
                     <i class="fa-solid fa-check-double me-1"></i> {{ __('notification.mark_all') }}
@@ -96,14 +96,14 @@
                         @endif
 
                         @if($notification->url)
-                            <form action="{{ route('admin.notifications.read', $notification->id) }}" method="POST" class="d-inline">
+                            <form action="{{ route('admin.notifications.read', $notification->id) }}" method="POST" class="d-inline" data-no-confirm>
                                 @csrf
                                 <button type="submit" class="btn btn-sm btn-label-primary waves-effect">
                                     <i class="fa-solid fa-arrow-left me-1"></i> {{ __('global.view') }}
                                 </button>
                             </form>
                         @elseif(!$notification->isRead())
-                            <form action="{{ route('admin.notifications.read', $notification->id) }}" method="POST" class="d-inline">
+                            <form action="{{ route('admin.notifications.read', $notification->id) }}" method="POST" class="d-inline" data-no-confirm>
                                 @csrf
                                 <button type="submit" class="btn btn-sm btn-label-secondary waves-effect">
                                     {{ __('notification.mark_read') }}

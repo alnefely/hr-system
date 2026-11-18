@@ -272,7 +272,7 @@
 
               listEl.innerHTML = items.map(function (n) {
                   const unread = n.is_read ? '' : 'style="background: rgba(115,103,240,0.06);"';
-                  return '<a href="' + esc(n.url || '#') + '" data-id="' + n.id + '"'
+                  return '<a href="' + esc(n.url || '#') + '" data-id="' + n.id + '" data-unread="' + (n.is_read ? '0' : '1') + '"'
                       + ' class="d-flex align-items-start gap-2 px-3 py-2 border-bottom text-body notification-item" ' + unread + '>'
                       + '<span class="badge bg-label-' + esc(n.level) + ' rounded p-2 flex-shrink-0">'
                       + '<i class="' + esc(n.icon) + '"></i></span>'
@@ -295,6 +295,40 @@
 
           // نحمّل أول ما القائمة تتفتح — مش مع كل تحميل صفحة
           bell.addEventListener('shown.bs.dropdown', load);
+
+          // الضغط على إشعار غير مقروء: نعلّمه مقروء الأول وبعدين نروح لرابطه.
+          // قبل كده الرابط كان بيودّي للصفحة مباشرة من غير ما يعدّي على
+          // notifications.read، فالإشعار كان بيفضل غير مقروء والعداد مابيتغيّرش.
+          const readUrl = @json(route('admin.notifications.read', ['notification' => '__ID__']));
+
+          listEl.addEventListener('click', function (e) {
+              const item = e.target.closest('.notification-item');
+              if (!item || item.dataset.unread !== '1') return;   // المقروء: رابط عادي
+
+              e.preventDefault();
+              const href = item.getAttribute('href');
+
+              fetch(readUrl.replace('__ID__', item.dataset.id), {
+                  method: 'POST',
+                  keepalive: true,   // يكمّل حتى لو الصفحة اتنقلت
+                  headers: {
+                      'X-CSRF-TOKEN': csrf,
+                      'X-Requested-With': 'XMLHttpRequest',
+                      'Accept': 'application/json'
+                  }
+              })
+              .then(r => r.ok ? r.json() : null)
+              .then(d => { if (d) setCount(d.unread_count); })
+              .catch(() => {})
+              .finally(() => {
+                  if (href && href !== '#') {
+                      window.location.href = href;
+                  } else {
+                      item.dataset.unread = '0';
+                      item.style.background = '';
+                  }
+              });
+          });
 
           // تعليم الكل كمقروء
           document.getElementById('markAllNotificationsRead')?.addEventListener('click', function (e) {
