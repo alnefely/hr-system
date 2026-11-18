@@ -12,6 +12,7 @@ use App\Models\Employee;
 use App\Models\EmployeeAdvance;
 use App\Models\EmployeeLeave;
 use App\Models\EmployeePenalty;
+use App\Models\EmployeePermission;
 use App\Models\EmployeeReward;
 use App\Models\Expense;
 use App\Models\Payroll;
@@ -360,14 +361,22 @@ class DashboardService
     /**
      * الطلبات المعلّقة — ده اللي المدير بيفتح اللوحة عشانه.
      */
+    /**
+     * طلبات بانتظار قرار — بتتعرض في كارت "يحتاج إجراء" في الرئيسية.
+     * كل نوع بيتحسب بس لو المشرف عنده صلاحية شاشته (وإلا صفر ومايظهرش)،
+     * والعزل بالفرع تلقائي من ScopedToBranch.
+     */
     private function pendingActions(): array
     {
+        $count = fn (string $permission, \Closure $query) => admin_can($permission) ? $query() : 0;
+
         return [
-            'leaves'      => EmployeeLeave::where('status', LeaveStatus::Pending->value)->count(),
-            'advances'    => EmployeeAdvance::where('status', AdvanceStatus::Pending->value)->count(),
-            'penalties'   => EmployeePenalty::where('status', ApprovalStatus::Pending->value)->count(),
-            'rewards'     => EmployeeReward::where('status', RewardStatus::Pending->value)->count(),
-            'payrolls'    => Payroll::where('status', PayrollStatus::Draft->value)->count(),
+            'leaves'      => $count('leave_show', fn () => EmployeeLeave::where('status', LeaveStatus::Pending->value)->count()),
+            'permissions' => $count('permission_show', fn () => EmployeePermission::where('status', ApprovalStatus::Pending->value)->count()),
+            'advances'    => $count('advance_show', fn () => EmployeeAdvance::where('status', AdvanceStatus::Pending->value)->count()),
+            'penalties'   => $count('penalty_show', fn () => EmployeePenalty::where('status', ApprovalStatus::Pending->value)->count()),
+            'rewards'     => $count('reward_show', fn () => EmployeeReward::where('status', RewardStatus::Pending->value)->count()),
+            'payrolls'    => $count('payroll_show', fn () => Payroll::where('status', PayrollStatus::Draft->value)->count()),
             'unread_notifications' => admin()
                 ? AdminNotification::forAdmin(admin()->id)->unread()->count()
                 : 0,

@@ -245,7 +245,7 @@ class LeaveService
             url: route('admin.leaves.index', ['employee_id' => $leave->employee_id]),
             branchId: $employee?->branch_id,
             data: ['leave_id' => $leave->id],
-            excludeAdminId: admin()?->id,
+            excludeAdminId: \App\Services\Notification\NotificationService::actingAdminId(),
         );
     }
 

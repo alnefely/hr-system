@@ -60,7 +60,7 @@ class PermissionService
             url: route('admin.permissions.index', ['employee_id' => $permission->employee_id]),
             branchId: $employee?->branch_id,
             data: ['permission_id' => $permission->id],
-            excludeAdminId: admin()?->id,
+            excludeAdminId: \App\Services\Notification\NotificationService::actingAdminId(),
         );
     }
 }

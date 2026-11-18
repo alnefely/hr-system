@@ -161,7 +161,7 @@ class AdvanceService
             url: route('admin.advances.index', ['employee_id' => $advance->employee_id]),
             branchId: $employee?->branch_id,
             data: ['advance_id' => $advance->id],
-            excludeAdminId: admin()?->id,
+            excludeAdminId: \App\Services\Notification\NotificationService::actingAdminId(),
         );
     }
 

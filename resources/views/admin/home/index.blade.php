@@ -5,7 +5,7 @@
 
 {{-- ═══════════ ما يحتاج إجراءً ═══════════ --}}
 @php
-    $totalPending = $pending['leaves'] + $pending['advances'] + $pending['penalties']
+    $totalPending = $pending['leaves'] + $pending['permissions'] + $pending['advances'] + $pending['penalties']
                   + $pending['rewards'] + $pending['payrolls'];
     $totalAlerts  = $alerts['overdue_invoices'] + $alerts['due_subscriptions'];
 @endphp
@@ -24,6 +24,14 @@
                         <i class="fa-solid fa-calendar-check me-1"></i>
                         {{ __('dashboard.pending.leaves') }}
                         <span class="badge bg-warning ms-1">{{ $pending['leaves'] }}</span>
+                    </a>
+                @endif
+
+                @if ($pending['permissions'])
+                    <a href="{{ route('admin.permissions.index', ['status' => 'pending']) }}" class="btn btn-sm btn-label-warning">
+                        <i class="fa-solid fa-clock me-1"></i>
+                        {{ __('dashboard.pending.permissions') }}
+                        <span class="badge bg-warning ms-1">{{ $pending['permissions'] }}</span>
                     </a>
                 @endif
 

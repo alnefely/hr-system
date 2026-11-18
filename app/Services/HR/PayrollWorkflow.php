@@ -209,7 +209,7 @@ class PayrollWorkflow
             url: route('admin.payrolls.show', $payroll->id),
             branchId: $payroll->branch_id,
             data: ['payroll_id' => $payroll->id],
-            excludeAdminId: admin()?->id,
+            excludeAdminId: \App\Services\Notification\NotificationService::actingAdminId(),
         );
     }
 

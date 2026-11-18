@@ -25,6 +25,26 @@ class NotificationService
     ) {}
 
     /**
+     * المشرف اللي عمل الحدث — عشان مايوصلوش إشعار بحاجة عملها بنفسه.
+     *
+     * الطلب الجاي من بوابة الموظف صاحبه الموظف، حتى لو نفس المتصفح داخل
+     * لوحة الإدارة كمان (الحارسين في نفس الجلسة). من غير الفحص ده المشرف
+     * كان بيتستبعد من إشعار طلب الموظف كأنه هو اللي قدّمه.
+     */
+    public static function actingAdminId(): ?int
+    {
+        if (app()->runningInConsole() && ! app()->runningUnitTests()) {
+            return null;   // الأوامر المجدولة مالهاش مشرف
+        }
+
+        if (request()?->routeIs('portal.*')) {
+            return null;
+        }
+
+        return auth('admin')->id();
+    }
+
+    /**
      * إشعار كل المشرفين المؤهّلين لنوع معيّن.
      *
      * المؤهّل = عنده صلاحية النوع ده، وتابع لنفس الفرع (أو مدير عام).
@@ -60,7 +80,8 @@ class NotificationService
         array $data = [],
     ): ?AdminNotification {
         try {
-            $causer = auth('admin')->check() ? auth('admin')->user() : null;
+            // صاحب الحدث: المشرف من لوحة الإدارة بس (طلب البوابة صاحبه الموظف)
+            $causer = self::actingAdminId() ? auth('admin')->user() : null;
 
             $notification = AdminNotification::create([
                 'admin_id'    => $adminId,
@@ -138,7 +159,11 @@ class NotificationService
                     return true;
                 }
 
-                return $this->adminBranchId($admin) === $branchId;
+                // المشرف اللي مش مربوط بموظف مش مقيّد بفرع (نفس قاعدة
+                // BranchScopeResolver) — بيشوف كل الفروع فيستقبل إشعاراتها.
+                $adminBranch = $this->adminBranchId($admin);
+
+                return $adminBranch === null || $adminBranch === $branchId;
             })
             ->values();
     }

@@ -29,6 +29,14 @@ class BranchScopeResolver
      */
     public static function branchId(): ?int
     {
+        // صفحات بوابة الموظف مقيّدة ببيانات الموظف نفسه (كل الاستعلامات من
+        // علاقاته). لو نفس المتصفح داخل لوحة الإدارة بمشرف فرع تاني، عزل
+        // الفروع كان هيفلتر بيانات الموظف بفرع المشرف ويطلّع البوابة فاضية.
+        // قبل الكاش: الكاش بتاع طلبات لوحة الإدارة.
+        if (request()?->routeIs('portal.*')) {
+            return null;
+        }
+
         if (static::$branchId !== false) {
             return static::$branchId;
         }

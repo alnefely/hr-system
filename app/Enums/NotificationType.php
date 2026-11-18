@@ -44,7 +44,6 @@ enum NotificationType: string
         return match ($this) {
             self::LeaveRequested, self::LeaveDecided     => 'fa-solid fa-calendar-check',
             self::PermissionRequested                    => 'fa-solid fa-clock',
-            self::PermissionRequested                    => 'fa-solid fa-clock',
             self::AdvanceRequested, self::AdvanceDecided => 'fa-solid fa-hand-holding-dollar',
             self::PayrollAwaitingReview                  => 'fa-solid fa-money-check-dollar',
             self::SubscriptionDueSoon                    => 'fa-solid fa-repeat',

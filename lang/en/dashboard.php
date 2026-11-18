@@ -15,6 +15,7 @@ return [
 
     'pending' => [
         'leaves'    => 'Leave requests',
+        'permissions' => 'Permission requests',
         'advances'  => 'Advance requests',
         'penalties' => 'Penalties awaiting approval',
         'rewards'   => 'Rewards awaiting approval',
