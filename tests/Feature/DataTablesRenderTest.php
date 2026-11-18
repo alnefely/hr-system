@@ -106,6 +106,70 @@ class DataTablesRenderTest extends TestCase
         }
     }
 
+    /**
+     * كل عمود الصفحة بتطلبه (columns.data) لازم يرجع من السيرفر.
+     *
+     * لو مش موجود DataTables بيطلّع تحذير "Requested unknown parameter"
+     * للمستخدم — زي invoice_date في سلة المبيعات (العمود اسمه sale_date).
+     */
+    public function test_every_requested_column_is_returned_by_the_server(): void
+    {
+        // السلال لازم يبقى فيها صف عشان المقارنة تحصل فعلاً
+        foreach ([
+            \App\Models\EmployeeLeave::class, \App\Models\EmployeePermission::class, \App\Models\EmployeePenalty::class,
+            \App\Models\EmployeeReward::class, \App\Models\EmployeeAdvance::class, \App\Models\Sale::class,
+            \App\Models\Expense::class, \App\Models\Customer::class,
+        ] as $model) {
+            if ($model::onlyTrashed()->exists() || ! ($record = $model::query()->latest('id')->first())) {
+                continue;
+            }
+
+            // نسخة للسلة عشان الجدول الأصلي مايفضاش لو فيه سجل واحد بس
+            $copy = $record->replicate();
+            foreach (['invoice_number', 'code', 'employee_code'] as $unique) {
+                if ($copy->getAttribute($unique) !== null) {
+                    $copy->setAttribute($unique, $copy->getAttribute($unique) . '-T');
+                }
+            }
+            $copy->save();
+            $copy->delete();
+        }
+
+        $checked = 0;
+
+        foreach (self::TABLES as $name) {
+            $html = $this->get(route($name))->assertOk()->getContent();
+
+            // الصفحة ممكن تكون CRLF — من غير \r? الفحص كان بيعدّي من غير ما يقارن حاجة
+            $this->assertGreaterThan(0, preg_match_all('/var columns = (\[.*?\]);\r?\n/s', $html, $m), "الجدول {$name}: تعريف الأعمدة مش موجود في الصفحة");
+
+            // المصروفات بتعرض الشهر الحالي افتراضياً — فترة واسعة عشان بيانات الـ seeder تظهر
+            $range = str_starts_with($name, 'admin.expenses') ? '&date_from=2000-01-01&date_to=2100-12-31' : '';
+
+            $row = $this->getJson(route($name) . '?draw=1&start=0&length=1' . $range, ['X-Requested-With' => 'XMLHttpRequest'])
+                ->json('data.0');
+
+            $this->assertIsArray($row, "الجدول {$name}: مفيش صفوف نقارن بيها — زوّد بيانات في setUp");
+            $checked++;
+
+            foreach ($m[1] as $json) {
+                foreach (json_decode($json, true) as $column) {
+                    $key = $column['data'] ?? null;
+
+                    // العمود اللي ليه قيمة افتراضية (زي أعمدة الإجراءات) مش لازم يرجع
+                    if ($key === null || array_key_exists('defaultContent', $column)) {
+                        continue;
+                    }
+
+                    $this->assertTrue(
+                        \Illuminate\Support\Arr::has($row, $key),
+                        "الجدول {$name}: العمود «{$key}» مطلوب في الصفحة ومش راجع من السيرفر"
+                    );
+                }
+            }
+        }
+    }
+
     public function test_action_columns_contain_confirm_forms(): void
     {
         $rows = $this->getJson(route('admin.penalties.index') . '?draw=1&start=0&length=50', [

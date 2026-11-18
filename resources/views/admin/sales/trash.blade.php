@@ -52,7 +52,7 @@
                 'customer_name',
                 'channel_name',
                 'net_formatted',
-                'invoice_date',
+                'sale_date',
                 'deleted_at'
             ]"
             :actions="$actions"

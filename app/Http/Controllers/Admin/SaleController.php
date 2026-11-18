@@ -328,6 +328,7 @@ class SaleController extends Controller
                 ->addColumn('customer_name', fn($row) => $row->customer?->name ?? '-')
                 ->addColumn('channel_name', fn($row) => $row->salesChannel?->name ?? '-')
                 ->addColumn('net_formatted', fn($row) => '<span dir="ltr">' . number_format($row->net_amount, 2) . '</span> ' . ($row->currency ?? 'EGP'))
+                ->editColumn('sale_date', fn($row) => $row->sale_date?->format('Y-m-d') ?? '-')
                 ->addColumn('deleted_at', fn($row) => $row->deleted_at ? $row->deleted_at->format('Y-m-d H:i') : '-')
                 ->rawColumns(['net_formatted'])
                 ->make(true);

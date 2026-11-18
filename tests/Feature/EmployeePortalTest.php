@@ -337,6 +337,44 @@ class EmployeePortalTest extends TestCase
         ])->assertSessionHasErrors('half_day');
     }
 
+    /**
+     * كل عمود في جداول البوابة (columns.data) راجع من السيرفر — وإلا
+     * DataTables بيطلّع "Requested unknown parameter" للموظف.
+     */
+    public function test_portal_table_columns_match_server_rows(): void
+    {
+        $this->actingAsEmployee();
+        $e = $this->employee;
+        $day = now()->toDateString();
+
+        // صف واحد على الأقل في كل جدول
+        EmployeeLeave::create(['employee_id' => $e->id, 'leave_type' => 'annual', 'start_date' => $day, 'end_date' => $day, 'days_count' => 1, 'status' => 'pending']);
+        \App\Models\EmployeePermission::create(['employee_id' => $e->id, 'permission_date' => $day, 'start_time' => '10:00', 'end_time' => '11:00', 'hours_count' => 1, 'status' => 'pending']);
+        \App\Models\EmployeeAdvance::create(['employee_id' => $e->id, 'amount' => 300, 'installments_count' => 3, 'monthly_installment' => 100, 'remaining_amount' => 300, 'advance_date' => $day, 'start_date' => $day, 'status' => 'pending', 'reason' => 'x']);
+        \App\Models\EmployeeReward::create(['employee_id' => $e->id, 'reward_type' => 'bonus', 'title' => 'R', 'amount' => 10, 'reward_date' => $day, 'status' => 'approved']);
+        \App\Models\EmployeePenalty::create(['employee_id' => $e->id, 'penalty_type' => 'warning', 'penalty_date' => $day, 'reason' => 'x', 'status' => 'approved']);
+        \App\Models\Expense::create(['title' => 'E', 'expense_category_id' => \App\Models\ExpenseCategory::create(['name' => 'C', 'code' => 'C1', 'is_active' => true])->id,
+            'branch_id' => $this->branch->id, 'employee_id' => $e->id, 'amount' => 5, 'currency' => 'EGP', 'expense_date' => $day, 'payment_method' => 'cash']);
+        $payroll = Payroll::create(['title' => 'P', 'year' => 2026, 'month' => 1, 'branch_id' => $this->branch->id, 'status' => 'paid']);
+        PayrollItem::create(['payroll_id' => $payroll->id, 'employee_id' => $e->id, 'basic_salary' => 6000, 'allowances' => 0, 'deductions' => 0, 'status' => 'paid', 'paid_at' => now()]);
+
+        foreach (['permissions', 'leaves', 'advances', 'rewards', 'penalties', 'expenses', 'payslips'] as $table) {
+            $url = route("portal.{$table}.index");
+            $html = $this->get($url)->assertOk()->getContent();
+
+            $this->assertSame(1, preg_match('/var columns = (\[.*?\]);\r?\n/s', $html, $m), "{$table}: تعريف الأعمدة مش موجود");
+
+            $row = $this->rows($url)->first();
+            $this->assertIsArray($row, "{$table}: مفيش صفوف");
+
+            foreach (json_decode($m[1], true) as $column) {
+                if (isset($column['data']) && ! array_key_exists('defaultContent', $column)) {
+                    $this->assertArrayHasKey($column['data'], $row, "{$table}: العمود «{$column['data']}» مش راجع من السيرفر");
+                }
+            }
+        }
+    }
+
     /** جداول الطلبات (server-side) بتتفلتر بالتاريخ ومابتعرضش غير طلباتي. */
     public function test_request_tables_are_server_side_and_date_filtered(): void
     {
