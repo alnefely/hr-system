@@ -31,7 +31,8 @@ Route::post('/logout', [AuthAdminController::class,'logout'])->name('logout');
 Route::get('/home', [HomeController::class,'home'])->name('home')->middleware('AdminPermission:dashboard_show');
 Route::get('/home/data', [HomeController::class,'dashboardData'])->name('home.data')->middleware('AdminPermission:dashboard_show');
 Route::get('/system-guide', [HomeController::class,'systemGuide'])->name('system-guide')->middleware('AdminPermission:dashboard_show');
-Route::get('/403', [HomeController::class,'error_403'])->name('error_403');
+// صفحة "مالكش صلاحية" للمشرف المسجّل بس — الضيف كان بياخد 500 (الشريط العلوي محتاج مشرف)
+Route::get('/403', [HomeController::class,'error_403'])->name('error_403')->middleware('auth:admin');
 
 // AdminController
 Route::get('/profile', [AdminController::class,'profile'])->name('profile')->middleware('AdminPermission:admin_profile_show');
