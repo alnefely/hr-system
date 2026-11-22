@@ -449,3 +449,23 @@ label [data-bs-toggle="tooltip"] {
   background: transparent;
   line-height: 1;
 }
+
+/* ===== شريط range بيتلوّن لحد القيمة بس =====
+   الثيم بيلوّن الـ track كله بلون primary، فالشريط شكله مليان دايماً.
+   .form-range-fill + المتغير --fill (نسبة القيمة، بيتحدّث بالـ JS)
+   بيلوّن من البداية لحد القيمة والباقي رمادي زي شريط .progress.
+   في RTL البداية على اليمين. Firefox عنده ::-moz-range-progress جاهز. */
+.form-range.form-range-fill::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, var(--bs-primary) var(--fill, 0%), rgba(var(--bs-base-color-rgb, 47, 43, 61), .08) var(--fill, 0%));
+}
+[dir="rtl"] .form-range.form-range-fill::-webkit-slider-runnable-track {
+  background: linear-gradient(to left, var(--bs-primary) var(--fill, 0%), rgba(var(--bs-base-color-rgb, 47, 43, 61), .08) var(--fill, 0%));
+}
+.form-range.form-range-fill::-moz-range-track {
+  background-color: rgba(var(--bs-base-color-rgb, 47, 43, 61), .08);
+}
+.form-range.form-range-fill::-moz-range-progress {
+  height: .375rem;
+  border-radius: 1rem;
+  background-color: var(--bs-primary);
+}

@@ -259,8 +259,10 @@
                             <span>{{ __('task.actions.update_progress') }}</span>
                             <strong dir="ltr"><output id="task_progress_value">{{ $task->progress }}</output>%</strong>
                         </label>
-                        <input type="range" class="form-range" min="0" max="100" step="5" name="progress" id="task_progress_input"
-                               value="{{ old('progress', $task->progress) }}" oninput="document.getElementById('task_progress_value').value = this.value">
+                        {{-- --fill بيلوّن الشريط لحد القيمة (custom.css: .form-range-fill) --}}
+                        <input type="range" class="form-range form-range-fill" min="0" max="100" step="5" name="progress" id="task_progress_input"
+                               value="{{ old('progress', $task->progress) }}" style="--fill: {{ (int) old('progress', $task->progress) }}%"
+                               oninput="document.getElementById('task_progress_value').value = this.value; this.style.setProperty('--fill', this.value + '%')">
                         <textarea name="note" class="form-control mt-2" rows="2" maxlength="1000" placeholder="{{ __('task.fields.note') }}..." aria-label="{{ __('task.fields.note') }}">{{ old('note') }}</textarea>
                         <button type="submit" class="btn btn-primary w-100 mt-2"><i class="fa-solid fa-floppy-disk me-1"></i>{{ __('task.actions.update_progress') }}</button>
                     </form>
