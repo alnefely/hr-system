@@ -9,7 +9,7 @@
             <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 d-print-none">
                 <div class="d-flex align-items-center gap-2">
                     <a href="{{ route('admin.sales.index') }}" class="btn btn-label-secondary waves-effect">
-                        <i class="fa-solid fa-arrow-right me-1"></i> {{ __('sale.actions.back_to_list') }}
+                        <i class="fa-solid fa-arrow-right icon-back me-1" aria-hidden="true"></i> {{ __('sale.actions.back_to_list') }}
                     </a>
                     <span class="badge bg-label-primary fs-6" dir="ltr">{{ $sale->invoice_number }}</span>
                 </div>
@@ -36,7 +36,7 @@
                     <div>
                         <div class="d-flex align-items-center gap-3 mb-2">
                             <img src="{{ setting('site_logo') }}" alt="Logo" class="rounded-circle" style="width: 48px; height: 48px; object-fit: contain;">
-                            <h4 class="fw-bold mb-0 text-dark">{{ setting('site_name') }}</h4>
+                            <h4 class="fw-bold mb-0 text-heading">{{ setting('site_name') }}</h4>
                         </div>
                         <p class="text-muted mb-1 small">{{ $sale->branch?->name }} - {{ $sale->branch?->address ?? 'المقر الرئيسي' }}</p>
                         <p class="text-muted mb-0 small">الرقم الضريبي: <span dir="ltr">{{ setting('tax_number') ?? '300000000000003' }}</span></p>
@@ -44,7 +44,7 @@
 
                     <div class="text-start">
                         <h3 class="fw-bold text-primary mb-2">فاتورة مبيعات</h3>
-                        <p class="mb-1"><span class="text-muted">رقم الفاتورة:</span> <strong class="text-dark" dir="ltr">{{ $sale->invoice_number }}</strong></p>
+                        <p class="mb-1"><span class="text-muted">رقم الفاتورة:</span> <strong class="text-heading" dir="ltr">{{ $sale->invoice_number }}</strong></p>
                         <p class="mb-1"><span class="text-muted">تاريخ الإصدار:</span> <span dir="ltr">{{ $sale->sale_date?->format('Y-m-d') }}</span></p>
                         @php
                             $status = $sale->payment_status;
@@ -63,7 +63,7 @@
                 <div class="row g-4 border-bottom pb-4 mb-4">
                     <div class="col-sm-6">
                         <h6 class="fw-bold text-muted mb-2">فاتورة إلى (العميل):</h6>
-                        <h5 class="fw-bold text-dark mb-1">{{ $sale->customer?->name ?? __('sale.direct_customer') }}</h5>
+                        <h5 class="fw-bold text-heading mb-1">{{ $sale->customer?->name ?? __('sale.direct_customer') }}</h5>
                         @if($sale->customer?->company_name)
                             <p class="text-muted mb-1 small">{{ $sale->customer->company_name }}</p>
                         @endif
@@ -134,7 +134,7 @@
                                 </div>
                             @endif
                             <div class="d-flex justify-content-between align-items-center pt-2 border-top mb-3">
-                                <span class="fw-bold fs-6 text-dark">{{ __('sale.fields.total_amount') }}:</span>
+                                <span class="fw-bold fs-6 text-heading">{{ __('sale.fields.total_amount') }}:</span>
                                 <h4 class="mb-0 text-primary fw-bold" dir="ltr">{{ number_format($sale->total_amount, 2) }} {{ $sale->currency }}</h4>
                             </div>
 
@@ -162,7 +162,7 @@
                 {{-- Payment Installments History Section --}}
                 <div class="mt-4 pt-3 border-top">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold text-dark mb-0">
+                        <h6 class="fw-bold text-heading mb-0">
                             <i class="fa-solid fa-receipt text-primary me-2"></i> {{ __('sale.payments.title') }}
                         </h6>
                         @if(admin_can('sale_update') && $sale->due_amount > 0)
@@ -214,7 +214,7 @@
                                                             data-icon="warning" 
                                                             data-btn-text="{{ __('global.delete') }}" 
                                                             data-btn-class="btn-danger" 
-                                                            title="{{ __('global.delete') }}">
+                                                            title="{{ __('global.delete') }}" aria-label="{{ __('global.confirm_delete') }}">
                                                             <i class="fa-solid fa-trash"></i>
                                                         </button>
                                                     </form>

@@ -19,6 +19,9 @@ final class SettingsCache extends _CacheKeys
     /** كل الإعدادات مجمّعة حسب الـ group (من غير الـ sections) */
     public const GROUPED = 'grouped';
 
+    /** كل القيم (key => value) في مفتاح واحد — بيستخدمه Settings::get() */
+    public const ALL_VALUES = 'all_values';
+
     /** أسماء كل الـ groups الموجودة */
     public const ALL_GROUPS = 'all_groups';
 

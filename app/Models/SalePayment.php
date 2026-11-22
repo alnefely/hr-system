@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasDateRangeScopes;
+use App\Models\Concerns\FlushesDashboardCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalePayment extends Model
 {
-    use HasFactory, SoftDeletes, HasDateRangeScopes;
+    use HasFactory, SoftDeletes, HasDateRangeScopes, FlushesDashboardCache;
 
     /** العمود اللي scopes التاريخ بتشتغل عليه افتراضياً. */
     protected string $dateRangeColumn = 'payment_date';

@@ -25,6 +25,12 @@ class ApprovalService
     {
         $this->ensurePending($record, $module);
 
+        if ($record->employee_id ?? null) {
+            self::ensureNotBeneficiary((int) $record->employee_id, $module);
+        }
+
+        $this->ensurePayrollOpen($record);
+
         if ($separateDuties
             && $record->created_by
             && $record->created_by === admin()?->id
@@ -57,12 +63,41 @@ class ApprovalService
             throw new InvalidStateException(__("{$module}.messages.not_pending"));
         }
 
+        if ($record->status === ApprovalStatus::Approved->value) {
+            $this->ensurePayrollOpen($record);
+        }
+
         $record->update([
             'status'           => ApprovalStatus::Rejected->value,
             'rejection_reason' => $reason,
             'approved_by'      => admin()?->id,
             'approved_at'      => now(),
         ]);
+    }
+
+    /**
+     * المسؤول مايعتمدش طلب لنفسه (إجازته أو سلفته أو مكافأته) — إلا المدير العام.
+     */
+    public static function ensureNotBeneficiary(?int $employeeId, string $module): void
+    {
+        $admin = admin();
+
+        if ($admin && ! $admin->main && $employeeId && (int) $admin->employee_id === $employeeId) {
+            throw new InvalidStateException(__('global.cannot_approve_own_request'));
+        }
+    }
+
+    /**
+     * الإذن المعتمد بيدخل حساب ساعات المسير — قراره مايتغيّرش بعد اعتماد
+     * مسير شهره (الجزاءات والمكافآت بترفض المعتمد أصلاً).
+     */
+    private function ensurePayrollOpen(Model $record): void
+    {
+        if ($record instanceof \App\Models\EmployeePermission
+            && $record->permission_date
+            && PayrollRules::hasClosedPayroll((int) $record->employee_id, $record->permission_date, $record->permission_date)) {
+            throw new InvalidStateException(__('payroll.messages.period_closed'));
+        }
     }
 
     private function ensurePending(Model $record, string $module): void

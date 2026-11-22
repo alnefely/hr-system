@@ -16,7 +16,7 @@
         @endif
 
         @if (admin_can('leave_reject'))
-            <button type="button" class="btn btn-sm btn-icon btn-label-danger reject-btn" data-id="{{ $row->id }}" title="{{ __('leave.actions.reject') }}">
+            <button type="button" class="btn btn-sm btn-icon btn-label-danger reject-btn" data-id="{{ $row->id }}" title="{{ __('leave.actions.reject') }}" aria-label="{{ __('leave.actions.reject') }}">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         @endif

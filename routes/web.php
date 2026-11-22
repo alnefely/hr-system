@@ -19,7 +19,7 @@ Route::middleware('throttle:WebRateLimiter')->group(function () {
 
 
 
-Route::group(['prefix' => 'filemanager', 'middleware' => ['AdminPermission:filemanager_show']], function () {
+Route::group(['prefix' => 'filemanager', 'middleware' => ['AdminPermission:filemanager_show', \App\Http\Middleware\FileManagerPermission::class]], function () {
     Lfm::routes();
 });
 

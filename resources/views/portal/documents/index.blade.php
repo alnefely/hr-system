@@ -50,7 +50,8 @@
                             @endif
                         </td>
                         <td class="text-end">
-                            @if ($doc->file_path)
+                            {{-- روابط قديمة زي javascript: ماتتعرضش كزر --}}
+                            @if ($doc->file_path && \App\Rules\SafeFileReference::isSafe($doc->file_path))
                                 <a href="{{ $doc->file_path }}" target="_blank" rel="noopener" class="btn btn-sm btn-label-primary">
                                     <i class="fa-solid fa-file-arrow-down me-1"></i>{{ __('portal.documents.open') }}
                                 </a>

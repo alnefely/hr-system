@@ -12,7 +12,7 @@
     <meta charset="utf-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+      content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', setting('site_name'))</title>
@@ -25,14 +25,10 @@
 
     <link rel="stylesheet" href="/admin/vendor/fonts/iconify-icons.css" />
 
-    <script src="/admin/vendor/libs/@algolia/autocomplete-js.js"></script>
-
     <!-- Core CSS -->
     <link rel="stylesheet" href="/admin/vendor/fonts/fontawesome.css" />
 
     <link rel="stylesheet" href="/admin/vendor/libs/node-waves/node-waves.css" />
-
-    <link rel="stylesheet" href="/admin/vendor/libs/pickr/pickr-themes.css" />
 
     <link rel="stylesheet" href="/admin/vendor/css/core.css" />
     <link rel="stylesheet" href="/admin/css/demo.css" />
@@ -47,15 +43,14 @@
 
     <!-- Helpers -->
     <script src="/admin/vendor/js/helpers.js"></script>
-    <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
-
-    <!--? Template customizer: To hide customizer set displayCustomizer value false in config.js.  -->
-    <script src="/admin/vendor/js/template-customizer.js"></script>
-
-    <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
-
+    {{-- لوحة الـ Template Customizer مقفولة (customizer-hide)، فمش بنحمّل
+         template-customizer.js ولا pickr (اللي بيستخدمهم الـ customizer بس) ولا
+         @algolia/autocomplete (بحث الديمو — مفيش #autocomplete في الواجهة).
+         تطبيق الوضع الليلي المحفوظ بيتم في theme-init زي البوابة. --}}
     <script src="/admin/js/config.js"></script>
+    @include('layouts.partials.theme-init')
     <link rel="stylesheet" href="/admin/vendor/libs/select2/select2.css" />
+    @include('layouts.partials.fonts')
     <link rel="stylesheet" href="{{ asset('admin/custom.css') }}" />
     @stack('css')
   </head>
@@ -142,8 +137,6 @@
     <script src="/admin/vendor/libs/popper/popper.js"></script>
     <script src="/admin/vendor/js/bootstrap.js"></script>
     <script src="/admin/vendor/libs/node-waves/node-waves.js"></script>
-
-    <script src="/admin/vendor/libs/pickr/pickr.js"></script>
 
     <script src="/admin/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
 

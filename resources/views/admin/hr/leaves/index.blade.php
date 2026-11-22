@@ -7,11 +7,11 @@
     <div class="card-body">
         <form action="{{ route('admin.leaves.index') }}" method="GET" class="row g-3 align-items-end">
             <div class="col-md-5">
-                <label class="form-label fw-bold mb-1">
+                <label for="admin_hr_leaves_f_employee_id" class="form-label fw-bold mb-1">
                     {{ __('leave.filters.employee') }}
                     <x-inputs.help :text="__('leave.hints.employee_filter')" />
                 </label>
-                <select name="employee_id" class="form-select select2" onchange="this.form.submit()">
+                <select id="admin_hr_leaves_f_employee_id" name="employee_id" class="form-select select2" onchange="this.form.submit()">
                     <option value="">{{ __('leave.filters.all_employees') }}</option>
                     @foreach($employees as $emp)
                         <option value="{{ $emp->id }}" {{ request('employee_id') == $emp->id ? 'selected' : '' }}>
@@ -22,8 +22,8 @@
             </div>
 
             <div class="col-md-3">
-                <label class="form-label fw-bold mb-1">{{ __('leave.fields.leave_type') }}</label>
-                <select name="leave_type" class="form-select select2" onchange="this.form.submit()">
+                <label for="admin_hr_leaves_f_leave_type" class="form-label fw-bold mb-1">{{ __('leave.fields.leave_type') }}</label>
+                <select id="admin_hr_leaves_f_leave_type" name="leave_type" class="form-select select2" onchange="this.form.submit()">
                     <option value="">{{ __('leave.filters.all_types') }}</option>
                     @foreach(\App\Enums\LeaveType::cases() as $type)
                         <option value="{{ $type->value }}" {{ request('leave_type') === $type->value ? 'selected' : '' }}>
@@ -34,8 +34,8 @@
             </div>
 
             <div class="col-md-2">
-                <label class="form-label fw-bold mb-1">{{ __('leave.fields.status') }}</label>
-                <select name="status" class="form-select select2" onchange="this.form.submit()">
+                <label for="admin_hr_leaves_f_status" class="form-label fw-bold mb-1">{{ __('leave.fields.status') }}</label>
+                <select id="admin_hr_leaves_f_status" name="status" class="form-select select2" onchange="this.form.submit()">
                     <option value="">{{ __('leave.filters.all_statuses') }}</option>
                     @foreach(\App\Enums\LeaveStatus::cases() as $statusCase)
                         <option value="{{ $statusCase->value }}" {{ request('status') === $statusCase->value ? 'selected' : '' }}>
@@ -47,8 +47,7 @@
 
             <div class="col-md-2">
                 <a href="{{ route('admin.leaves.index') }}"
-                   class="btn btn-label-secondary w-100 d-flex align-items-center justify-content-center"
-                   style="height: 38px;">
+                   class="btn btn-label-secondary w-100 d-flex align-items-center justify-content-center h-38">
                     <i class="fa-solid fa-rotate-left me-1"></i> {{ __('global.reset_filter') }}
                 </a>
             </div>
@@ -57,7 +56,7 @@
 </div>
 
 <div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center border-bottom">
+    <div class="card-header d-flex justify-content-between align-items-center border-bottom flex-wrap gap-2">
         <h5 class="card-title mb-0">
             <i class="fa-solid fa-calendar-days text-primary me-2"></i> {{ __('leave.title') }}
         </h5>

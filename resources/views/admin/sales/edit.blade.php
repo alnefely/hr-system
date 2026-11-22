@@ -5,12 +5,12 @@
 <div class="row g-4 mb-4">
     <div class="col-12">
         <div class="card shadow-sm">
-            <div class="card-header border-bottom d-flex align-items-center justify-content-between">
+            <div class="card-header border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <h5 class="card-title mb-0">
                     <i class="fa-solid fa-pen-to-square me-2 text-primary"></i> {{ __('sale.edit_title') }}: <span class="text-primary" dir="ltr">{{ $sale->invoice_number }}</span>
                 </h5>
                 <a href="{{ route('admin.sales.index') }}" class="btn btn-label-secondary waves-effect">
-                    <i class="fa-solid fa-arrow-right me-1"></i> {{ __('sale.actions.back_to_list') }}
+                    <i class="fa-solid fa-arrow-right icon-back me-1" aria-hidden="true"></i> {{ __('sale.actions.back_to_list') }}
                 </a>
             </div>
 
@@ -20,13 +20,13 @@
                     @method('PUT')
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('sale.fields.invoice_number') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.invoice_number')" /></label>
-                            <input type="text" name="invoice_number" class="form-control" value="{{ old('invoice_number', $sale->invoice_number) }}" required dir="ltr" />
+                            <label for="sale_invoice_number" class="form-label">{{ __('sale.fields.invoice_number') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.invoice_number')" /></label>
+                            <input id="sale_invoice_number" type="text" name="invoice_number" class="form-control" value="{{ old('invoice_number', $sale->invoice_number) }}" required dir="ltr" />
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('sale.fields.customer') }} <x-inputs.help :text="__('sale.hints.customer')" /></label>
-                            <select name="customer_id" class="form-select select2">
+                            <label for="sale_customer_id" class="form-label">{{ __('sale.fields.customer') }} <x-inputs.help :text="__('sale.hints.customer')" /></label>
+                            <select id="sale_customer_id" name="customer_id" class="form-select select2">
                                 <option value="">{{ __('sale.direct_customer') }}</option>
                                 @foreach($customers as $c)
                                     <option value="{{ $c->id }}" {{ old('customer_id', $sale->customer_id) == $c->id ? 'selected' : '' }}>{{ $c->name }} ({{ $c->phone ?? '-' }})</option>
@@ -35,7 +35,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('sale.fields.branch') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.branch')" /></label>
+                            <label for="sale_branch_id" class="form-label">{{ __('sale.fields.branch') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.branch')" /></label>
                             <select name="branch_id" id="sale_branch_id" class="form-select select2" required>
                                 @foreach($branches as $b)
                                     <option value="{{ $b->id }}" data-currency="{{ $b->currency }}" {{ old('branch_id', $sale->branch_id) == $b->id ? 'selected' : '' }}>{{ $b->name }} ({{ $b->currency }})</option>
@@ -44,7 +44,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('sale.fields.currency') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.currency')" /></label>
+                            <label for="sale_currency" class="form-label">{{ __('sale.fields.currency') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.currency')" /></label>
                             <select name="currency" id="sale_currency" class="form-select select2" required>
                                 <option value="EGP" {{ old('currency', $sale->currency) == 'EGP' ? 'selected' : '' }}>EGP - جنيه مصري</option>
                                 <option value="USD" {{ old('currency', $sale->currency) == 'USD' ? 'selected' : '' }}>USD - دولار أمريكي</option>
@@ -55,8 +55,8 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('sale.fields.sale_type') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.sale_type')" /></label>
-                            <select name="sale_type" class="form-select select2" required>
+                            <label for="sale_sale_type" class="form-label">{{ __('sale.fields.sale_type') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.sale_type')" /></label>
+                            <select id="sale_sale_type" name="sale_type" class="form-select select2" required>
                                 <option value="app_service" {{ old('sale_type', $sale->sale_type) == 'app_service' ? 'selected' : '' }}>{{ __('sale.type_enums.app_service') }}</option>
                                 <option value="external_project" {{ old('sale_type', $sale->sale_type) == 'external_project' ? 'selected' : '' }}>{{ __('sale.type_enums.external_project') }}</option>
                                 <option value="direct_sale" {{ old('sale_type', $sale->sale_type) == 'direct_sale' ? 'selected' : '' }}>{{ __('sale.type_enums.direct_sale') }}</option>
@@ -64,8 +64,8 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('sale.fields.sales_channel') }} <x-inputs.help :text="__('sale.hints.sales_channel')" /></label>
-                            <select name="sales_channel_id" class="form-select select2">
+                            <label for="sale_sales_channel_id" class="form-label">{{ __('sale.fields.sales_channel') }} <x-inputs.help :text="__('sale.hints.sales_channel')" /></label>
+                            <select id="sale_sales_channel_id" name="sales_channel_id" class="form-select select2">
                                 <option value="">اختر قناة البيع / المنصة...</option>
                                 @foreach($salesChannels as $ch)
                                     <option value="{{ $ch->id }}" {{ old('sales_channel_id', $sale->sales_channel_id) == $ch->id ? 'selected' : '' }}>{{ $ch->name }} ({{ $ch->type }})</option>
@@ -74,12 +74,12 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('sale.fields.sale_date') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.sale_date')" /></label>
-                            <input type="date" name="sale_date" class="form-control" value="{{ old('sale_date', $sale->sale_date?->format('Y-m-d')) }}" required />
+                            <label for="sale_sale_date" class="form-label">{{ __('sale.fields.sale_date') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.sale_date')" /></label>
+                            <input id="sale_sale_date" type="date" name="sale_date" class="form-control" value="{{ old('sale_date', $sale->sale_date?->format('Y-m-d')) }}" required />
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('sale.fields.payment_status') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.payment_status')" /></label>
+                            <label for="sale_payment_status" class="form-label">{{ __('sale.fields.payment_status') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.payment_status')" /></label>
                             <select name="payment_status" id="sale_payment_status" class="form-select select2" required>
                                 <option value="paid" {{ old('payment_status', $sale->payment_status) == 'paid' ? 'selected' : '' }}>{{ __('sale.statuses.paid') }}</option>
                                 <option value="partially_paid" {{ old('payment_status', $sale->payment_status) == 'partially_paid' ? 'selected' : '' }}>{{ __('sale.statuses.partially_paid') }}</option>
@@ -88,8 +88,8 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">{{ __('sale.fields.payment_method') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.payment_method')" /></label>
-                            <select name="payment_method" class="form-select select2" required>
+                            <label for="sale_payment_method" class="form-label">{{ __('sale.fields.payment_method') }} <span class="text-danger">*</span> <x-inputs.help :text="__('sale.hints.payment_method')" /></label>
+                            <select id="sale_payment_method" name="payment_method" class="form-select select2" required>
                                 <option value="cash" {{ old('payment_method', $sale->payment_method) == 'cash' ? 'selected' : '' }}>{{ __('sale.payment_methods.cash') }}</option>
                                 <option value="bank_transfer" {{ old('payment_method', $sale->payment_method) == 'bank_transfer' ? 'selected' : '' }}>{{ __('sale.payment_methods.bank_transfer') }}</option>
                                 <option value="card" {{ old('payment_method', $sale->payment_method) == 'card' ? 'selected' : '' }}>{{ __('sale.payment_methods.card') }}</option>
@@ -100,7 +100,7 @@
 
                     {{-- Items Dynamic Table (No bg-light) --}}
                     <div class="card mb-4 border shadow-none">
-                        <div class="card-header border-bottom d-flex justify-content-between align-items-center py-2 bg-transparent">
+                        <div class="card-header border-bottom d-flex justify-content-between align-items-center py-2 bg-transparent flex-wrap gap-2">
                             <h6 class="mb-0 fw-bold">
                                 <i class="fa-solid fa-list-check me-2 text-primary"></i> بنود الفاتورة والخدمات المباعة
                             </h6>
@@ -124,20 +124,20 @@
                                         @forelse($sale->items as $idx => $item)
                                             <tr class="item-row">
                                                 <td>
-                                                    <input type="text" name="items[{{ $idx }}][item_name]" class="form-control" required value="{{ $item->item_name }}" />
+                                                    <input type="text" name="items[{{ $idx }}][item_name]" class="form-control min-w-180" aria-label="{{ __('sale.fields.item_name') }}" required value="{{ $item->item_name }}" />
                                                 </td>
                                                 <td>
-                                                    <input type="number" step="1" min="1" name="items[{{ $idx }}][quantity]" class="form-control item-qty" value="{{ $item->quantity }}" required dir="ltr" />
+                                                    <input type="number" step="1" min="1" name="items[{{ $idx }}][quantity]" class="form-control item-qty min-w-90" aria-label="{{ __('sale.fields.quantity') }}" value="{{ $item->quantity }}" required dir="ltr" />
                                                 </td>
                                                 <td>
-                                                    <input type="number" step="0.01" min="0" name="items[{{ $idx }}][unit_price]" class="form-control item-price" value="{{ $item->unit_price }}" required dir="ltr" />
+                                                    <input type="number" step="0.01" min="0" name="items[{{ $idx }}][unit_price]" class="form-control item-price min-w-90" aria-label="{{ __('sale.fields.unit_price') }}" value="{{ $item->unit_price }}" required dir="ltr" />
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control item-total" readonly value="{{ number_format($item->total_price, 2) }}" dir="ltr" />
+                                                    <input type="text" class="form-control item-total min-w-90" aria-label="{{ __('sale.fields.total_price') }}" readonly value="{{ number_format($item->total_price, 2) }}" dir="ltr" />
                                                     <input type="hidden" name="items[{{ $idx }}][total_price]" class="item-total-hidden" value="{{ $item->total_price }}" />
                                                 </td>
                                                 <td class="text-center">
-                                                    <button type="button" class="btn btn-sm btn-icon btn-label-danger remove-item-btn" title="حذف البند">
+                                                    <button type="button" class="btn btn-sm btn-icon btn-label-danger remove-item-btn" title="حذف البند" aria-label="{{ __('global.delete') }}">
                                                         <i class="fa-solid fa-trash"></i>
                                                     </button>
                                                 </td>
@@ -145,20 +145,20 @@
                                         @empty
                                             <tr class="item-row">
                                                 <td>
-                                                    <input type="text" name="items[0][item_name]" class="form-control" required placeholder="اسم الخدمة أو المنتج..." />
+                                                    <input type="text" name="items[0][item_name]" class="form-control min-w-180" aria-label="{{ __('sale.fields.item_name') }}" required placeholder="اسم الخدمة أو المنتج..." />
                                                 </td>
                                                 <td>
-                                                    <input type="number" step="1" min="1" name="items[0][quantity]" class="form-control item-qty" value="1" required dir="ltr" />
+                                                    <input type="number" step="1" min="1" name="items[0][quantity]" class="form-control item-qty min-w-90" aria-label="{{ __('sale.fields.quantity') }}" value="1" required dir="ltr" />
                                                 </td>
                                                 <td>
-                                                    <input type="number" step="0.01" min="0" name="items[0][unit_price]" class="form-control item-price" value="0.00" required dir="ltr" />
+                                                    <input type="number" step="0.01" min="0" name="items[0][unit_price]" class="form-control item-price min-w-90" aria-label="{{ __('sale.fields.unit_price') }}" value="0.00" required dir="ltr" />
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control item-total" readonly value="0.00" dir="ltr" />
+                                                    <input type="text" class="form-control item-total min-w-90" aria-label="{{ __('sale.fields.total_price') }}" readonly value="0.00" dir="ltr" />
                                                     <input type="hidden" name="items[0][total_price]" class="item-total-hidden" value="0.00" />
                                                 </td>
                                                 <td class="text-center">
-                                                    <button type="button" class="btn btn-sm btn-icon btn-label-danger remove-item-btn" title="حذف البند">
+                                                    <button type="button" class="btn btn-sm btn-icon btn-label-danger remove-item-btn" title="حذف البند" aria-label="{{ __('global.delete') }}">
                                                         <i class="fa-solid fa-trash"></i>
                                                     </button>
                                                 </td>
@@ -180,26 +180,26 @@
                                     <input type="hidden" name="subtotal" id="subtotal_input" value="{{ $sale->subtotal }}" />
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="text-muted">{{ __('sale.fields.tax_amount') }}:</span>
-                                    <div style="width: 130px;">
+                                    <label for="tax_amount_input" class="text-muted mb-0">{{ __('sale.fields.tax_amount') }}:</label>
+                                    <div class="min-w-130 flex-shrink-0">
                                         <input type="number" step="0.01" min="0" name="tax_amount" id="tax_amount_input" class="form-control form-control-sm text-end" value="{{ $sale->tax_amount }}" dir="ltr" />
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="text-muted">{{ __('sale.fields.discount_amount') }}:</span>
-                                    <div style="width: 130px;">
+                                    <label for="discount_amount_input" class="text-muted mb-0">{{ __('sale.fields.discount_amount') }}:</label>
+                                    <div class="min-w-130 flex-shrink-0">
                                         <input type="number" step="0.01" min="0" name="discount_amount" id="discount_amount_input" class="form-control form-control-sm text-end" value="{{ $sale->discount_amount }}" dir="ltr" />
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center pt-2 border-top mb-3">
-                                    <span class="fw-bold fs-6 text-dark">{{ __('sale.fields.total_amount') }}:</span>
+                                    <span class="fw-bold fs-6 text-heading">{{ __('sale.fields.total_amount') }}:</span>
                                     <h5 class="mb-0 text-primary fw-bold" id="total_amount_display" dir="ltr">{{ number_format($sale->total_amount, 2) }}</h5>
                                     <input type="hidden" name="total_amount" id="total_amount_input" value="{{ $sale->total_amount }}" />
                                 </div>
 
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="text-muted">{{ __('sale.fields.paid_amount') }}:</span>
-                                    <div style="width: 130px;">
+                                    <label for="paid_amount_input" class="text-muted mb-0">{{ __('sale.fields.paid_amount') }}:</label>
+                                    <div class="min-w-130 flex-shrink-0">
                                         <input type="number" step="0.01" min="0" name="paid_amount" id="paid_amount_input" class="form-control form-control-sm text-end" value="{{ $sale->paid_amount }}" dir="ltr" />
                                     </div>
                                 </div>
@@ -224,8 +224,8 @@
                             />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ __('sale.fields.notes') }} <x-inputs.help :text="__('sale.hints.notes')" /></label>
-                            <textarea name="notes" class="form-control" rows="2">{{ old('notes', $sale->notes) }}</textarea>
+                            <label for="sale_notes" class="form-label">{{ __('sale.fields.notes') }} <x-inputs.help :text="__('sale.hints.notes')" /></label>
+                            <textarea id="sale_notes" name="notes" class="form-control" rows="2">{{ old('notes', $sale->notes) }}</textarea>
                         </div>
                     </div>
 
@@ -288,20 +288,20 @@ $(document).ready(function() {
         var tr = `
             <tr class="item-row">
                 <td>
-                    <input type="text" name="items[${rowIndex}][item_name]" class="form-control" required placeholder="اسم الخدمة أو المنتج..." />
+                    <input type="text" name="items[${rowIndex}][item_name]" class="form-control min-w-180" aria-label="{{ __('sale.fields.item_name') }}" required placeholder="اسم الخدمة أو المنتج..." />
                 </td>
                 <td>
-                    <input type="number" step="1" min="1" name="items[${rowIndex}][quantity]" class="form-control item-qty" value="1" required dir="ltr" />
+                    <input type="number" step="1" min="1" name="items[${rowIndex}][quantity]" class="form-control item-qty min-w-90" aria-label="{{ __('sale.fields.quantity') }}" value="1" required dir="ltr" />
                 </td>
                 <td>
-                    <input type="number" step="0.01" min="0" name="items[${rowIndex}][unit_price]" class="form-control item-price" value="0.00" required dir="ltr" />
+                    <input type="number" step="0.01" min="0" name="items[${rowIndex}][unit_price]" class="form-control item-price min-w-90" aria-label="{{ __('sale.fields.unit_price') }}" value="0.00" required dir="ltr" />
                 </td>
                 <td>
-                    <input type="text" class="form-control item-total" readonly value="0.00" dir="ltr" />
+                    <input type="text" class="form-control item-total min-w-90" aria-label="{{ __('sale.fields.total_price') }}" readonly value="0.00" dir="ltr" />
                     <input type="hidden" name="items[${rowIndex}][total_price]" class="item-total-hidden" value="0.00" />
                 </td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-icon btn-label-danger remove-item-btn" title="حذف البند">
+                    <button type="button" class="btn btn-sm btn-icon btn-label-danger remove-item-btn" title="حذف البند" aria-label="{{ __('global.delete') }}">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </td>

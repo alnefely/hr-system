@@ -6,7 +6,7 @@
     <h4 class="fw-semibold mb-4">
         @yield('title') — {{ $role->name }}
         <a href="{{ route('admin.roles') }}" class="btn btn-sm btn-label-secondary text-nowrap">
-            <i class="fa-solid fa-arrow-right-long me-1"></i>{{ __('role.back') }}
+            <i class="fa-solid fa-arrow-right-long icon-back me-1" aria-hidden="true"></i>{{ __('role.back') }}
         </a>
     </h4>
 

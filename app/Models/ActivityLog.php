@@ -80,9 +80,28 @@ class ActivityLog extends Model
 
     public function scopeBetweenDates(Builder $query, ?string $from, ?string $to): Builder
     {
+        // مقارنة نطاق بدل whereDate() عشان فهرس created_at يشتغل:
+        // من أول يوم البداية لحد ما قبل أول اليوم اللي بعد النهاية.
+        $from = static::parseDay($from);
+        $to   = static::parseDay($to);
+
         return $query
-            ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to));
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from->toDateTimeString()))
+            ->when($to, fn ($q) => $q->where('created_at', '<', $to->addDay()->toDateTimeString()));
+    }
+
+    /** تاريخ من الفلتر — القيمة الغلط بتتجاهل بدل ما توقع الصفحة. */
+    protected static function parseDay(?string $value): ?\Carbon\CarbonImmutable
+    {
+        if ($value === null || trim($value) === '') {
+            return null;
+        }
+
+        try {
+            return \Carbon\CarbonImmutable::parse($value)->startOfDay();
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     // ========================================================
@@ -100,6 +119,28 @@ class ActivityLog extends Model
      *
      * @return array<int, array{field: string, label: string, old: mixed, new: mixed}>
      */
+    /** حقول الرواتب اللي بتتخفي عن اللي مالوش employee_salary_view. */
+    public const SALARY_FIELDS = ['basic_salary', 'salary', 'amount', 'custom_daily_rate', 'custom_hourly_rate'];
+
+    /** موديولات الراتب اللي قيمها بتتخفي. */
+    private const SALARY_SUBJECTS = [
+        \App\Models\Employee::class,
+        \App\Models\EmployeeSalary::class,
+        \App\Models\EmployeeAllowance::class,
+    ];
+
+    /**
+     * السجل كان بيعرض الراتب القديم والجديد لأي حد عنده "عرض السجل"،
+     * حتى لو مالوش صلاحية يشوف الرواتب في شاشة الموظفين نفسها.
+     */
+    private function salaryHiddenFrom(): bool
+    {
+        return in_array($this->subject_type, self::SALARY_SUBJECTS, true)
+            && admin() !== null
+            && ! admin()->main
+            && ! admin_can('employee_salary_view');
+    }
+
     public function getChangesListAttribute(): array
     {
         $old = $this->old_values ?? [];
@@ -109,13 +150,16 @@ class ActivityLog extends Model
         sort($fields);
 
         $rows = [];
+        $mask = $this->salaryHiddenFrom();
 
         foreach ($fields as $field) {
+            $hidden = $mask && in_array($field, self::SALARY_FIELDS, true);
+
             $rows[] = [
                 'field' => $field,
                 'label' => activity_field_label($this->subject_type, $field),
-                'old'   => $old[$field] ?? null,
-                'new'   => $new[$field] ?? null,
+                'old'   => $hidden ? '***' : ($old[$field] ?? null),
+                'new'   => $hidden ? '***' : ($new[$field] ?? null),
             ];
         }
 

@@ -56,6 +56,12 @@ Schedule::command('petty-cash:carry-over')
     ->withoutOverlapping()
     ->onOneServer();
 
+// تطبيق العلاوات اللي ميعادها جه — يومياً ١:١٥ صباحاً.
+Schedule::command('salaries:sync')
+    ->dailyAt('01:15')
+    ->withoutOverlapping()
+    ->onOneServer();
+
 // حذف الإشعارات القديمة يومياً ٢:٣٠ صباحاً.
 // المقروء بعد ٣٠ يوم، وأي إشعار بعد ٩٠ — المدد من config/notifications.php
 Schedule::command('notifications:prune')

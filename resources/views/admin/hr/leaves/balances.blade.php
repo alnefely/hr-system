@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center border-bottom">
+    <div class="card-header d-flex justify-content-between align-items-center border-bottom flex-wrap gap-2">
         <h5 class="card-title mb-0">
             <i class="fa-solid fa-scale-balanced text-primary me-2"></i> {{ __('leave.balances_title') }} لعام {{ $year }}
         </h5>
@@ -16,7 +16,7 @@
                 </select>
             </form>
             <a href="{{ route('admin.leaves.index') }}" class="btn btn-label-secondary waves-effect">
-                <i class="fa-solid fa-arrow-right me-1"></i> {{ __('leave.title') }}
+                <i class="fa-solid fa-arrow-right icon-back me-1" aria-hidden="true"></i> {{ __('leave.title') }}
             </a>
         </div>
     </div>
@@ -42,7 +42,7 @@
                     @forelse($balances as $bal)
                         <tr>
                             <td>
-                                <strong class="d-block text-dark">{{ $bal->employee?->name }}</strong>
+                                <strong class="d-block text-heading">{{ $bal->employee?->name }}</strong>
                                 <small class="text-muted">{{ $bal->employee?->employee_code }}</small>
                             </td>
                             <td class="text-center">

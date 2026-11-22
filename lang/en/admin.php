@@ -9,6 +9,11 @@
 return [
 
     'title'   => 'Admins',
+    'errors'  => [
+        'cannot_edit_self'           => 'You cannot edit or delete your own account here — use your profile.',
+        'role_exceeds_yours'         => 'You cannot grant a role with more permissions than your own.',
+        'employee_must_be_in_branch' => 'The account must be linked to an employee in your branch.',
+    ],
     'name'    => 'Admin Name',
     'profile' => 'Profile',
     'img'     => 'Admin Photo',

@@ -15,24 +15,24 @@
     {{-- Filter Bar (No bg-light) --}}
     <div class="card-body py-3 border-bottom bg-transparent d-print-none">
         <form action="{{ route('admin.reports.financial-pl') }}" method="GET" class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label text-muted small mb-1">{{ __('report.filters.date_from') }}</label>
-                <input type="date" name="date_from" value="{{ $dateFrom }}" class="form-control" required />
+            <div class="col-12 col-sm-6 col-lg-3">
+                <label for="pl_filter_date_from" class="form-label text-muted small mb-1">{{ __('report.filters.date_from') }}</label>
+                <input id="pl_filter_date_from" type="date" name="date_from" value="{{ $dateFrom }}" class="form-control" required />
             </div>
-            <div class="col-md-3">
-                <label class="form-label text-muted small mb-1">{{ __('report.filters.date_to') }}</label>
-                <input type="date" name="date_to" value="{{ $dateTo }}" class="form-control" required />
+            <div class="col-12 col-sm-6 col-lg-3">
+                <label for="pl_filter_date_to" class="form-label text-muted small mb-1">{{ __('report.filters.date_to') }}</label>
+                <input id="pl_filter_date_to" type="date" name="date_to" value="{{ $dateTo }}" class="form-control" required />
             </div>
-            <div class="col-md-4">
-                <label class="form-label text-muted small mb-1">{{ __('report.filters.branch') }}</label>
-                <select name="branch_id" class="form-select select2">
+            <div class="col-12 col-sm-6 col-lg-4">
+                <label for="pl_filter_branch_id" class="form-label text-muted small mb-1">{{ __('report.filters.branch') }}</label>
+                <select id="pl_filter_branch_id" name="branch_id" class="form-select select2">
                     <option value="">جميع الفروع والمقرات</option>
                     @foreach($branches as $b)
                         <option value="{{ $b->id }}" {{ $branchId == $b->id ? 'selected' : '' }}>{{ $b->name }} ({{ $b->currency }})</option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-2 d-flex gap-2">
+            <div class="col-12 col-sm-6 col-lg-2 d-flex gap-2">
                 <button type="submit" class="btn btn-primary w-100 waves-effect waves-light">
                     <i class="fa-solid fa-filter me-1"></i> عرض التقرير
                 </button>
@@ -46,7 +46,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h3 class="fw-bold text-primary mb-1">{{ setting('site_name') }}</h3>
-                    <h5 class="fw-bold text-dark mb-0">{{ __('report.financial_pl') }}</h5>
+                    <h5 class="fw-bold text-heading mb-0">{{ __('report.financial_pl') }}</h5>
                 </div>
                 <div class="text-end small text-muted">
                     <div><strong>الفترة:</strong> من <span dir="ltr">{{ $dateFrom }}</span> إلى <span dir="ltr">{{ $dateTo }}</span></div>
@@ -105,7 +105,7 @@
 
         {{-- Multi-Currency Comprehensive Table --}}
         <div class="card border shadow-none mb-4">
-            <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center bg-transparent">
+            <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center bg-transparent flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold">
                     <i class="fa-solid fa-table-columns text-primary me-2"></i> جدول الأرباح والخسائر الشامل مفصل بالعملات
                 </h5>
@@ -171,7 +171,7 @@
             {{-- Recent Sales in Period --}}
             <div class="col-md-6">
                 <div class="card border shadow-none h-100">
-                    <div class="card-header border-bottom py-2 bg-transparent d-flex justify-content-between align-items-center">
+                    <div class="card-header border-bottom py-2 bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <h6 class="mb-0 fw-bold text-success">
                             <i class="fa-solid fa-cart-shopping me-1"></i> أحدث فواتير المبيعات بالفترة ({{ count($recentSales) }})
                         </h6>
@@ -207,7 +207,7 @@
             {{-- Recent Expenses in Period --}}
             <div class="col-md-6">
                 <div class="card border shadow-none h-100">
-                    <div class="card-header border-bottom py-2 bg-transparent d-flex justify-content-between align-items-center">
+                    <div class="card-header border-bottom py-2 bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <h6 class="mb-0 fw-bold text-danger">
                             <i class="fa-solid fa-receipt me-1"></i> أحدث المصروفات التشغيلية بالفترة ({{ count($recentExpenses) }})
                         </h6>

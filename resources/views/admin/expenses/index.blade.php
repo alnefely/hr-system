@@ -96,7 +96,7 @@
                 <p class="mb-0 text-muted small fw-semibold" data-bs-toggle="tooltip" title="مجموع كافة الفواتير والمصاريف التشغيلية المنصرفة خلال الفترة المحددة">
                     <i class="fa-solid fa-calendar-check text-warning me-1"></i>
                     إجمالي المنصرف من العهدة
-                    <span class="text-dark dir-ltr">({{ $spentPeriodLabel }})</span>
+                    <span class="text-heading dir-ltr">({{ $spentPeriodLabel }})</span>
                 </p>
             </div>
         </div>
@@ -118,14 +118,14 @@
                     </div>
 
                     <h4 class="mb-1 text-info fw-bold">
-                        <span dir="ltr">{{ number_format($expenses->total()) }}</span>
+                        <span dir="ltr">{{ number_format($expensesCount) }}</span>
                         <small class="fs-6">عملية</small>
                     </h4>
 
                     <p class="mb-0 text-muted small fw-semibold">
                         <i class="fa-solid fa-list-check text-info me-1"></i>
                         عدد المصروفات في الفترة
-                        <span class="text-dark dir-ltr">({{ $spentPeriodLabel }})</span>
+                        <span class="text-heading dir-ltr">({{ $spentPeriodLabel }})</span>
                     </p>
 
                     <small class="text-warning d-block mt-2">
@@ -183,7 +183,7 @@
                 <p class="mb-0 text-muted small fw-semibold" data-bs-toggle="tooltip" title="معادلة الحساب: الرصيد المخصص للعهدة - إجمالي المنصرف الفعلي لكل عملة">
                     <i class="fa-solid fa-wallet me-1"></i>
                     {{ __('expense.stats.remaining_balance') }}
-                    <span class="text-dark">({{ $spentPeriodLabel }})</span>
+                    <span class="text-heading">({{ $spentPeriodLabel }})</span>
                 </p>
             </div>
         </div>
@@ -195,8 +195,8 @@
     @if(count($allCurrencies) > 1 && !$usingCustomRange)
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header py-2 border-bottom d-flex justify-content-between align-items-center">
-                    <span class="fw-bold text-dark"><i class="fa-solid fa-coins text-warning me-2"></i> ملخص موازين العهدة والمصروفات حسب العملات:</span>
+                <div class="card-header py-2 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <span class="fw-bold text-heading"><i class="fa-solid fa-coins text-warning me-2"></i> ملخص موازين العهدة والمصروفات حسب العملات:</span>
                     <span class="badge bg-label-secondary">{{ count($allCurrencies) }} عملات نشطة</span>
                 </div>
                 <div class="table-responsive">
@@ -288,7 +288,7 @@
 
         {{-- شريط الشرح: يوضّح الفرق بين دورة العهدة ونطاق التواريخ --}}
         <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-            <h6 class="mb-0 fw-bold text-dark">
+            <h6 class="mb-0 fw-bold text-heading">
                 <i class="fa-solid fa-sliders text-primary me-1"></i>
                 فلترة المصروفات
                 <a href="javascript:void(0);"
@@ -313,9 +313,9 @@
         </div>
 
         <form action="{{ route('admin.expenses.index') }}" method="GET" class="row g-3 align-items-end">
-            <div class="col-md-2">
-                <label class="form-label text-muted small mb-1">{{ __('expense.fields.branch') }}</label>
-                <select name="branch_id" class="form-select select2">
+            <div class="col-12 col-sm-6 col-lg-2">
+                <label for="expense_filter_branch_id" class="form-label text-muted small mb-1">{{ __('expense.fields.branch') }}</label>
+                <select id="expense_filter_branch_id" name="branch_id" class="form-select select2">
                     <option value="">{{ __('expense.filters.all_branches') }}</option>
                     @foreach($branches as $b)
                         <option value="{{ $b->id }}" {{ request('branch_id') == $b->id ? 'selected' : '' }}>{{ $b->name }} ({{ $b->currency }})</option>
@@ -323,9 +323,9 @@
                 </select>
             </div>
 
-            <div class="col-md-2">
-                <label class="form-label text-muted small mb-1">{{ __('expense.fields.category') }}</label>
-                <select name="expense_category_id" class="form-select select2">
+            <div class="col-12 col-sm-6 col-lg-2">
+                <label for="expense_filter_expense_category_id" class="form-label text-muted small mb-1">{{ __('expense.fields.category') }}</label>
+                <select id="expense_filter_expense_category_id" name="expense_category_id" class="form-select select2">
                     <option value="">{{ __('expense.filters.all_categories') }}</option>
                     @foreach($categories as $c)
                         <option value="{{ $c->id }}" {{ request('expense_category_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
@@ -333,9 +333,9 @@
                 </select>
             </div>
 
-            <div class="col-md-2">
-                <label class="form-label text-muted small mb-1">{{ __('expense.fields.payment_method') }}</label>
-                <select name="payment_method" class="form-select select2">
+            <div class="col-12 col-sm-6 col-lg-2">
+                <label for="expense_filter_payment_method" class="form-label text-muted small mb-1">{{ __('expense.fields.payment_method') }}</label>
+                <select id="expense_filter_payment_method" name="payment_method" class="form-select select2">
                     <option value="">{{ __('expense.filters.all_methods') }}</option>
                     @foreach (['cash', 'bank_transfer', 'card'] as $methodKey)
                         <option value="{{ $methodKey }}" {{ request('payment_method') === $methodKey ? 'selected' : '' }}>
@@ -345,23 +345,25 @@
                 </select>
             </div>
 
-            <div class="col-md-4">
-                <label class="form-label text-muted small mb-1">
+            <div class="col-12 col-lg-4">
+                <label for="expense_filter_date_from" class="form-label text-muted small mb-1">
                     {{ __('expense.filters.period') }}
                     <x-inputs.help :text="__('expense.hints.period')" />
                 </label>
                 <div class="input-group">
-                    <input type="date" name="date_from" class="form-control px-1" value="{{ $dateFrom }}" />
-                    <input type="date" name="date_to" class="form-control px-1" value="{{ $dateTo }}" />
+                    <input type="date" name="date_from" id="expense_filter_date_from" class="form-control px-1" value="{{ $dateFrom }}"
+                           aria-label="{{ __('expense.filters.period') }} ({{ __('global.export.from') }})" />
+                    <input type="date" name="date_to" id="expense_filter_date_to" class="form-control px-1" value="{{ $dateTo }}"
+                           aria-label="{{ __('expense.filters.period') }} ({{ __('global.export.to') }})" />
                 </div>
             </div>
 
-            <div class="col-md-2 d-flex gap-1">
+            <div class="col-12 col-sm-6 col-lg-2 d-flex gap-1">
                 <button type="submit" class="btn btn-primary w-100">
                     <i class="fa-solid fa-filter me-1"></i> تصفية
                 </button>
-                <a href="{{ route('admin.expenses.index') }}" class="btn btn-outline-secondary" title="{{ __('global.back') }}">
-                    <i class="fa-solid fa-rotate"></i>
+                <a href="{{ route('admin.expenses.index') }}" class="btn btn-outline-secondary" title="{{ __('global.reset_filter') }}" aria-label="{{ __('global.reset_filter') }}">
+                    <i class="fa-solid fa-rotate" aria-hidden="true"></i>
                 </a>
             </div>
         </form>

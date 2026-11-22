@@ -1,9 +1,82 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Rubik:ital,wght@0,300..900;1,300..900&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
-
-html, body,h1, h2, h3, h4, h5, h6, p,span, div, a, ul, li, ol, input, textarea{
-  font-family: 'Rubik', sans-serif !important;
-
+/* الخط بيتحمّل من layouts/partials/fonts.blade.php (link + preconnect) */
+:root,
+[data-bs-theme] {
+  --bs-font-sans-serif: 'Rubik', -apple-system, blinkmacsystemfont, 'Segoe UI', 'Helvetica Neue', Tahoma, sans-serif;
+  --bs-body-font-family: var(--bs-font-sans-serif);
 }
+
+/* مرة واحدة على body، وعناصر الفورم مابتورثش الخط لوحدها.
+   مفيش !important ولا span/div/i عشان خطوط الأيقونات (fa-*, ti) تفضل شغالة. */
+body,
+input,
+button,
+select,
+optgroup,
+textarea,
+.form-control,
+.form-select,
+.btn,
+.dropdown-menu,
+.tooltip,
+.popover {
+  font-family: var(--bs-body-font-family);
+}
+
+/* ============================================================
+   منع الفيض الأفقي للصفحة على الشاشات الصغيرة
+   ============================================================ */
+/* شبكة أمان: أي عنصر يعدّي عرض المحتوى يتقص بدل ما يعمل scroll أفقي للصفحة.
+   clip (مش hidden) عشان مايعملش scroll container فـ sticky والـ dropdowns تفضل شغالة،
+   والقائمة الجانبية fixed فمش بتتأثر. */
+.layout-page {
+  overflow-x: clip;
+}
+
+/* ============================================================
+   أدوات مساعدة متكررة
+   ============================================================ */
+
+/* ارتفاع موحّد لعناصر شريط الفلاتر (بدل style="height: 38px;") */
+.h-38 {
+  height: 38px;
+}
+
+/* أيقونة الرجوع: السهم مرسوم لليمين (RTL). في LTR بيتقلب */
+[dir='ltr'] .icon-back {
+  transform: scaleX(-1);
+}
+
+/* حد أدنى لعرض الحقول جوّه جداول البنود عشان ماتنضغطش */
+.min-w-90 {
+  min-width: 90px;
+}
+.min-w-130 {
+  min-width: 130px;
+}
+.min-w-180 {
+  min-width: 180px;
+}
+
+/* تبويبات تعمل scroll أفقي بدل ما تفيض بره الكارت */
+.nav-tabs-scroll {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+.nav-tabs-scroll .nav-item,
+.nav-tabs-scroll .nav-link {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* قائمة الإشعارات: ماتعديش عرض الشاشة على الموبايل */
+.notifications-dropdown {
+  min-width: min(340px, calc(100vw - 2rem));
+  max-width: min(400px, calc(100vw - 2rem));
+}
+
 .menu-inner .menu-item i {
   margin-inline-end: 0.5rem;
   text-align: center;

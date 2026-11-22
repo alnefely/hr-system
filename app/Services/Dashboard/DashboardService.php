@@ -7,7 +7,6 @@ use App\Enums\ApprovalStatus;
 use App\Enums\LeaveStatus;
 use App\Enums\PayrollStatus;
 use App\Enums\RewardStatus;
-use App\Models\AdminNotification;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
 use App\Models\EmployeeLeave;
@@ -19,6 +18,10 @@ use App\Models\Payroll;
 use App\Models\Sale;
 use App\Models\VendorSubscription;
 use App\Services\Dashboard\DashboardFilter;
+use App\Services\Notification\NotificationService;
+use App\Services\Cache\CacheService;
+use App\Services\Cache\Keys\DashboardCache;
+use App\Support\BranchScopeResolver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -62,10 +65,24 @@ class DashboardService
         return $this->filter;
     }
 
+    /** مدة كاش اللوحة بالثواني (٥ دقايق). */
+    private const CACHE_TTL = 300;
+
+    /**
+     * الصلاحيات اللي بتأثر على شكل الـ payload (كارت "يحتاج إجراء").
+     * بتدخل في مفتاح الكاش عشان مشرف بصلاحيات أقل مايشوفش أرقام غيره.
+     */
+    private const PENDING_PERMISSIONS = [
+        'leave_show', 'permission_show', 'advance_show',
+        'penalty_show', 'reward_show', 'payroll_show',
+    ];
+
     /** كل بيانات اللوحة في نداء واحد. */
     public function payload(): array
     {
-        return [
+        // حوالي ٢٥ استعلام تجميعي — بنكاشهم ٥ دقايق لكل نطاق، والكاش
+        // بيتلغي مع أي تعديل على الموديلات المؤثرة (FlushesDashboardCache).
+        $payload = $this->cached('full', fn () => [
             'period'        => $this->period(),
             'filter'        => $this->filter->toArray(),
             'financial'     => $this->financialSummary(),
@@ -76,7 +93,12 @@ class DashboardService
             'salesChannels' => $this->salesByChannel(),
             'topCustomers'  => $this->topCustomers(),
             'alerts'        => $this->alerts(),
-        ];
+        ]);
+
+        // عدّاد الإشعارات خاص بكل مشرف — برّه الكاش عن قصد
+        $payload['pending']['unread_notifications'] = NotificationService::unreadCountForRequest(admin()?->id);
+
+        return $payload;
     }
 
     /**
@@ -85,14 +107,40 @@ class DashboardService
      */
     public function filteredPayload(): array
     {
-        return [
+        return $this->cached('filtered', fn () => [
             'filter'        => $this->filter->toArray(),
             'financial'     => $this->financialSummary(),
             'trend'         => $this->monthlyTrend(),
             'expenseSplit'  => $this->expensesByCategory(),
             'salesChannels' => $this->salesByChannel(),
             'topCustomers'  => $this->topCustomers(),
+        ]);
+    }
+
+    /**
+     * كاش بالنطاق: الفلتر + فرع المشرف (عزل الفروع) + اللغة + الصلاحيات +
+     * تاريخ النهارده (التنبيهات والفترة معتمدين عليه).
+     */
+    private function cached(string $kind, \Closure $build): array
+    {
+        $scope = [
+            'from'     => $this->filter->from->toDateTimeString(),
+            'to'       => $this->filter->to->toDateTimeString(),
+            'branch'   => $this->filter->branchId,
+            'currency' => $this->filter->currency,
+            'preset'   => $this->filter->preset,
+            'scope'    => BranchScopeResolver::branchId(),
+            'locale'   => app()->getLocale(),
+            'today'    => $this->now->toDateString(),
+            'perms'    => array_map(fn ($p) => admin_can($p), self::PENDING_PERMISSIONS),
         ];
+
+        return app(CacheService::class)->remember(
+            DashboardCache::class,
+            DashboardCache::payload($kind, md5(json_encode($scope))),
+            $build,
+            self::CACHE_TTL
+        );
     }
 
     private function period(): array
@@ -377,9 +425,6 @@ class DashboardService
             'penalties'   => $count('penalty_show', fn () => EmployeePenalty::where('status', ApprovalStatus::Pending->value)->count()),
             'rewards'     => $count('reward_show', fn () => EmployeeReward::where('status', RewardStatus::Pending->value)->count()),
             'payrolls'    => $count('payroll_show', fn () => Payroll::where('status', PayrollStatus::Draft->value)->count()),
-            'unread_notifications' => admin()
-                ? AdminNotification::forAdmin(admin()->id)->unread()->count()
-                : 0,
         ];
     }
 

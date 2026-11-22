@@ -29,7 +29,7 @@
         data-text="{{ $confirmText }}"
         data-icon="{{ $swalIcon ?? 'warning' }}"
         data-btn-text="{{ $confirmButton ?? $title }}"
-        data-btn-class="{{ $confirmButtonClass ?? 'btn-danger' }}">
+        data-btn-class="{{ $confirmButtonClass ?? 'btn-danger' }}" aria-label="{{ $title }}">
         <i class="{{ $icon }}"></i>
     </button>
 </form>

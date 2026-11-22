@@ -39,9 +39,22 @@ class LeaveService
 
     public function create(array $data): EmployeeLeave
     {
-        $maxDays = Carbon::parse($data['start_date'])->diffInDays(Carbon::parse($data['end_date'])) + 1;
+        $start   = Carbon::parse($data['start_date']);
+        $end     = Carbon::parse($data['end_date']);
+        $maxDays = (int) $start->diffInDays($end) + 1;
 
-        if ((float) $data['days_count'] > $maxDays) {
+        // أقل عدد مقبول = الأيام التقويمية ناقص أيام الإجازة الأسبوعية (جمعة
+        // وسبت). قبل كده إجازة 30 يوم كانت بتتسجّل "يوم واحد" وتستهلك يوم
+        // من الرصيد. اليوم الواحد بس اللي ينفع يبقى نص يوم.
+        $weekendDays = 0;
+        for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
+            if ($d->isFriday() || $d->isSaturday()) {
+                $weekendDays++;
+            }
+        }
+        $minDays = $maxDays === 1 ? 0.5 : max(1, $maxDays - $weekendDays);
+
+        if ((float) $data['days_count'] > $maxDays || (float) $data['days_count'] < $minDays) {
             throw new InvalidStateException(__('leave.errors.invalid_days_count', [
                 'days' => $data['days_count'],
                 'max'  => $maxDays,
@@ -67,22 +80,35 @@ class LeaveService
 
     public function approve(EmployeeLeave $leave): void
     {
-        if ($leave->status !== LeaveStatus::Pending->value) {
-            throw new InvalidStateException(__('leave.errors.not_pending'));
-        }
+        ApprovalService::ensureNotBeneficiary($leave->employee_id, 'leave');
 
         DB::transaction(function () use ($leave) {
-            $balance = $this->balanceFor($leave, lock: true, create: true);
+            // الفحص جوّه القفل: طلبين اعتماد/رفض متزامنين مايشتغلوش على حالة قديمة
+            $locked = EmployeeLeave::whereKey($leave->id)->lockForUpdate()->firstOrFail();
 
-            $this->ensureSufficientBalance($leave, $balance);
+            if ($locked->status !== LeaveStatus::Pending->value) {
+                throw new InvalidStateException(__('leave.errors.not_pending'));
+            }
 
-            $leave->update([
+            $this->ensurePayrollOpen($locked);
+
+            $balances = [];
+            foreach ($this->yearsOf($locked) as $year) {
+                $balances[$year] = $this->balanceFor($locked, lock: true, create: true, year: $year);
+                $this->ensureSufficientBalance($locked, $balances[$year], $year);
+            }
+
+            $locked->update([
                 'status'      => LeaveStatus::Approved->value,
                 'approved_by' => admin()?->id,
                 'approved_at' => now(),
             ]);
 
-            $balance->recalculateUsed();
+            foreach ($balances as $balance) {
+                $balance->recalculateUsed();
+            }
+
+            $leave->setRawAttributes($locked->getAttributes(), true);
         });
 
         $this->notifyDecided($leave->fresh(), LeaveStatus::Approved);
@@ -92,9 +118,19 @@ class LeaveService
     public function reject(EmployeeLeave $leave, string $reason): void
     {
         DB::transaction(function () use ($leave, $reason) {
-            $wasApproved = $leave->status === LeaveStatus::Approved->value;
+            $locked = EmployeeLeave::whereKey($leave->id)->lockForUpdate()->firstOrFail();
 
-            $leave->update([
+            if (! in_array($locked->status, [LeaveStatus::Pending->value, LeaveStatus::Approved->value], true)) {
+                throw new InvalidStateException(__('leave.errors.not_pending'));
+            }
+
+            $wasApproved = $locked->status === LeaveStatus::Approved->value;
+
+            if ($wasApproved) {
+                $this->ensurePayrollOpen($locked);
+            }
+
+            $locked->update([
                 'status'           => LeaveStatus::Rejected->value,
                 'rejection_reason' => $reason,
                 'approved_by'      => admin()?->id,
@@ -102,8 +138,10 @@ class LeaveService
             ]);
 
             if ($wasApproved) {
-                $this->balanceFor($leave, lock: true)?->recalculateUsed();
+                $this->recalculateBalances($locked);
             }
+
+            $leave->setRawAttributes($locked->getAttributes(), true);
         });
 
         $this->notifyDecided($leave->fresh(), LeaveStatus::Rejected);
@@ -117,7 +155,7 @@ class LeaveService
             $leave->delete();
 
             if ($wasApproved) {
-                $this->balanceFor($leave, lock: true)?->recalculateUsed();
+                $this->recalculateBalances($leave);
             }
         });
     }
@@ -129,7 +167,9 @@ class LeaveService
             $leave->restore();
 
             if ($leave->status === LeaveStatus::Approved->value) {
-                $this->balanceFor($leave, create: true)->recalculateUsed();
+                foreach ($this->yearsOf($leave) as $year) {
+                    $this->balanceFor($leave, create: true, year: $year)->recalculateUsed();
+                }
             }
         });
     }
@@ -145,12 +185,13 @@ class LeaveService
      */
     public function ensureBalances(iterable $employees, int $year): void
     {
-        $existing = EmployeeLeaveBalance::where('year', $year)->pluck('employee_id')->all();
+        // array_flip: البحث O(1) بدل in_array جوّه اللوب
+        $existing = array_flip(EmployeeLeaveBalance::where('year', $year)->pluck('employee_id')->all());
         $now = now();
         $rows = [];
 
         foreach ($employees as $employee) {
-            if (in_array($employee->id, $existing)) {
+            if (isset($existing[$employee->id])) {
                 continue;
             }
 
@@ -179,9 +220,35 @@ class LeaveService
         return $leave->start_date ? $leave->start_date->year : (int) date('Y');
     }
 
-    private function balanceFor(EmployeeLeave $leave, bool $lock = false, bool $create = false): ?EmployeeLeaveBalance
+    /** الإجازة بدون أجر بتأثر على المسير — مايتغيّرش قرارها بعد اعتماد مسير شهرها. */
+    private function ensurePayrollOpen(EmployeeLeave $leave): void
     {
-        $year = $this->yearOf($leave);
+        if ($leave->leave_type === LeaveType::Unpaid->value
+            && $leave->start_date && $leave->end_date
+            && PayrollRules::hasClosedPayroll($leave->employee_id, $leave->start_date, $leave->end_date)) {
+            throw new InvalidStateException(__('payroll.messages.period_closed'));
+        }
+    }
+
+    /** السنين اللي الإجازة بتقع فيها (سنة أو اتنين). @return array<int, int> */
+    private function yearsOf(EmployeeLeave $leave): array
+    {
+        $first = $this->yearOf($leave);
+        $last  = $leave->end_date ? $leave->end_date->year : $first;
+
+        return range($first, max($first, $last));
+    }
+
+    private function recalculateBalances(EmployeeLeave $leave): void
+    {
+        foreach ($this->yearsOf($leave) as $year) {
+            $this->balanceFor($leave, lock: true, year: $year)?->recalculateUsed();
+        }
+    }
+
+    private function balanceFor(EmployeeLeave $leave, bool $lock = false, bool $create = false, ?int $year = null): ?EmployeeLeaveBalance
+    {
+        $year ??= $this->yearOf($leave);
 
         $balance = EmployeeLeaveBalance::where('employee_id', $leave->employee_id)
             ->where('year', $year)
@@ -212,8 +279,13 @@ class LeaveService
     }
 
     /** الإجازة بدون أجر مالهاش رصيد — الباقي لازم يكفي قبل الاعتماد. */
-    private function ensureSufficientBalance(EmployeeLeave $leave, EmployeeLeaveBalance $balance): void
+    private function ensureSufficientBalance(EmployeeLeave $leave, EmployeeLeaveBalance $balance, ?int $year = null): void
     {
+        // نصيب السنة دي بس من أيام الإجازة
+        $requested = $year
+            ? PayrollRules::leaveDaysWithin($leave, sprintf('%04d-01-01', $year), sprintf('%04d-12-31', $year))
+            : (float) $leave->days_count;
+
         $remaining = match (LeaveType::fromValue($leave->leave_type)) {
             LeaveType::Annual => $balance->remaining_annual,
             LeaveType::Casual => $balance->remaining_casual,
@@ -221,10 +293,10 @@ class LeaveService
             default           => null,
         };
 
-        if ($remaining !== null && $remaining < $leave->days_count) {
+        if ($remaining !== null && $remaining < $requested) {
             throw new InvalidStateException(__('leave.errors.insufficient_' . $leave->leave_type, [
                 'remaining' => $remaining,
-                'requested' => $leave->days_count,
+                'requested' => $requested,
             ]));
         }
     }

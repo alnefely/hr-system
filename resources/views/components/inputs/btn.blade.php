@@ -31,10 +31,9 @@
 
 <button
     type="{{ $type }}"
-    class="btn btn-{{ $status }} {{ $class }}"
+    class="btn btn-{{ $status }} waves-effect {{ $class }}"
     id="{{ $inputId }}"
     @if($confirmMessage) data-confirm="{{ $confirmMessage }}" @endif
-    waves-effect
     {!! $attrString !!}
 >{!! $text !!}</button>
 

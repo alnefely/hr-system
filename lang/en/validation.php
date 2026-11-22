@@ -167,6 +167,7 @@ return [
     'url' => 'The :attribute field must be a valid URL.',
     'ulid' => 'The :attribute field must be a valid ULID.',
     'uuid' => 'The :attribute field must be a valid UUID.',
+    'safe_file_reference' => 'Invalid file path — pick the file from the file manager or enter an http/https link.',
 
     /*
     |--------------------------------------------------------------------------

@@ -108,7 +108,7 @@ class ExpenseController extends Controller
         }
 
         if ($request->get('export') === 'excel') {
-            $exportExpenses = $query->latest('expense_date')->get();
+            $exportExpenses = $query->latest('expense_date')->limit(\App\Services\Export\ExcelExportService::MAX_ROWS)->get();
             $headers = [
                 __('global.export.row_no'),
                 __('expense.export.expense_date'),
@@ -166,7 +166,9 @@ class ExpenseController extends Controller
             return ExcelExportService::download(__('expense.export.file_title'), $headers, $rows, $totals, 'expenses_' . date('Ymd_His'), $meta);
         }
 
-        $expenses = $query->latest('expense_date')->paginate(15)->withQueryString();
+        // الشاشة بتعرض العدد بس (الجدول نفسه AJAX) — COUNT واحد بدل paginate
+        // اللي كان بيجيب ١٥ صف ملهومش لازمة فوق الـ COUNT.
+        $expensesCount = (clone $query)->count();
 
         // Multi-currency Petty Cash Balance Analytics & Remaining Calculation
         $allocatedByCurrency = [];
@@ -251,7 +253,7 @@ class ExpenseController extends Controller
         $employees  = Employee::visibleTo()->active()->get(['id', 'name', 'employee_code']);
 
         return view('admin.expenses.index', compact(
-            'expenses',
+            'expensesCount',
             'allocatedBalance',
             'cashExpensesTotal',
             'allocatedByCurrency',

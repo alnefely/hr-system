@@ -4,7 +4,7 @@
 @section('content')
 <div class="row">
     {{-- كارت ملخص الموظف السريع --}}
-    <div class="col-xl-4 col-lg-5 col-md-5 mb-4">
+    <div class="col-xl-4 col-lg-5 col-12 mb-4">
         <div class="card h-100">
             <div class="card-body text-center">
                 <div class="avatar avatar-xl mx-auto mb-3">
@@ -34,7 +34,7 @@
                         </a>
                     @endif
                     <a href="{{ route('admin.employees') }}" class="btn btn-label-secondary btn-sm">
-                        <i class="fa-solid fa-arrow-right me-1"></i> {{ __('employee.back') }}
+                        <i class="fa-solid fa-arrow-right icon-back me-1" aria-hidden="true"></i> {{ __('employee.back') }}
                     </a>
                 </div>
             </div>
@@ -93,9 +93,9 @@
     </div>
 
     {{-- التبويبات والمحتوى التفصيلي --}}
-    <div class="col-xl-8 col-lg-7 col-md-7">
+    <div class="col-xl-8 col-lg-7 col-12">
         <div class="nav-align-top mb-4">
-            <ul class="nav nav-tabs nav-fill" role="tablist" id="employeeProfileTabs">
+            <ul class="nav nav-tabs nav-fill nav-tabs-scroll" role="tablist" id="employeeProfileTabs">
                 <li class="nav-item">
                     <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#tab-general" id="btn-tab-general">
                         <i class="fa-solid fa-circle-info me-1"></i> {{ __('employee.tabs.general') }}
@@ -263,7 +263,7 @@
 
                     {{-- تفاصيل البدلات والثوابت الشهرية المعتمدة --}}
                     <div class="card border shadow-none mb-4">
-                        <div class="card-header d-flex justify-content-between align-items-center py-2 px-3 border-bottom">
+                        <div class="card-header d-flex justify-content-between align-items-center py-2 px-3 border-bottom flex-wrap gap-2">
                             <h6 class="fw-bold mb-0 text-primary">
                                 <i class="fa-solid fa-coins me-1"></i> تفاصيل البدلات والثوابت الشهرية المعتمدة
                             </h6>
@@ -372,7 +372,7 @@
                                                                 data-text="هل أنت متأكد من حذف سجل الراتب؟"
                                                                 data-icon="warning"
                                                                 data-btn-text="{{ __('global.delete') }}"
-                                                                title="{{ __('global.delete') }}">
+                                                                title="{{ __('global.delete') }}" aria-label="{{ __('global.confirm_delete') }}">
                                                             <i class="fa-solid fa-trash"></i>
                                                         </button>
                                                     </form>
@@ -470,7 +470,7 @@
                                                 @endif
                                             </td>
                                             <td class="text-center">
-                                                <a href="{{ $doc->file_path }}" target="_blank" class="btn btn-sm btn-icon btn-label-info me-1 waves-effect" title="{{ __('document.view_file') }}">
+                                                <a href="{{ $doc->file_path }}" target="_blank" class="btn btn-sm btn-icon btn-label-info me-1 waves-effect" title="{{ __('document.view_file') }}" aria-label="{{ __('document.view_file') }}">
                                                     <i class="fa-solid fa-eye"></i>
                                                 </a>
                                                 @if (admin_can('document_update'))
@@ -482,7 +482,7 @@
                                                                     data-text="هل أنت متأكد من إلغاء اعتماد هذا المستند وإعادته لقيد المراجعة؟"
                                                                     data-icon="warning"
                                                                     data-btn-text="نعم، إلغاء الاعتماد"
-                                                                    title="إلغاء الاعتماد">
+                                                                    title="إلغاء الاعتماد" aria-label="إلغاء الاعتماد؟">
                                                                 <i class="fa-solid fa-rotate-left"></i>
                                                             </button>
                                                         @else
@@ -491,7 +491,7 @@
                                                                     data-text="هل أنت متأكد من التحقق واعتماد هذا المستند رسميًا؟"
                                                                     data-icon="question"
                                                                     data-btn-text="نعم، اعتمد المستند"
-                                                                    title="اعتماد المستند">
+                                                                    title="اعتماد المستند" aria-label="اعتماد المستند؟">
                                                                 <i class="fa-solid fa-check-double"></i>
                                                             </button>
                                                         @endif
@@ -506,7 +506,7 @@
                                                                 data-text="سيتم نقل المستند لسلة المحذوفات"
                                                                 data-icon="warning"
                                                                 data-btn-text="{{ __('global.delete') }}"
-                                                                title="{{ __('global.delete') }}">
+                                                                title="{{ __('global.delete') }}" aria-label="{{ __('global.confirm_delete') }}">
                                                             <i class="fa-solid fa-trash"></i>
                                                         </button>
                                                     </form>
@@ -583,7 +583,7 @@
                                                     <form action="{{ route('admin.skills.destroy', $skill->id) }}" method="POST" class="d-inline">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="button" class="btn btn-sm btn-icon btn-label-danger waves-effect btn-swal-confirm" title="{{ __('global.delete') }}" data-title="تأكيد الحذف" data-text="{{ __('global.confirm_delete') }}" data-icon="warning" data-btn-text="نعم، احذف" data-btn-class="btn-danger">
+                                                        <button type="button" class="btn btn-sm btn-icon btn-label-danger waves-effect btn-swal-confirm" title="{{ __('global.delete') }}" data-title="تأكيد الحذف" data-text="{{ __('global.confirm_delete') }}" data-icon="warning" data-btn-text="نعم، احذف" data-btn-class="btn-danger" aria-label="{{ __('global.delete') }}">
                                                             <i class="fa-solid fa-trash"></i>
                                                         </button>
                                                     </form>
@@ -627,11 +627,11 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">{{ __('salary.fields.basic_salary') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('salary.hints.basic_salary')" /></label>
+                    <label for="modal_basic_salary" class="form-label">{{ __('salary.fields.basic_salary') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('salary.hints.basic_salary')" /></label>
                     <input type="number" step="0.01" name="basic_salary" id="modal_basic_salary" class="form-control" value="{{ $basicAmount }}" required dir="ltr">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('salary.fields.allowances') }} <x-inputs.tip :text="__('salary.hints.allowances')" /></label>
+                    <label for="modal_allowances" class="form-label">{{ __('salary.fields.allowances') }} <x-inputs.tip :text="__('salary.hints.allowances')" /></label>
                     <input type="number" step="0.01" name="allowances" id="modal_allowances" class="form-control" value="{{ $totalAllowances }}" dir="ltr">
                 </div>
                 <div class="mb-3">
@@ -641,20 +641,20 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('salary.fields.effective_date') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('salary.hints.effective_date')" /></label>
-                    <input type="date" name="effective_date" class="form-control" value="{{ date('Y-m-d') }}" required>
+                    <label for="emp_effective_date" class="form-label">{{ __('salary.fields.effective_date') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('salary.hints.effective_date')" /></label>
+                    <input id="emp_effective_date" type="date" name="effective_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('salary.fields.change_reason') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('salary.hints.change_reason')" /></label>
-                    <select name="change_reason" class="form-select select2" required>
+                    <label for="emp_change_reason" class="form-label">{{ __('salary.fields.change_reason') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('salary.hints.change_reason')" /></label>
+                    <select id="emp_change_reason" name="change_reason" class="form-select select2" required>
                         @foreach (__('salary.reasons') as $key => $reason)
                             <option value="{{ $key }}">{{ $reason }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('salary.fields.notes') }}</label>
-                    <textarea name="notes" class="form-control" rows="2"></textarea>
+                    <label for="emp_notes" class="form-label">{{ __('salary.fields.notes') }}</label>
+                    <textarea id="emp_notes" name="notes" class="form-control" rows="2"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
@@ -679,35 +679,35 @@
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label">{{ __('document.fields.document_type') }}</label>
-                    <select name="document_type" class="form-select select2" required>
+                    <label for="emp_document_type" class="form-label">{{ __('document.fields.document_type') }}</label>
+                    <select id="emp_document_type" name="document_type" class="form-select select2" required>
                         @foreach (__('document.types') as $key => $type)
                             <option value="{{ $key }}">{{ $type }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">
+                    <label for="emp_title" class="form-label">
                         {{ __('document.fields.title') }}
                         <span class="text-muted">({{ __('global.optional') }})</span>
                         <i class="fa-solid fa-circle-info text-primary"
                            data-bs-toggle="tooltip"
                            title="{{ __('document.hints.title') }}"></i>
                     </label>
-                    <input type="text" name="title" class="form-control"
+                    <input id="emp_title" type="text" name="title" class="form-control"
                            placeholder="{{ __('document.placeholders.title') }}">
                 </div>
                 <div class="mb-3">
                     <x-inputs.lfm name="file_path" type="file" :label="__('document.fields.file')" required />
                 </div>
                 <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label">{{ __('document.fields.issue_date') }} <x-inputs.tip :text="__('document.hints.issue_date')" /></label>
-                        <input type="date" name="issue_date" class="form-control">
+                    <div class="col-12 col-sm-6">
+                        <label for="emp_issue_date" class="form-label">{{ __('document.fields.issue_date') }} <x-inputs.tip :text="__('document.hints.issue_date')" /></label>
+                        <input id="emp_issue_date" type="date" name="issue_date" class="form-control">
                     </div>
-                    <div class="col-6">
-                        <label class="form-label">{{ __('document.fields.expiry_date') }}</label>
-                        <input type="date" name="expiry_date" class="form-control">
+                    <div class="col-12 col-sm-6">
+                        <label for="emp_expiry_date" class="form-label">{{ __('document.fields.expiry_date') }}</label>
+                        <input id="emp_expiry_date" type="date" name="expiry_date" class="form-control">
                     </div>
                 </div>
                 <div class="mb-3 form-check form-switch">
@@ -737,24 +737,24 @@
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label">{{ __('skill.fields.skill_name') }} <span class="text-danger">*</span></label>
-                    <input type="text" name="skill_name" class="form-control" placeholder="مثال: تحليل مالي، تصميم، برمجة PHP" required>
+                    <label for="emp_skill_name" class="form-label">{{ __('skill.fields.skill_name') }} <span class="text-danger">*</span></label>
+                    <input id="emp_skill_name" type="text" name="skill_name" class="form-control" placeholder="مثال: تحليل مالي، تصميم، برمجة PHP" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('skill.fields.proficiency_level') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('skill.hints.proficiency_level')" /></label>
-                    <select name="proficiency_level" class="form-select select2" required>
+                    <label for="emp_proficiency_level" class="form-label">{{ __('skill.fields.proficiency_level') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('skill.hints.proficiency_level')" /></label>
+                    <select id="emp_proficiency_level" name="proficiency_level" class="form-select select2" required>
                         @foreach (__('skill.levels') as $key => $lvl)
                             <option value="{{ $key }}">{{ $lvl }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('skill.fields.years_experience') }}</label>
-                    <input type="number" name="years_of_experience" class="form-control" value="1" min="0" max="60">
+                    <label for="emp_years_of_experience" class="form-label">{{ __('skill.fields.years_experience') }}</label>
+                    <input id="emp_years_of_experience" type="number" name="years_of_experience" class="form-control" value="1" min="0" max="60">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('skill.fields.evaluation_source') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('skill.hints.evaluation_source')" /></label>
-                    <select name="evaluation_source" class="form-select select2" required>
+                    <label for="emp_evaluation_source" class="form-label">{{ __('skill.fields.evaluation_source') }} <span class="text-danger">*</span> <x-inputs.tip :text="__('skill.hints.evaluation_source')" /></label>
+                    <select id="emp_evaluation_source" name="evaluation_source" class="form-select select2" required>
                         @foreach (__('skill.sources') as $key => $src)
                             <option value="{{ $key }}">{{ $src }}</option>
                         @endforeach

@@ -7,8 +7,8 @@
     <div class="card-body">
         <form action="{{ route('admin.advances.index') }}" method="GET" class="row g-3 align-items-end">
             <div class="col-md-3">
-                <label class="form-label fw-bold mb-1">{{ __('advance.fields.employee') }}</label>
-                <select name="employee_id" class="form-select select2">
+                <label for="admin_hr_advances_f_employee_id" class="form-label fw-bold mb-1">{{ __('advance.fields.employee') }}</label>
+                <select id="admin_hr_advances_f_employee_id" name="employee_id" class="form-select select2">
                     <option value="">{{ __('advance.filters.all_employees') }}</option>
                     @foreach($employees as $emp)
                         <option value="{{ $emp->id }}" {{ $selectedEmployeeId == $emp->id ? 'selected' : '' }}>
@@ -18,16 +18,16 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label fw-bold mb-1">{{ __('advance.filters.from_date') }}</label>
-                <input type="date" name="from_date" class="form-control" value="{{ request('from_date') }}">
+                <label for="admin_hr_advances_f_from_date" class="form-label fw-bold mb-1">{{ __('advance.filters.from_date') }}</label>
+                <input id="admin_hr_advances_f_from_date" type="date" name="from_date" class="form-control" value="{{ request('from_date') }}">
             </div>
             <div class="col-md-2">
-                <label class="form-label fw-bold mb-1">{{ __('advance.filters.to_date') }}</label>
-                <input type="date" name="to_date" class="form-control" value="{{ request('to_date') }}">
+                <label for="admin_hr_advances_f_to_date" class="form-label fw-bold mb-1">{{ __('advance.filters.to_date') }}</label>
+                <input id="admin_hr_advances_f_to_date" type="date" name="to_date" class="form-control" value="{{ request('to_date') }}">
             </div>
             <div class="col-md-2">
-                <label class="form-label fw-bold mb-1">{{ __('advance.fields.status') }}</label>
-                <select name="status" class="form-select select2">
+                <label for="admin_hr_advances_f_status" class="form-label fw-bold mb-1">{{ __('advance.fields.status') }}</label>
+                <select id="admin_hr_advances_f_status" name="status" class="form-select select2">
                     <option value="">{{ __('advance.filters.all_statuses') }}</option>
                     @foreach (__('advance.status_enums') as $statusKey => $statusLabel)
                         <option value="{{ $statusKey }}" {{ request('status') === $statusKey ? 'selected' : '' }}>
@@ -37,10 +37,10 @@
                 </select>
             </div>
             <div class="col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-grow-1" style="height: 38px;">
+                <button type="submit" class="btn btn-primary flex-grow-1 h-38">
                     <i class="fa-solid fa-filter me-1"></i> {{ __('global.filter') }}
                 </button>
-                <a href="{{ route('admin.advances.index') }}" class="btn btn-label-secondary" style="height: 38px;" title="{{ __('global.reset_filter') }}">
+                <a href="{{ route('admin.advances.index') }}" class="btn btn-label-secondary h-38" title="{{ __('global.reset_filter') }}" aria-label="{{ __('global.reset_filter') }}">
                     <i class="fa-solid fa-rotate-left"></i>
                 </a>
             </div>
@@ -218,19 +218,19 @@
             </div>
             <div class="modal-body pt-3">
                 <div class="row g-2 mb-3">
-                    <div class="col-3 text-center p-2 rounded border">
+                    <div class="col-6 col-md-3 text-center p-2 rounded border">
                         <small class="text-muted d-block">إجمالي السلفة</small>
                         <strong class="text-primary" id="rep_total_amount">0.00</strong>
                     </div>
-                    <div class="col-3 text-center p-2 rounded border">
+                    <div class="col-6 col-md-3 text-center p-2 rounded border">
                         <small class="text-muted d-block">المسدد فعلياً</small>
                         <strong class="text-success" id="rep_paid_amount">0.00</strong>
                     </div>
-                    <div class="col-3 text-center p-2 rounded border">
+                    <div class="col-6 col-md-3 text-center p-2 rounded border">
                         <small class="text-muted d-block">المعفى / المسقط</small>
                         <strong class="text-info" id="rep_waived_amount">0.00</strong>
                     </div>
-                    <div class="col-3 text-center p-2 rounded border border-danger">
+                    <div class="col-6 col-md-3 text-center p-2 rounded border border-danger">
                         <small class="text-muted d-block">الرصيد المتبقي</small>
                         <strong class="text-danger" id="rep_remaining_amount">0.00</strong>
                     </div>
@@ -388,7 +388,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     html += '<tr>' +
                         '<td>' + (index + 1) + '</td>' +
-                        '<td><strong class="text-dark" dir="ltr">' + parseFloat(r.amount).toFixed(2) + '</strong> ' + curr + '</td>' +
+                        '<td><strong class="text-heading" dir="ltr">' + parseFloat(r.amount).toFixed(2) + '</strong> ' + curr + '</td>' +
                         '<td>' + (r.repayment_date ? r.repayment_date.substring(0, 10) : '-') + '</td>' +
                         '<td>' + typeBadge + '</td>' +
                         '<td>' + (r.notes || '-') + '</td>' +

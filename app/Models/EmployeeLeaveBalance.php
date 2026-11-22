@@ -66,13 +66,22 @@ class EmployeeLeaveBalance extends Model
      */
     public function recalculateUsed(): void
     {
-        // استعلام واحد مجمّع بالنوع بدل 4 استعلامات SUM
-        $used = EmployeeLeave::where('employee_id', $this->employee_id)
-            ->where('status', LeaveStatus::Approved->value)
-            ->inYear($this->year, 'start_date')
+        // الإجازة اللي بتعدّي السنة (28 ديسمبر → 5 يناير) بتتوزّع على السنتين
+        // بنسبة أيامها، بدل ما تتحسب كلها على سنة البداية.
+        $from = sprintf('%04d-01-01', $this->year);
+        $to   = sprintf('%04d-12-31', $this->year);
+
+        $used = \App\Services\HR\PayrollRules::overlapping(
+                EmployeeLeave::where('employee_id', $this->employee_id)
+                    ->where('status', LeaveStatus::Approved->value),
+                $from,
+                $to
+            )
+            ->get(['id', 'leave_type', 'start_date', 'end_date', 'days_count'])
             ->groupBy('leave_type')
-            ->selectRaw('leave_type, SUM(days_count) as total')
-            ->pluck('total', 'leave_type');
+            ->map(fn ($leaves) => round($leaves->sum(
+                fn (EmployeeLeave $leave) => \App\Services\HR\PayrollRules::leaveDaysWithin($leave, $from, $to)
+            ), 2));
 
         $this->used_annual = (float) ($used[LeaveType::Annual->value] ?? 0);
         $this->used_casual = (float) ($used[LeaveType::Casual->value] ?? 0);

@@ -79,8 +79,9 @@
 @endphp
 
 {{-- ================== HTML ================== --}}
-<div class="table-responsive">
-    <table id="{{ $tableId }}" class="datatables-basic table table-bordered table-hover table-striped0 {{ $class }}">
+{{-- الجدول بيعمل scroll أفقي جوّه الكارت (dtDom بيلفّه في .dt-scroll-x) بدل ما الصفحة كلها تفيض --}}
+<div class="dt-card-wrapper">
+    <table id="{{ $tableId }}" class="datatables-basic table table-bordered table-hover table-striped {{ $class }}">
         <thead>
             <tr>
                 @foreach ($columns as $col)
@@ -105,14 +106,14 @@
         <link rel="stylesheet" href="/admin/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
         <link rel="stylesheet" href="/admin/vendor/libs/select2/select2.css" />
         <style>
-/* وضع الـ Light */
-        [data-bs-theme="light"] table tr:nth-child(even) {
-            background-color: #f9f9f9 !important;
-        }
-
-        /* وضع الـ Dark */
-        [data-bs-theme="dark"] table tr:nth-child(even) {
-            background-color: #3a405a !important;
+        /* الصفوف المتبادلة بتعتمد على متغيّر بوتستراب فبتتظبط لوحدها في الوضع الداكن */
+        .dt-card-wrapper { max-width: 100%; min-width: 0; }
+        /* position: relative عشان العناصر الـ absolute جوّه الجدول (أيقونات الترتيب) تتقص جوّه الـ scroll بدل ما توسّع الصفحة */
+        .dt-card-wrapper .dt-scroll-x { position: relative; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .dt-card-wrapper .dt-scroll-x > table.dataTable { margin-top: 0 !important; margin-bottom: 0 !important; }
+        /* بحث الأعمدة في الـ footer مالوش مكان على الموبايل — البحث العام كفاية */
+        @media (max-width: 767.98px) {
+            .dt-card-wrapper table.dataTable tfoot { display: none; }
         }
 
         /* Select2 Dropdown Z-Index & Table Footer Fixes */
@@ -157,7 +158,8 @@
                 return `
                     <div class="d-inline-block">
                         <a href="javascript:;" class="btn btn-sm btn-icon dropdown-toggle hide-arrow"
-                           data-bs-toggle="dropdown">
+                           data-bs-toggle="dropdown" role="button" aria-expanded="false"
+                           aria-label="{{ __('global.actions') }}" title="{{ __('global.actions') }}">
                             <i class="icon-base ti tabler-dots-vertical icon-22px"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end m-0">

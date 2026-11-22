@@ -28,11 +28,16 @@ if (!function_exists('setting_set')) {
 if (!function_exists('vuexy_settings')) {
     function vuexy_setting($key = null, $customizerHide= false): mixed
     {
+        // اللغة والاتجاه من لغة التطبيق الحالية (العربي RTL وأي لغة تانية LTR)
+        $locale = app()->getLocale() ?: 'ar';
+        $rtlLocales = ['ar', 'fa', 'he', 'ur'];
+        $isRtl = in_array(strtolower(substr($locale, 0, 2)), $rtlLocales, true);
+
         $settings = [
-            'lang' => 'ar',
-            // 'class' => 'layout-wide customizer-hide',
-            'class' => 'layout-navbar-fixed layout-menu-fixed layout-compact',
-            'dir' => 'rtl',
+            'lang' => str_replace('_', '-', $locale),
+            // لوحة الـ Template Customizer مقفولة دايماً (displayCustomizer: false في config.js)
+            'class' => 'layout-navbar-fixed layout-menu-fixed layout-compact customizer-hide',
+            'dir' => $isRtl ? 'rtl' : 'ltr',
             'data_skin' => 'default',
             'data_bs_theme' => 'light',
             'data_assets_path' => '/admin/',
@@ -41,7 +46,7 @@ if (!function_exists('vuexy_settings')) {
         if ($key === null) {
             return $settings;
         }
-        if ($customizerHide) {
+        if ($customizerHide && !str_contains($settings['class'], 'customizer-hide')) {
             $settings['class'] .= ' customizer-hide';
             
         }

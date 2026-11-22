@@ -25,7 +25,11 @@ class AdminController extends Controller
      */
     private function linkableEmployees(?Admin $admin = null): Collection
     {
+        // مشرف الفرع بيربط بموظفين من فرعه بس
+        $branchId = \App\Support\BranchScopeResolver::branchId();
+
         return Employee::withoutGlobalScope('branch')
+            ->when($branchId !== null, fn ($q) => $q->where('branch_id', $branchId))
             ->where(function ($q) use ($admin) {
                 $q->whereNotIn('id', Admin::whereNotNull('employee_id')
                     ->when($admin, fn ($q) => $q->whereKeyNot($admin->id))
@@ -57,6 +61,11 @@ class AdminController extends Controller
 
     private function checkIsMainAdmin(Admin $admin)
     {
+        // المشرف غير الرئيسي مايعدّلش ولا يحذف حسابه من هنا
+        if (! admin()?->main && $admin->id === admin()?->id) {
+            return abort(redirect()->route('admin.admins')->with('error', __('admin.errors.cannot_edit_self')));
+        }
+
         if ($admin->main) {
             return abort(redirect()->route('admin.admins')->with('error', __('alert.cant_delete_main_admin')));
         }

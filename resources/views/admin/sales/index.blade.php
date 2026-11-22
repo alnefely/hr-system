@@ -32,7 +32,7 @@
 
                     @forelse($revenuesByCurrency as $curr => $totalRev)
                         <span class="badge bg-label-secondary" data-bs-toggle="tooltip" title="إجمالي المبيعات المحصلة بعملة {{ $curr }}">
-                            {{ $curr }}: <strong class="text-dark" dir="ltr">{{ number_format($totalRev, 2) }}</strong>
+                            {{ $curr }}: <strong class="text-heading" dir="ltr">{{ number_format($totalRev, 2) }}</strong>
                         </span>
                     @empty
                         <span class="text-muted small">{{ __('sale.stats.no_sales_in_period', ['period' => $statsPeriodLabel]) }}</span>
@@ -95,8 +95,8 @@
     <div class="card-body py-3 border-bottom bg-transparent">
         <form action="{{ route('admin.sales.index') }}" method="GET" class="row g-3 align-items-end">
             <div class="col-md-2">
-                <label class="form-label text-muted small mb-1">{{ __('sale.fields.branch') }}</label>
-                <select name="branch_id" class="form-select select2">
+                <label for="admin_sales_f_branch_id" class="form-label text-muted small mb-1">{{ __('sale.fields.branch') }}</label>
+                <select id="admin_sales_f_branch_id" name="branch_id" class="form-select select2">
                     <option value="">{{ __('global.all') }}</option>
                     @foreach($branches as $b)
                         <option value="{{ $b->id }}" {{ request('branch_id') == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
@@ -105,8 +105,8 @@
             </div>
 
             <div class="col-md-2">
-                <label class="form-label text-muted small mb-1">{{ __('sale.fields.customer') }}</label>
-                <select name="customer_id" class="form-select select2">
+                <label for="admin_sales_f_customer_id" class="form-label text-muted small mb-1">{{ __('sale.fields.customer') }}</label>
+                <select id="admin_sales_f_customer_id" name="customer_id" class="form-select select2">
                     <option value="">{{ __('global.all') }}</option>
                     @foreach($customers as $c)
                         <option value="{{ $c->id }}" {{ request('customer_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
@@ -115,8 +115,8 @@
             </div>
 
             <div class="col-md-2">
-                <label class="form-label text-muted small mb-1">{{ __('sale.fields.sales_channel') }}</label>
-                <select name="sales_channel_id" class="form-select select2">
+                <label for="admin_sales_f_sales_channel_id" class="form-label text-muted small mb-1">{{ __('sale.fields.sales_channel') }}</label>
+                <select id="admin_sales_f_sales_channel_id" name="sales_channel_id" class="form-select select2">
                     <option value="">{{ __('global.all') }}</option>
                     @foreach($salesChannels as $ch)
                         <option value="{{ $ch->id }}" {{ request('sales_channel_id') == $ch->id ? 'selected' : '' }}>{{ $ch->name }}</option>
@@ -125,8 +125,8 @@
             </div>
 
             <div class="col-md-2">
-                <label class="form-label text-muted small mb-1">{{ __('sale.fields.payment_status') }}</label>
-                <select name="payment_status" class="form-select select2">
+                <label for="admin_sales_f_payment_status" class="form-label text-muted small mb-1">{{ __('sale.fields.payment_status') }}</label>
+                <select id="admin_sales_f_payment_status" name="payment_status" class="form-select select2">
                     <option value="">{{ __('global.all') }}</option>
                     <option value="paid" {{ request('payment_status') == 'paid' ? 'selected' : '' }}>{{ __('sale.statuses.paid') }}</option>
                     <option value="partially_paid" {{ request('payment_status') == 'partially_paid' ? 'selected' : '' }}>{{ __('sale.statuses.partially_paid') }}</option>
@@ -146,7 +146,7 @@
                 <button type="submit" class="btn btn-primary w-100 waves-effect waves-light">
                     <i class="fa-solid fa-filter me-1"></i> {{ __('global.filter') }}
                 </button>
-                <a href="{{ route('admin.sales.index') }}" class="btn btn-label-secondary waves-effect" data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}">
+                <a href="{{ route('admin.sales.index') }}" class="btn btn-label-secondary waves-effect" data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}" aria-label="{{ __('global.reset_filter') }}">
                     <i class="fa-solid fa-rotate-left"></i>
                 </a>
             </div>

@@ -3,12 +3,12 @@
 
 @section('content')
 <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h4 class="card-title mb-0 text-danger">
             <i class="fa-solid fa-trash me-2"></i>{{ __('job_title.trash') }}
         </h4>
         <a href="{{ route('admin.job_titles') }}" class="btn btn-label-secondary">
-            <i class="fa-solid fa-arrow-right me-1"></i> {{ __('job_title.back') }}
+            <i class="fa-solid fa-arrow-right icon-back me-1" aria-hidden="true"></i> {{ __('job_title.back') }}
         </a>
     </div>
     <div class="card-body">

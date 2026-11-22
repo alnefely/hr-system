@@ -50,7 +50,7 @@
 
             @if (! $link)
                 <button type="button" class="btn btn-outline-secondary" id="regenerateCode"
-                        data-bs-toggle="tooltip" title="{{ __('link.actions.regenerate') }}">
+                        data-bs-toggle="tooltip" title="{{ __('link.actions.regenerate') }}" aria-label="{{ __('link.actions.regenerate') }}">
                     <i class="fa-solid fa-rotate"></i>
                 </button>
             @endif

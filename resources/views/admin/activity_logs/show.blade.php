@@ -15,7 +15,7 @@
 
         <a href="{{ route('admin.activity-logs.subject', $activityLog->subject_type) }}"
            class="btn btn-label-secondary waves-effect">
-            <i class="fa-solid fa-arrow-right me-1"></i> {{ __('activity.actions.view_module') }}
+            <i class="fa-solid fa-arrow-right icon-back me-1" aria-hidden="true"></i> {{ __('activity.actions.view_module') }}
         </a>
     </div>
 

@@ -54,13 +54,8 @@ class SaleController extends Controller
             $query->where('currency', $request->currency);
         }
 
-        if ($request->filled('date_from')) {
-            $query->whereDate('sale_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('sale_date', '<=', $request->date_to);
-        }
+        // نطاق بدل whereDate() عشان فهرس sale_date يشتغل
+        $query->betweenDays($request->input('date_from'), $request->input('date_to'));
 
         if ($request->ajax()) {
             return datatables($query)
@@ -223,21 +218,9 @@ class SaleController extends Controller
         // المرفق بييجي كمسار من مدير الملفات، فمفيش رفع هنا.
 
         DB::transaction(function () use ($data, $request) {
-            $sale = Sale::create($data);
+            $sale = Sale::create(collect($data)->except('items')->all());
 
-            if ($request->has('items') && is_array($request->items)) {
-                foreach ($request->items as $item) {
-                    if (!empty($item['item_name'])) {
-                        SaleItem::create([
-                            'sale_id'     => $sale->id,
-                            'item_name'   => $item['item_name'],
-                            'quantity'    => $item['quantity'] ?? 1,
-                            'unit_price'  => $item['unit_price'] ?? 0,
-                            'total_price' => $item['total_price'] ?? 0,
-                        ]);
-                    }
-                }
-            }
+            $this->saveItems($sale, $data['items'] ?? []);
 
             if ($sale->paid_amount > 0) {
                 SalePayment::create([
@@ -290,21 +273,11 @@ class SaleController extends Controller
         // المكتبة عشان تتعاد استخدامها، فمابنحذفش الملف القديم.
 
         DB::transaction(function () use ($sale, $data, $request) {
-            $sale->update($data);
+            $sale->update(collect($data)->except('items')->all());
 
             if ($request->has('items') && is_array($request->items)) {
                 $sale->items()->delete();
-                foreach ($request->items as $item) {
-                    if (!empty($item['item_name'])) {
-                        SaleItem::create([
-                            'sale_id'     => $sale->id,
-                            'item_name'   => $item['item_name'],
-                            'quantity'    => $item['quantity'] ?? 1,
-                            'unit_price'  => $item['unit_price'] ?? 0,
-                            'total_price' => $item['total_price'] ?? 0,
-                        ]);
-                    }
-                }
+                $this->saveItems($sale, $data['items'] ?? []);
             }
 
             // الإجمالي ممكن يكون اتغير، فلازم نعيد حساب المتبقي وحالة السداد.
@@ -354,13 +327,18 @@ class SaleController extends Controller
     {
         $validated = $request->validated();
 
-        if ((float)$validated['amount'] > ((float)$sale->due_amount + 0.01)) {
-            return redirect()->back()->with('error', __('sale.payments.amount_exceeds'));
-        }
+        // القفل على صف الفاتورة قبل ما نشيّك المتبقي: من غيره دفعتين في
+        // نفس اللحظة كانوا بيقروا نفس due_amount ويعدّوا الاتنين — فلوس
+        // زيادة عن قيمة الفاتورة.
+        $accepted = DB::transaction(function () use ($validated, $sale) {
+            $locked = Sale::whereKey($sale->id)->lockForUpdate()->firstOrFail();
 
-        DB::transaction(function () use ($validated, $sale) {
+            if ((float) $validated['amount'] > ((float) $locked->due_amount + 0.01)) {
+                return false;
+            }
+
             SalePayment::create([
-                'sale_id'          => $sale->id,
+                'sale_id'          => $locked->id,
                 'payment_date'     => $validated['payment_date'],
                 'amount'           => $validated['amount'],
                 'payment_method'   => $validated['payment_method'],
@@ -369,8 +347,14 @@ class SaleController extends Controller
                 'created_by'       => admin()?->id,
             ]);
 
-            $sale->recalculatePayments();
+            $locked->recalculatePayments();
+
+            return true;
         });
+
+        if (! $accepted) {
+            return redirect()->back()->with('error', __('sale.payments.amount_exceeds'));
+        }
 
         return redirect()->back()->with('success', __('sale.payments.success_added'));
     }
@@ -387,5 +371,36 @@ class SaleController extends Controller
         });
 
         return redirect()->back()->with('success', __('sale.payments.success_deleted'));
+    }
+
+    /**
+     * حفظ بنود الفاتورة في INSERT واحد بدل create() لكل بند.
+     *
+     * total_price جاي محسوب من SaleRequest (الكمية × السعر) — مش من المتصفح.
+     */
+    private function saveItems(Sale $sale, array $items): void
+    {
+        $now  = now();
+        $rows = [];
+
+        foreach ($items as $item) {
+            if (!is_array($item) || empty($item['item_name'])) {
+                continue;
+            }
+
+            $rows[] = [
+                'sale_id'     => $sale->id,
+                'item_name'   => $item['item_name'],
+                'quantity'    => $item['quantity'] ?? 1,
+                'unit_price'  => $item['unit_price'] ?? 0,
+                'total_price' => $item['total_price'] ?? 0,
+                'created_at'  => $now,
+                'updated_at'  => $now,
+            ];
+        }
+
+        if ($rows) {
+            SaleItem::insert($rows);
+        }
     }
 }

@@ -599,7 +599,8 @@ class EmployeePortalTest extends TestCase
     /** حساب لوحة التحكم بيتربط بملف الموظف من شاشة المشرفين، والربط متطابق في الجدولين. */
     public function test_admin_account_is_linked_to_employee_from_admins_screen(): void
     {
-        $this->actingAsAdmin(['admin_create', 'admin_update']);
+        // المشرف غير الرئيسي يمنح بس صلاحيات هو عنده
+        $this->actingAsAdmin(['admin_create', 'admin_update', 'expense_show']);
         $role = Role::create(['name' => 'Accountant', 'roles' => ['expense_show']]);
 
         $this->get(route('admin.admins.create'))->assertOk()->assertSee($this->employee->employee_code);

@@ -22,7 +22,7 @@ class StoreLeaveRequest extends FormRequest
             'end_date'    => ['required', 'date', 'after_or_equal:start_date'],
             'days_count'  => ['required', 'numeric', 'min:0.5'],
             'reason'      => ['nullable', 'string', 'max:1000'],
-            'attachment'  => ['nullable', 'string', 'max:1000'],
+            'attachment'  => ['nullable', 'string', 'max:1000', new \App\Rules\SafeFileReference],
         ];
     }
 }

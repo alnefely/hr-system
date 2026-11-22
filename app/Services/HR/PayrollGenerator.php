@@ -54,7 +54,7 @@ class PayrollGenerator
                 'notes'      => $notes,
             ]);
 
-            $employees = $this->targetEmployees($branchId);
+            $employees = $this->targetEmployees($branchId, $year, $month);
 
             if ($employees->isEmpty()) {
                 return $payroll;
@@ -92,7 +92,7 @@ class PayrollGenerator
         $created = [];
         $skipped = [];
 
-        foreach ($this->branchesWithActiveEmployees() as $branch) {
+        foreach ($this->branchesWithActiveEmployees($year, $month) as $branch) {
             if ($this->exists($year, $month, $branch->id)) {
                 $skipped[] = $branch->name;
 
@@ -112,9 +112,12 @@ class PayrollGenerator
      *
      * @return Collection<int, Branch>
      */
-    public function branchesWithActiveEmployees(): Collection
+    public function branchesWithActiveEmployees(?int $year = null, ?int $month = null): Collection
     {
-        $branchIds = Employee::active()
+        // نفس معيار الموظفين المستحقين اللي بيتبني بيه الكشف
+        $branchIds = ($year && $month
+                ? $this->eligibleEmployeesQuery($year, $month)
+                : Employee::active())
             ->whereNotNull('branch_id')
             ->distinct()
             ->pluck('branch_id');
@@ -135,12 +138,77 @@ class PayrollGenerator
     //  الداخلي
     // ========================================================
 
-    private function targetEmployees(?int $branchId): Collection
+    /**
+     * الموظفين المستحقين لراتب الشهر.
+     *
+     * قبل كده كان "active" بس: اللي حالته "في إجازة" ماكانش بياخد راتب
+     * خالص، واللي اتعيّن بعد الشهر كان بياخد الشهر كامل. دلوقتي أي حد
+     * فترة خدمته بتتقاطع مع الشهر — والمنتهية خدمته جوّه الشهر بياخد
+     * الأيام اللي اشتغلها (التناسب في buildItemRow).
+     */
+    private function targetEmployees(?int $branchId, int $year, int $month): Collection
     {
-        return Employee::active()
+        return $this->eligibleEmployeesQuery($year, $month)
             ->with('allowances')
             ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->get();
+    }
+
+    private function eligibleEmployeesQuery(int $year, int $month)
+    {
+        [$monthStart, $monthEnd] = $this->monthRange($year, $month);
+
+        return Employee::query()
+            ->where(function ($q) use ($monthStart) {
+                $q->whereIn('status', ['active', 'on_leave'])
+                    ->orWhere(function ($q) use ($monthStart) {
+                        $q->where('status', 'terminated')
+                            ->whereNotNull('termination_date')
+                            ->where('termination_date', '>=', $monthStart);
+                    });
+            })
+            ->where(fn ($q) => $q->whereNull('hire_date')->orWhere('hire_date', '<=', $monthEnd));
+    }
+
+    /** @return array{0: string, 1: string} أول وآخر يوم في الشهر (Y-m-d) */
+    private function monthRange(int $year, int $month): array
+    {
+        $start = sprintf('%04d-%02d-01', $year, $month);
+
+        return [$start, date('Y-m-t', strtotime($start))];
+    }
+
+    /**
+     * نسبة أيام الخدمة من الشهر (1 = شهر كامل).
+     *
+     * المعيّن في نص الشهر أو المنتهية خدمته قبل آخره بياخد الأيام
+     * اللي اشتغلها بس.
+     */
+    private function serviceRatio(Employee $employee, int $year, int $month): float
+    {
+        [$monthStart, $monthEnd] = $this->monthRange($year, $month);
+
+        $from = $monthStart;
+        $to   = $monthEnd;
+
+        $hire = $employee->getRawOriginal('hire_date');
+        if ($hire && substr($hire, 0, 10) > $from) {
+            $from = substr($hire, 0, 10);
+        }
+
+        $end = $employee->getRawOriginal('termination_date');
+        if ($employee->status === 'terminated' && $end && substr($end, 0, 10) < $to) {
+            $to = substr($end, 0, 10);
+        }
+
+        if ($from === $monthStart && $to === $monthEnd) {
+            return 1.0;
+        }
+
+        $daysInMonth = (int) date('t', strtotime($monthStart));
+        $worked      = (int) ((strtotime($to) - strtotime($from)) / 86400) + 1;
+
+        return max(0, min(1, $worked / $daysInMonth));
     }
 
     /**
@@ -196,17 +264,52 @@ class PayrollGenerator
                 ->where('start_date', '<=', $lastDayOfMonth)
                 ->get()
                 ->groupBy('employee_id'),
+
+            // الراتب الساري في آخر يوم من الشهر من سجل الرواتب — العلاوة
+            // المجدولة لأول الشهر بتتطبق حتى لو المزامنة اليومية ماتعملتش.
+            'effectiveSalaries' => $this->effectiveSalaries($employeeIds, $lastDayOfMonth),
+
+            // الأقساط المحجوزة في مسيرات تانية لسه ماتصرفتش
+            'reservedInstallments' => PayrollRules::reservedAdvanceInstallments($employeeIds),
         ];
+    }
+
+    /**
+     * @param  array<int, int>  $employeeIds
+     * @return array<int, float>  employee_id => الراتب الأساسي الساري
+     */
+    private function effectiveSalaries(array $employeeIds, string $asOf): array
+    {
+        $salaries = [];
+
+        \App\Models\EmployeeSalary::withoutGlobalScope('branch')
+            ->whereIn('employee_id', $employeeIds)
+            ->where('effective_date', '<=', $asOf)
+            ->orderBy('effective_date')
+            ->orderBy('id')
+            ->get(['employee_id', 'basic_salary'])
+            ->each(function ($row) use (&$salaries) {
+                // الترتيب تصاعدي، فآخر قيمة لكل موظف هي الأحدث
+                $salaries[$row->employee_id] = (float) $row->basic_salary;
+            });
+
+        return $salaries;
     }
 
     private function buildItemRow(Payroll $payroll, Employee $employee, array $inputs, $now): array
     {
-        $basicSalary = round((float) ($employee->basic_salary ?? 0), 2);
+        if (isset($inputs['effectiveSalaries'][$employee->id])) {
+            // أجر اليوم والساعة بيتحسبوا من الراتب ده كمان
+            $employee->basic_salary = $inputs['effectiveSalaries'][$employee->id];
+        }
+
+        $ratio       = $this->serviceRatio($employee, (int) $payroll->year, (int) $payroll->month);
+        $basicSalary = round((float) ($employee->basic_salary ?? 0) * $ratio, 2);
 
         $dailyRate  = PayrollRules::dailyRate($employee);
         $hourlyRate = PayrollRules::hourlyRate($employee);
 
-        [$allowanceDetails, $totalAllowances] = $this->buildAllowances($employee, $inputs);
+        [$allowanceDetails, $totalAllowances] = $this->buildAllowances($employee, $inputs + ['serviceRatio' => $ratio]);
         [$deductionDetails, $totalDeductions] = $this->buildDeductions($employee, $inputs, $dailyRate, $hourlyRate);
 
         return [
@@ -232,8 +335,10 @@ class PayrollGenerator
         $total = 0.0;
 
         // البدلات الثابتة التعاقدية
+        $ratio = $inputs['serviceRatio'] ?? 1.0;
+
         foreach ($employee->allowances as $allowance) {
-            $amount = round((float) $allowance->amount, 2);
+            $amount = round((float) $allowance->amount * $ratio, 2);
             $total += $amount;
             $details[] = [
                 'title'  => $allowance->name,
@@ -312,7 +417,15 @@ class PayrollGenerator
 
         // 4. أقساط السلف
         foreach ($inputs['advances']->get($employee->id, collect()) as $advance) {
-            $installment = round(min((float) $advance->remaining_amount, (float) $advance->monthly_installment), 2);
+            // المتبقي الفعلي = الرصيد ناقص اللي محجوز في مسير مفتوح تاني
+            $available   = (float) $advance->remaining_amount - (float) ($inputs['reservedInstallments'][$advance->id] ?? 0);
+            $installment = round(min($available, (float) $advance->monthly_installment), 2);
+
+            // كسور التقريب (1000 ÷ 3 = 333.33) كانت بتسيب 0.01 تتخصم في شهر
+            // رابع. لو الباقي بعد القسط ده كسور بس، القسط ده بياخده كله.
+            if ($available - $installment > 0 && $available - $installment <= 0.01 * max(1, (int) $advance->installments_count)) {
+                $installment = round($available, 2);
+            }
 
             if ($installment <= 0) {
                 continue;

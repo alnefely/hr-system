@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="card mb-4 border-0 shadow-sm">
-    <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+    <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h5 class="card-title mb-0">
             <i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i> {{ __('report.salary_audit') }}
         </h5>
@@ -22,8 +22,8 @@
         <form action="{{ route('admin.reports.salary-audit') }}" method="GET" class="row g-3 align-items-end">
             {{-- مجموع الأعمدة 12 بالظبط عشان الفلتر يفضل على سطر واحد --}}
             <div class="col-md-5">
-                <label class="form-label fw-bold">{{ __('reward.fields.employee') }} <span class="text-danger">*</span></label>
-                <select name="employee_id" class="form-select select2" required>
+                <label for="admin_hr_reports_salary_f_employee_id" class="form-label fw-bold">{{ __('reward.fields.employee') }} <span class="text-danger">*</span></label>
+                <select id="admin_hr_reports_salary_f_employee_id" name="employee_id" class="form-select select2" required>
                     <option value="">{{ __('global.choose') }}...</option>
                     @foreach($employees as $emp)
                         <option value="{{ $emp->id }}" {{ $selectedEmployeeId == $emp->id ? 'selected' : '' }}>
@@ -39,19 +39,18 @@
                     <x-inputs.help :text="__('payroll.hints.period_range')" />
                 </label>
                 <div class="input-group">
-                    <input type="date" name="from_date" class="form-control px-1" value="{{ $startDate }}" style="height: 38px;">
-                    <input type="date" name="to_date" class="form-control px-1" value="{{ $endDate }}" style="height: 38px;">
+                    <input type="date" name="from_date" class="form-control px-1 h-38" value="{{ $startDate }}">
+                    <input type="date" name="to_date" class="form-control px-1 h-38" value="{{ $endDate }}">
                 </div>
             </div>
 
             <div class="col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-grow-1 d-flex align-items-center justify-content-center" style="height: 38px;">
+                <button type="submit" class="btn btn-primary flex-grow-1 d-flex align-items-center justify-content-center h-38">
                     <i class="fa-solid fa-magnifying-glass me-1"></i> {{ __('payroll.actions.show_report') }}
                 </button>
                 <a href="{{ route('admin.reports.salary-audit') }}"
-                   class="btn btn-label-secondary d-flex align-items-center justify-content-center"
-                   style="height: 38px;"
-                   data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}">
+                   class="btn btn-label-secondary d-flex align-items-center justify-content-center h-38"
+                   data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}" aria-label="{{ __('global.reset_filter') }}">
                     <i class="fa-solid fa-rotate-left"></i>
                 </a>
             </div>
@@ -78,7 +77,7 @@
                 <div class="col-md-5 text-md-end mt-3 mt-md-0">
                     <div class="d-inline-block text-start p-3 rounded border">
                         <small class="text-muted d-block">الراتب الأساسي المعتمد:</small>
-                        <span class="fs-5 fw-bold text-dark"><span dir="ltr">{{ number_format($auditData['basic_salary'], 2) }}</span> {{ $auditData['currency'] }}</span>
+                        <span class="fs-5 fw-bold text-heading"><span dir="ltr">{{ number_format($auditData['basic_salary'], 2) }}</span> {{ $auditData['currency'] }}</span>
                         <small class="text-muted d-block mt-1">سعر اليوم: <span dir="ltr">{{ number_format($auditData['daily_rate'], 2) }}</span> {{ $auditData['currency'] }}</small>
                     </div>
                 </div>
@@ -157,7 +156,7 @@
 
     {{-- Breakdown Items Table --}}
     <div class="card border-0 shadow-sm">
-        <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+        <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h5 class="card-title mb-0">
                 <i class="fa-solid fa-list-check me-2"></i> سجل وتدقيق الحركات المالية للشهر ({{ $auditData['breakdown']->count() }} حركة)
             </h5>

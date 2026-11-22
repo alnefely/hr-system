@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\LogsActivity;
+use App\Models\Concerns\FlushesDashboardCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesChannel extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity;
+    use HasFactory, SoftDeletes, LogsActivity, FlushesDashboardCache;
 
     protected $fillable = [
         'code',

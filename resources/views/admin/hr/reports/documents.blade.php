@@ -43,8 +43,8 @@
         <form action="{{ route('admin.reports.documents') }}" method="GET" class="row g-3 align-items-end">
 
             <div class="col-md-4">
-                <label class="form-label fw-bold mb-1">{{ __('document.fields.status') }}</label>
-                <select name="status" class="form-select select2">
+                <label for="admin_hr_reports_documen_f_status" class="form-label fw-bold mb-1">{{ __('document.fields.status') }}</label>
+                <select id="admin_hr_reports_documen_f_status" name="status" class="form-select select2">
                     <option value="attention" {{ $status === 'attention' ? 'selected' : '' }}>
                         {{ __('report.doc_status.attention') }}
                     </option>
@@ -57,8 +57,8 @@
             </div>
 
             <div class="col-md-3">
-                <label class="form-label fw-bold mb-1">{{ __('report.filters.branch') }}</label>
-                <select name="branch_id" class="form-select select2">
+                <label for="admin_hr_reports_documen_f_branch_id" class="form-label fw-bold mb-1">{{ __('report.filters.branch') }}</label>
+                <select id="admin_hr_reports_documen_f_branch_id" name="branch_id" class="form-select select2">
                     <option value="">{{ __('payroll.filters.all_branches') }}</option>
                     @foreach ($branches as $branch)
                         <option value="{{ $branch->id }}" {{ (int) $branchId === (int) $branch->id ? 'selected' : '' }}>
@@ -69,23 +69,21 @@
             </div>
 
             <div class="col-md-2">
-                <label class="form-label fw-bold mb-1">
+                <label for="admin_hr_reports_documen_f_days" class="form-label fw-bold mb-1">
                     {{ __('report.doc_filters.days') }}
                     <x-inputs.help :text="__('report.doc_filters.days_hint')" />
                 </label>
-                <input type="number" name="days" class="form-control" min="1" max="365"
-                       value="{{ $days }}" style="height: 38px;" dir="ltr">
+                <input id="admin_hr_reports_documen_f_days" type="number" name="days" class="form-control h-38" min="1" max="365"
+                       value="{{ $days }}" dir="ltr">
             </div>
 
             <div class="col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-grow-1 d-flex align-items-center justify-content-center"
-                        style="height: 38px;">
+                <button type="submit" class="btn btn-primary flex-grow-1 d-flex align-items-center justify-content-center h-38">
                     <i class="fa-solid fa-filter me-1"></i> {{ __('global.filter') }}
                 </button>
                 <a href="{{ route('admin.reports.documents') }}"
-                   class="btn btn-label-secondary d-flex align-items-center justify-content-center"
-                   style="height: 38px;"
-                   data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}">
+                   class="btn btn-label-secondary d-flex align-items-center justify-content-center h-38"
+                   data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}" aria-label="{{ __('global.reset_filter') }}">
                     <i class="fa-solid fa-rotate-left"></i>
                 </a>
             </div>
@@ -179,7 +177,7 @@
                                     @if (admin_can('employee_show'))
                                         <a href="{{ route('admin.employees.show', $doc->employee_id) }}#tab-docs"
                                            class="btn btn-sm btn-icon btn-label-primary"
-                                           data-bs-toggle="tooltip" title="{{ __('document.back') }}">
+                                           data-bs-toggle="tooltip" title="{{ __('document.back') }}" aria-label="{{ __('document.back') }}">
                                             <i class="fa-solid fa-arrow-left"></i>
                                         </a>
                                     @endif
@@ -187,7 +185,7 @@
                                     @if ($doc->file_path)
                                         <a href="{{ $doc->file_path }}" target="_blank"
                                            class="btn btn-sm btn-icon btn-label-info"
-                                           data-bs-toggle="tooltip" title="{{ __('document.view_file') }}">
+                                           data-bs-toggle="tooltip" title="{{ __('document.view_file') }}" aria-label="{{ __('document.view_file') }}">
                                             <i class="fa-solid fa-eye"></i>
                                         </a>
                                     @endif
@@ -206,7 +204,7 @@
                                                     data-icon="question"
                                                     data-btn-text="{{ __('document.confirm.verify_button') }}"
                                                     data-btn-class="btn-success"
-                                                    title="{{ __('document.verified') }}">
+                                                    title="{{ __('document.verified') }}" aria-label="{{ __('document.confirm.verify_title') }}">
                                                 <i class="fa-solid fa-check"></i>
                                             </button>
                                         </form>

@@ -5,12 +5,12 @@
 <div class="row g-4 mb-4">
     <div class="col-12">
         <div class="card shadow-sm">
-            <div class="card-header border-bottom d-flex align-items-center justify-content-between">
+            <div class="card-header border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <h5 class="card-title mb-0">
                     <i class="fa-solid fa-pen-to-square me-2 text-primary"></i> {{ __('link.edit_title') }}
                 </h5>
                 <a href="{{ route('admin.links.index') }}" class="btn btn-label-secondary waves-effect">
-                    <i class="fa-solid fa-arrow-right me-1"></i> {{ __('link.back') }}
+                    <i class="fa-solid fa-arrow-right icon-back me-1" aria-hidden="true"></i> {{ __('link.back') }}
                 </a>
             </div>
 

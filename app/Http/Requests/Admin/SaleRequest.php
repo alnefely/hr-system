@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Sale;
 use App\Rules\AccessibleBranch;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class SaleRequest extends FormRequest
 {
@@ -60,6 +62,34 @@ class SaleRequest extends FormRequest
         ]);
     }
 
+    /**
+     * تعديل الفاتورة مايقدرش ينزّل الإجمالي تحت المدفوع فعلاً —
+     * وإلا recalculatePayments() كانت بتطلّع متبقي صفر ومبلغ مدفوع
+     * أكبر من الفاتورة نفسها (فلوس زيادة مش مسنودة بأي بند).
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator) {
+                $sale = $this->route('sale');
+
+                if (! $sale instanceof Sale || $validator->errors()->isNotEmpty()) {
+                    return;
+                }
+
+                $paid  = round((float) $sale->payments()->sum('amount'), 2);
+                $total = (float) $this->input('total_amount');
+
+                if ($total + 0.001 < $paid) {
+                    $validator->errors()->add('total_amount', __('sale.messages.total_below_paid', [
+                        'total' => number_format($total, 2),
+                        'paid'  => number_format($paid, 2),
+                    ]));
+                }
+            },
+        ];
+    }
+
     public function rules(): array
     {
         $saleId = $this->route('sale')?->id ?? $this->route('sale');
@@ -81,7 +111,7 @@ class SaleRequest extends FormRequest
             'due_amount'       => ['nullable', 'numeric', 'min:0'],
             'payment_status'   => ['required', 'in:paid,partially_paid,unpaid'],
             'payment_method'   => ['required', 'in:bank_transfer,cash,card,cheque'],
-            'attachment'       => ['nullable', 'string', 'max:500'],
+            'attachment'       => ['nullable', 'string', 'max:500', new \App\Rules\SafeFileReference],
             'notes'            => ['nullable', 'string', 'max:1000'],
             'items'            => ['nullable', 'array'],
             'items.*.item_name'=> ['nullable', 'string', 'max:200'],

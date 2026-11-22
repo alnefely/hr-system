@@ -7,6 +7,7 @@ return [
     'edit'          => 'Edit Salary Record',
     'trash'         => 'Salary History Trash',
     'back'          => 'Back to Employee Profile',
+    'notes'         => ['edited_from_profile' => 'Edited directly from the employee profile'],
 
     'fields' => [
         'employee'       => 'Employee',

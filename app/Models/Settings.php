@@ -87,27 +87,28 @@ class Settings extends Model
     // Static Methods
     // =========================================
 
-    /**
-     * علامة داخلية معناها "دوّرنا في الداتابيز ومفيش قيمة".
-     *
-     * ليه؟ لأن Cache::remember() بتعتبر الـ null يعني "مش متكاش"،
-     * فالإعداد الفاضي كان بيضرب الداتابيز في كل قراءة للأبد.
-     * بنكاش العلامة دي بدل الـ null، وبنحوّلها تاني وإحنا راجعين.
-     */
-    protected const NOT_SET = '__not_set__';
-
     // جلب قيمة setting معينة بالـ key
     public static function get(string $key, mixed $default = null): mixed
     {
-        $value = static::cache()->remember(
-            SettingsCache::class,
-            SettingsCache::value($key),
-            fn () => static::whereNotNull('key')
-                ->where('key', $key)
-                ->value('value') ?? static::NOT_SET
-        );
+        $value = static::allValues()[$key] ?? null;
 
-        return $value === static::NOT_SET ? $default : $value;
+        return $value ?? $default;
+    }
+
+    /**
+     * كل الإعدادات (key => value) في مفتاح كاش واحد.
+     *
+     * قبل كده كل key كان ليه مفتاح واستعلام لوحده، فالصفحة اللي بتقرا
+     * ١٥ إعداد كانت بتضرب ١٥ استعلام أول مرة. دلوقتي استعلام واحد بس،
+     * وبيتلغي مع باقي المجموعة في clearCache().
+     */
+    public static function allValues(): array
+    {
+        return static::cache()->remember(
+            SettingsCache::class,
+            SettingsCache::ALL_VALUES,
+            fn () => static::whereNotNull('key')->pluck('value', 'key')->all()
+        );
     }
 
     // تعديل قيمة setting معينة

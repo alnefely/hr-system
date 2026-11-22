@@ -26,7 +26,7 @@ class VendorSubscriptionRequest extends FormRequest
             'next_billing_date' => ['nullable', 'date'],
             'auto_renew'        => ['nullable', 'boolean'],
             'status'            => ['required', 'in:active,pending,expired,cancelled'],
-            'attachment'        => ['nullable', 'string', 'max:500'],
+            'attachment'        => ['nullable', 'string', 'max:500', new \App\Rules\SafeFileReference],
             'notes'             => ['nullable', 'string', 'max:1000'],
         ];
     }

@@ -32,7 +32,9 @@ return [
     |
      */
 
-    'allow_private_folder'     => false,
+    // مجلد خاص لكل فرع (LfmConfigHandler) — مستندات فرع ماتظهرش لمشرفي
+    // الفروع التانية. المجلد المشترك فاضل للملفات العامة.
+    'allow_private_folder'     => true,
 
     // Flexible way to customize client folders accessibility
     // If you want to customize client folders, publish tag="lfm_handler"
@@ -65,7 +67,7 @@ return [
                 'image/png',
                 'image/gif',
                 'application/pdf',
-                'image/svg+xml',
+                // SVG ممنوع: بيتعرض من نفس الدومين وممكن يشغّل JavaScript (XSS)
                 // 'audio/mpeg', // mp3
                 // 'audio/wav', // wav
                 // 'audio/x-wav', // wav
@@ -113,7 +115,9 @@ return [
 
     'temporary_url_duration'   => 30,
 
-    'rename_file'              => false,
+    // اسم عشوائي لكل ملف مرفوع: أسماء زي "بطاقة-محمد.pdf" كانت سهلة التخمين
+    // والمجلد عام.
+    'rename_file'              => true,
 
     'rename_duplicates'        => false,
 

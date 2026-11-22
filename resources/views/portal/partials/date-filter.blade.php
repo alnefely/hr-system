@@ -22,7 +22,7 @@
             <i class="fa-solid fa-filter me-1"></i>{{ __('portal.filter.apply') }}
         </button>
         {{-- مسح = كل الفترات (from/to فاضيين صراحةً عشان الافتراضي مايرجعش) --}}
-        <a href="{{ url()->current() }}?from_date=&to_date=" class="btn btn-sm btn-label-secondary" title="{{ __('portal.filter.reset') }}">
+        <a href="{{ url()->current() }}?from_date=&to_date=" class="btn btn-sm btn-label-secondary" title="{{ __('portal.filter.reset') }}" aria-label="{{ __('portal.filter.reset') }}">
             <i class="fa-solid fa-rotate-left"></i>
         </a>
     </div>

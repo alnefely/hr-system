@@ -10,7 +10,7 @@
 >
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ __('auth.reset_password') }}</title>
 
     <meta name="description" content="" />
@@ -20,17 +20,17 @@
     <!-- Core CSS -->
     <link rel="stylesheet" href="/admin/vendor/fonts/iconify-icons.css" />
     <link rel="stylesheet" href="/admin/vendor/libs/node-waves/node-waves.css" />
-    <link rel="stylesheet" href="/admin/vendor/libs/pickr/pickr-themes.css" />
     <link rel="stylesheet" href="/admin/vendor/css/core.css" />
     <link rel="stylesheet" href="/admin/css/demo.css" />
     <link rel="stylesheet" href="/admin/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <link rel="stylesheet" href="/admin/vendor/css/pages/page-auth.css" />
+    @include('layouts.partials.fonts')
     <link rel="stylesheet" href="/admin/custom.css" />
 
     <!-- Core JS -->
     <script src="/admin/vendor/js/helpers.js"></script>
-    <script src="/admin/vendor/js/template-customizer.js"></script>
     <script src="/admin/js/config.js"></script>
+    @include('layouts.partials.theme-init')
 </head>
 <body>
     <div class="container-xxl">
@@ -87,8 +87,6 @@
     <script src="/admin/vendor/libs/popper/popper.js"></script>
     <script src="/admin/vendor/js/bootstrap.js"></script>
     <script src="/admin/vendor/libs/node-waves/node-waves.js"></script>
-    <script src="/admin/vendor/libs/@algolia/autocomplete-js.js"></script>
-    <script src="/admin/vendor/libs/pickr/pickr.js"></script>
     <script src="/admin/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
     <script src="/admin/vendor/libs/hammer/hammer.js"></script>
     <script src="/admin/vendor/js/menu.js"></script>

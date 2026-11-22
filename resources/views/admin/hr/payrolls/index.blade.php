@@ -7,12 +7,12 @@
     <div class="card-body">
         <form action="{{ route('admin.payrolls.index') }}" method="GET" class="row g-3 align-items-end">
 
-            <div class="col-md-3">
-                <label class="form-label fw-bold mb-1">
+            <div class="col-12 col-sm-6 col-lg-3">
+                <label for="payroll_filter_branch_id" class="form-label fw-bold mb-1">
                     {{ __('payroll.fields.branch') }}
                     <x-inputs.help :text="__('payroll.hints.branch_filter')" />
                 </label>
-                <select name="branch_id" class="form-select select2">
+                <select id="payroll_filter_branch_id" name="branch_id" class="form-select select2">
                     <option value="">{{ __('payroll.filters.all_branches') }}</option>
                     @foreach ($branches as $branch)
                         <option value="{{ $branch->id }}" {{ (int) request('branch_id') === (int) $branch->id ? 'selected' : '' }}>
@@ -22,9 +22,9 @@
                 </select>
             </div>
 
-            <div class="col-md-2">
-                <label class="form-label fw-bold mb-1">{{ __('payroll.fields.status') }}</label>
-                <select name="status" class="form-select select2">
+            <div class="col-12 col-sm-6 col-lg-2">
+                <label for="payroll_filter_status" class="form-label fw-bold mb-1">{{ __('payroll.fields.status') }}</label>
+                <select id="payroll_filter_status" name="status" class="form-select select2">
                     <option value="">{{ __('payroll.filters.all_statuses') }}</option>
                     @foreach (['draft', 'approved', 'rejected', 'paid'] as $statusKey)
                         <option value="{{ $statusKey }}" {{ request('status') === $statusKey ? 'selected' : '' }}>
@@ -34,24 +34,25 @@
                 </select>
             </div>
 
-            <div class="col-md-4">
-                <label class="form-label fw-bold mb-1">
+            <div class="col-12 col-sm-6 col-lg-4">
+                <label for="payroll_filter_date_from" class="form-label fw-bold mb-1">
                     {{ __('payroll.filters.period_range') }}
                     <x-inputs.help :text="__('payroll.hints.period_range')" />
                 </label>
                 <div class="input-group">
-                    <input type="date" name="date_from" class="form-control px-1" value="{{ request('date_from') }}">
-                    <input type="date" name="date_to" class="form-control px-1" value="{{ request('date_to') }}">
+                    <input type="date" name="date_from" id="payroll_filter_date_from" class="form-control px-1" value="{{ request('date_from') }}"
+                           aria-label="{{ __('payroll.filters.period_range') }} ({{ __('global.export.from') }})">
+                    <input type="date" name="date_to" id="payroll_filter_date_to" class="form-control px-1" value="{{ request('date_to') }}"
+                           aria-label="{{ __('payroll.filters.period_range') }} ({{ __('global.export.to') }})">
                 </div>
             </div>
 
-            <div class="col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-grow-1" style="height: 38px;">
+            <div class="col-12 col-sm-6 col-lg-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1 h-38">
                     <i class="fa-solid fa-filter me-1"></i> {{ __('global.filter') }}
                 </button>
-                <a href="{{ route('admin.payrolls.index') }}" class="btn btn-label-secondary"
-                   style="height: 38px;" title="{{ __('global.reset_filter') }}">
-                    <i class="fa-solid fa-rotate-left"></i>
+                <a href="{{ route('admin.payrolls.index') }}" class="btn btn-label-secondary h-38" title="{{ __('global.reset_filter') }}" aria-label="{{ __('global.reset_filter') }}">
+                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
                 </a>
             </div>
 

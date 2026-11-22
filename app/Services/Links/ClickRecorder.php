@@ -97,25 +97,40 @@ class ClickRecorder
         ];
     }
 
-    /** المسار السريع: دفعة مؤقتة في Redis، و links:flush بيفرّغها. */
+    /**
+     * المسار السريع: دفعة مؤقتة في Redis، و links:flush بيفرّغها.
+     *
+     * كل الأوامر في pipeline واحد (رحلة واحدة لـ Redis بدل ٥).
+     * عدّاد الفريد بس هو اللي محتاج نتيجة SADD، فبيروح في رحلة تانية
+     * لأول زيارة في اليوم بس.
+     */
     private function pushToRedis(array $payload): bool
     {
         $linkId = $payload['link_id'];
         $isBot  = $payload['is_bot'];
+        $visitorsKey = self::VISITORS_PREFIX . $linkId . ':' . now()->toDateString();
 
-        $isUnique = ! $isBot && $this->markVisitor($linkId, $payload['visitor_hash']);
-
-        $redis = $this->redis();
-        $redis->rpush(self::QUEUE_KEY, json_encode($payload, JSON_UNESCAPED_UNICODE));
-
-        // البوتات بتتسجّل بس مابتزوّدش العدّاد الظاهر — وإلا
-        // معاينة واتساب لوحدها بتضخّم الرقم عشرات المرات.
-        if (! $isBot) {
-            $redis->hincrby(self::COUNTER_KEY, $linkId . ':clicks', 1);
-
-            if ($isUnique) {
-                $redis->hincrby(self::COUNTER_KEY, $linkId . ':unique', 1);
+        $results = $this->redis()->pipeline(function ($pipe) use ($payload, $linkId, $isBot, $visitorsKey) {
+            if (! $isBot) {
+                // SADD بترجع 1 لو الزائر جديد النهارده، 0 لو مسجّل قبل كده.
+                // المفتاح بيموت بعد يومين — العد اليومي خلص شغله.
+                $pipe->sadd($visitorsKey, $payload['visitor_hash']);
+                $pipe->expire($visitorsKey, 172800);
             }
+
+            $pipe->rpush(self::QUEUE_KEY, json_encode($payload, JSON_UNESCAPED_UNICODE));
+
+            // البوتات بتتسجّل بس مابتزوّدش العدّاد الظاهر — وإلا
+            // معاينة واتساب لوحدها بتضخّم الرقم عشرات المرات.
+            if (! $isBot) {
+                $pipe->hincrby(self::COUNTER_KEY, $linkId . ':clicks', 1);
+            }
+        });
+
+        $isUnique = ! $isBot && (int) ($results[0] ?? 0) === 1;
+
+        if ($isUnique) {
+            $this->redis()->hincrby(self::COUNTER_KEY, $linkId . ':unique', 1);
         }
 
         return ! $isBot;
@@ -163,23 +178,6 @@ class ClickRecorder
             $linkId,
             now()->toDateString(),
         ]));
-    }
-
-    /**
-     * تعليم الزائر كفريد لليوم.
-     *
-     * SADD بترجع 1 لو الزائر جديد، 0 لو مسجّل قبل كده.
-     */
-    private function markVisitor(int $linkId, string $visitorHash): bool
-    {
-        $key = self::VISITORS_PREFIX . $linkId . ':' . now()->toDateString();
-
-        $added = (int) $this->redis()->sadd($key, $visitorHash);
-
-        // المفتاح بيموت بعد يومين — العد اليومي خلص شغله
-        $this->redis()->expire($key, 172800);
-
-        return $added === 1;
     }
 
     private function hash(string $value): string

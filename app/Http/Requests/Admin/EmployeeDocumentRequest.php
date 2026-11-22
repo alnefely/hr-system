@@ -28,7 +28,7 @@ class EmployeeDocumentRequest extends FormRequest
             // في prepareForValidation عشان العمود NOT NULL.
             'document_type' => ['required', 'string', 'max:100'],
             'title'         => ['nullable', 'string', 'max:200'],
-            'file_path'     => ['required', 'string', 'max:255'],
+            'file_path'     => ['required', 'string', 'max:255', new \App\Rules\SafeFileReference],
             'issue_date'    => ['nullable', 'date'],
             'expiry_date'   => ['nullable', 'date'],
             'is_verified'   => ['nullable', 'boolean'],
