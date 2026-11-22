@@ -250,7 +250,7 @@
 
       <div class="divider"></div>
 
-      <p class="message">{!! __('auth.email.reset_password.message', ['name' => $name, 'new_password' => $new_password, 'login_url' => $login_url]) !!}</p>
+      <p class="message">{!! __('auth.email.reset_password.message', ['name' => e($name), 'new_password' => e($new_password), 'login_url' => e($login_url)]) !!}</p>
 
       <!-- Credentials -->
       <div class="credentials">

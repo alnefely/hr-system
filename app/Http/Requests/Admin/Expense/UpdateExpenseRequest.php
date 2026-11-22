@@ -25,7 +25,7 @@ class UpdateExpenseRequest extends FormRequest
             'expense_date'        => ['required', 'date'],
             'payment_method'      => ['required', 'in:cash,bank_transfer,card'],
             'invoice_number'      => ['nullable', 'string', 'max:100'],
-            'attachment'          => ['nullable', 'string', 'max:1000'],
+            'attachment'          => ['nullable', 'string', 'max:1000', new \App\Rules\SafeFileReference],
             'notes'               => ['nullable', 'string', 'max:2000'],
         ];
     }

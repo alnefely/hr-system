@@ -51,12 +51,26 @@ class PayrollWorkflow
 
             PayrollItem::withoutSyncingTotals(function () use ($items, $models) {
                 foreach ($items as $itemId => $data) {
-                    $models->get($itemId)?->update([
-                        'allowances'     => $data['allowances'] ?? 0,
-                        'deductions'     => $data['deductions'] ?? 0,
+                    $item = $models->get($itemId);
+
+                    if (! $item || $item->status === PayrollItemStatus::Paid->value) {
+                        continue;
+                    }
+
+                    // الإجمالي لوحده كان بيتعدّل والتفاصيل تفضل زي ما هي، والصرف
+                    // بيقرا التفاصيل — فلو الخصم اتصفّر، قسط السلفة كان بيتسجّل
+                    // سداد رغم إن الموظف مااتخصمش منه. دلوقتي التفاصيل بتتبني
+                    // من الإجمالي الجديد.
+                    $item->fill([
+                        'allowance_details' => $this->detailsForTotal(
+                            (array) $item->allowance_details, (float) ($data['allowances'] ?? 0), (float) $item->allowances, 'reward_id'
+                        ),
+                        'deduction_details' => $this->detailsForTotal(
+                            (array) $item->deduction_details, (float) ($data['deductions'] ?? 0), (float) $item->deductions, 'advance_id'
+                        ),
                         'payment_method' => $data['payment_method'],
                         'notes'          => $data['notes'] ?? null,
-                    ]);
+                    ])->save();
                 }
             });
 
@@ -72,9 +86,16 @@ class PayrollWorkflow
     {
         $this->ensureEditable($item->payroll);
 
+        if ($item->status === PayrollItemStatus::Paid->value) {
+            throw new InvalidStateException(__('payroll.messages.already_paid'));
+        }
+
+        $deductionDetails = $this->cleanDetails($deductions, (array) $item->deduction_details);
+        $this->ensureInstallmentsWithinBalance($item, $deductionDetails);
+
         $item->update([
-            'allowance_details' => $this->cleanDetails($allowances),
-            'deduction_details' => $this->cleanDetails($deductions),
+            'allowance_details' => $this->cleanDetails($allowances, (array) $item->allowance_details),
+            'deduction_details' => $deductionDetails,
             'payment_method'    => $paymentMethod,
             'notes'             => $notes,
         ]);
@@ -86,6 +107,11 @@ class PayrollWorkflow
 
     public function approve(Payroll $payroll): void
     {
+        // فصل المهام: اللي أصدر المسير مايعتمدهوش بنفسه (إلا المدير العام).
+        if ($payroll->created_by && $payroll->created_by === admin()?->id && ! admin()?->main) {
+            throw new InvalidStateException(__('payroll.messages.cannot_self_approve'));
+        }
+
         $this->transition($payroll, PayrollStatus::Approved, 'payroll.messages.cant_edit_approved', [
             'approved_by' => admin()?->id,
             'approved_at' => now(),
@@ -131,6 +157,10 @@ class PayrollWorkflow
             throw new InvalidStateException(__('payroll.messages.cant_edit_approved'));
         }
 
+        // المسير بيفضل "معتمد" لحد ما كل البنود تتصرف. لو جزء اتصرف، الرجوع
+        // لمسودة كان بيسمح بتعديل مبالغ اتصرفت فعلاً أو حذف المسير بيها.
+        $this->ensureNothingPaid($payroll);
+
         $payroll->update([
             'status'           => PayrollStatus::Draft->value,
             'unapproved_by'    => admin()?->id,
@@ -144,6 +174,7 @@ class PayrollWorkflow
     public function delete(Payroll $payroll): void
     {
         $this->ensureEditable($payroll);
+        $this->ensureNothingPaid($payroll);
 
         $payroll->delete();
     }
@@ -161,10 +192,12 @@ class PayrollWorkflow
         }
 
         DB::transaction(function () use ($item, $paymentMethod) {
+            $payroll = $this->lockPayable($item->payroll_id);
+
             // القفل بيمنع إن طلبين متزامنين يدفعوا نفس البند ويخصموا السلفة مرتين.
             $items = $this->unpaid(PayrollItem::whereKey($item->id))->lockForUpdate()->get();
 
-            $this->markItemsPaid($item->payroll, $items, $paymentMethod);
+            $this->markItemsPaid($payroll, $items, $paymentMethod);
         });
     }
 
@@ -174,6 +207,8 @@ class PayrollWorkflow
         $this->ensurePayable($payroll);
 
         DB::transaction(function () use ($payroll, $itemIds, $paymentMethod) {
+            $payroll = $this->lockPayable($payroll->id);
+
             // البنود المدفوعة مابتتعالجش تاني ومابيتخصمش منها قسط السلفة مرة كمان.
             $items = $this->unpaid($payroll->items()->whereIn('id', $itemIds))->lockForUpdate()->get();
 
@@ -186,7 +221,8 @@ class PayrollWorkflow
         $this->ensurePayable($payroll);
 
         DB::transaction(function () use ($payroll) {
-            $items = $this->unpaid($payroll->items())->lockForUpdate()->get();
+            $payroll = $this->lockPayable($payroll->id);
+            $items   = $this->unpaid($payroll->items())->lockForUpdate()->get();
 
             $this->markItemsPaid($payroll, $items);
         });
@@ -236,6 +272,88 @@ class PayrollWorkflow
         }
     }
 
+    /**
+     * قفل صف المسير وإعادة فحص حالته جوّه المعاملة — من غيره، إلغاء اعتماد
+     * بيحصل بين الفحص والكتابة كان بيتمسح بحالة "مصروف".
+     */
+    private function lockPayable(int $payrollId): Payroll
+    {
+        $payroll = Payroll::whereKey($payrollId)->lockForUpdate()->firstOrFail();
+        $this->ensurePayable($payroll);
+
+        return $payroll;
+    }
+
+    private function ensureNothingPaid(Payroll $payroll): void
+    {
+        if ($payroll->items()->where('status', PayrollItemStatus::Paid->value)->exists()) {
+            throw new InvalidStateException(__('payroll.messages.cant_unapprove_partially_paid'));
+        }
+    }
+
+    /**
+     * قسط السلفة في البند مايزيدش عن رصيدها الفعلي (ناقص المحجوز في
+     * مسيرات تانية) — وإلا الموظف بيتخصم منه مبلغ مالوش سداد مقابله.
+     */
+    private function ensureInstallmentsWithinBalance(PayrollItem $item, array $deductionDetails): void
+    {
+        $requested = [];
+        foreach ($deductionDetails as $row) {
+            if (! empty($row['advance_id'])) {
+                $requested[(int) $row['advance_id']] = ($requested[(int) $row['advance_id']] ?? 0) + (float) $row['amount'];
+            }
+        }
+
+        if (! $requested) {
+            return;
+        }
+
+        $reserved = PayrollRules::reservedAdvanceInstallments([$item->employee_id], $item->id);
+
+        foreach (EmployeeAdvance::whereIn('id', array_keys($requested))->get(['id', 'remaining_amount']) as $advance) {
+            $available = round((float) $advance->remaining_amount - (float) ($reserved[$advance->id] ?? 0), 2);
+
+            if (round($requested[$advance->id], 2) > $available) {
+                throw new InvalidStateException(__('advance.errors.amount_exceeds_remaining', [
+                    'amount'    => number_format($requested[$advance->id], 2),
+                    'remaining' => number_format(max(0, $available), 2),
+                ]));
+            }
+        }
+    }
+
+    /**
+     * بناء التفاصيل من إجمالي متعدّل يدوياً.
+     *
+     * لو الإجمالي ماتغيّرش التفاصيل بتفضل زي ما هي. لو اتغيّر: السطور
+     * المربوطة (قسط سلفة/مكافأة) بتفضل، والباقي بيتجمّع في سطر "تعديل يدوي".
+     * لو الإجمالي الجديد أقل من السطور المربوطة، بنشيل المربوط بالترتيب
+     * العكسي (يعني الإعفاء من القسط الشهر ده) — ومابيتسجّلش سداد عليه.
+     */
+    private function detailsForTotal(array $details, float $newTotal, float $currentTotal, string $linkKey): array
+    {
+        $newTotal = round(max(0, $newTotal), 2);
+
+        if (abs($newTotal - round($currentTotal, 2)) < 0.005) {
+            return $details;
+        }
+
+        $linked = array_values(array_filter($details, fn ($row) => ! empty($row[$linkKey])));
+
+        while ($linked && array_sum(array_map(fn ($r) => (float) ($r['amount'] ?? 0), $linked)) - $newTotal > 0.005) {
+            array_pop($linked);
+        }
+
+        $linkedSum = round(array_sum(array_map(fn ($r) => (float) ($r['amount'] ?? 0), $linked)), 2);
+        $rest      = round($newTotal - $linkedSum, 2);
+
+        if ($rest > 0) {
+            $linked[] = ['title' => __('payroll.generated.manual_adjustment'), 'amount' => $rest];
+        }
+
+        return $linked;
+    }
+
     private function transition(Payroll $payroll, PayrollStatus $target, string $errorKey, array $attributes = []): void
     {
         if (! $this->status($payroll)?->canTransitionTo($target)) {
@@ -250,18 +368,42 @@ class PayrollWorkflow
         return $query->where('status', '!=', PayrollItemStatus::Paid->value);
     }
 
-    /** سطور فيها عنوان ومبلغ بس، والمبلغ رقم موجب. */
-    private function cleanDetails(array $rows): array
+    /**
+     * سطور فيها عنوان ومبلغ موجب.
+     *
+     * الربط بالسلفة/المكافأة (advance_id, reward_id, type) بيتاخد من السطر
+     * الأصلي المخزّن عن طريق ref — عمره ما بيتاخد من المتصفح. قبل كده
+     * أي تعديل كان بيمسح الربط: القسط يتخصم ومايتسجّلش سداد، والمكافأة
+     * ماتتقفلش "مدفوعة". كل ref بيتستخدم مرة واحدة بس.
+     */
+    private function cleanDetails(array $rows, array $original = []): array
     {
         $clean = [];
+        $used  = [];
 
         foreach ($rows as $row) {
-            if (! empty($row['title']) && isset($row['amount']) && is_numeric($row['amount']) && $row['amount'] >= 0) {
-                $clean[] = [
-                    'title'  => trim($row['title']),
-                    'amount' => (float) $row['amount'],
-                ];
+            if (empty($row['title']) || ! isset($row['amount']) || ! is_numeric($row['amount']) || $row['amount'] < 0) {
+                continue;
             }
+
+            $line = [
+                'title'  => trim($row['title']),
+                'amount' => round((float) $row['amount'], 2),
+            ];
+
+            $ref = isset($row['ref']) && is_numeric($row['ref']) ? (int) $row['ref'] : null;
+
+            if ($ref !== null && isset($original[$ref]) && ! isset($used[$ref])) {
+                $used[$ref] = true;
+
+                foreach (['advance_id', 'reward_id', 'type'] as $key) {
+                    if (isset($original[$ref][$key])) {
+                        $line[$key] = $original[$ref][$key];
+                    }
+                }
+            }
+
+            $clean[] = $line;
         }
 
         return $clean;
@@ -282,16 +424,30 @@ class PayrollWorkflow
             $now     = now();
             $adminId = admin()?->id;
 
-            PayrollItem::withoutSyncingTotals(function () use ($items, $paymentMethod, $now, $adminId) {
-                foreach ($items as $item) {
-                    $item->update([
-                        'status'         => PayrollItemStatus::Paid->value,
-                        'paid_at'        => $now,
-                        'paid_by'        => $adminId,
-                        'payment_method' => $paymentMethod ?? $item->payment_method,
-                    ]);
-                }
-            });
+            // تحديث جماعي بدل UPDATE + سجل نشاط لكل بند (300 موظف كانوا
+            // ~1000 استعلام والصفوف مقفولة). سجل نشاط واحد ملخّص على المسير.
+            $update = [
+                'status'     => PayrollItemStatus::Paid->value,
+                'paid_at'    => $now,
+                'paid_by'    => $adminId,
+                'updated_at' => $now,
+            ];
+
+            if ($paymentMethod) {
+                $update['payment_method'] = $paymentMethod;
+            }
+
+            PayrollItem::withoutGlobalScopes()->whereIn('id', $items->modelKeys())->update($update);
+
+            foreach ($items as $item) {
+                $item->forceFill($update)->syncOriginal();
+            }
+
+            app(\App\Services\Activity\ActivityLogger::class)->log($payroll, 'updated', [], [
+                'paid_items'     => $items->count(),
+                'paid_item_ids'  => $items->modelKeys(),
+                'payment_method' => $paymentMethod,
+            ]);
 
             $this->settleAdvancesAndRewards($payroll, $items);
         }
@@ -332,14 +488,28 @@ class PayrollWorkflow
         }
 
         if ($installments) {
+            // القفل بيمنع سداد يدوي متزامن من إنه يعدّي الرصيد
             $advances = EmployeeAdvance::whereIn('id', array_keys($installments))
                 ->whereIn('status', [AdvanceStatus::Approved->value, AdvanceStatus::Paid->value])
+                ->lockForUpdate()
                 ->get();
 
             $note = 'استقطاع قسط سلفة من مسير رواتب شهر ' . $payroll->month . '/' . $payroll->year;
 
             foreach ($advances as $advance) {
+                $remaining = (float) $advance->remaining_amount;
+
                 foreach ($installments[$advance->id] as $amount) {
+                    // السداد مايعدّيش الرصيد — الزيادة كانت بتتصفّر بصمت في
+                    // recalculateRepayments والموظف متخصوم منه مبلغ مالوش مقابل.
+                    $amount = round(min($amount, $remaining), 2);
+
+                    if ($amount <= 0) {
+                        continue;
+                    }
+
+                    $remaining -= $amount;
+
                     $advance->repayments()->create([
                         'amount'         => $amount,
                         'repayment_date' => now()->toDateString(),

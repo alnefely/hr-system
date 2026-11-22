@@ -106,7 +106,7 @@ class EmployeeSalaryService
     {
         $latest = EmployeeSalary::withoutGlobalScope('branch')
             ->where('employee_id', $employeeId)
-            ->whereDate('effective_date', '<=', now())
+            ->where('effective_date', '<=', now()->toDateString())
             ->orderByDesc('effective_date')
             ->orderByDesc('id')
             ->first();

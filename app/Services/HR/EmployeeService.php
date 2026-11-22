@@ -214,7 +214,12 @@ class EmployeeService
                 unset($data['bank_name'], $data['bank_account_number'], $data['iban'], $data['insurance_number']);
             }
             if (!admin_can('employee_salary_view')) {
-                unset($data['basic_salary'], $data['salary'], $data['custom_hourly_rate']);
+                // سعر اليوم والبدلات بيدخلوا المسير مباشرة زي الأساسي بالظبط —
+                // كانوا بيتحفظوا من غير الصلاحية (بدل "مواصلات" 5000 مثلاً).
+                unset(
+                    $data['basic_salary'], $data['salary'], $data['custom_hourly_rate'],
+                    $data['custom_daily_rate'], $data['allowances']
+                );
             }
 
             // استخراج البدلات والمستندات
@@ -230,7 +235,23 @@ class EmployeeService
             );
 
             // تحديث بيانات الموظف
+            $previousSalary = $employee->getRawOriginal('basic_salary');
             $employee->update($data);
+
+            // تعديل الأساسي من ملف الموظف بيتسجّل في تاريخ الرواتب — وإلا
+            // أول مزامنة من سجل الرواتب كانت بترجّع القيمة القديمة.
+            if ($employee->wasChanged('basic_salary') && (float) $previousSalary !== (float) $employee->basic_salary) {
+                \App\Models\EmployeeSalary::create([
+                    'employee_id'    => $employee->id,
+                    'basic_salary'   => $employee->basic_salary,
+                    'allowances'     => (float) $employee->allowances()->sum('amount'),
+                    'currency'       => $employee->branch?->currency ?? 'EGP',
+                    'effective_date' => now()->toDateString(),
+                    'change_reason'  => 'other',
+                    'approved_by'    => admin()?->id,
+                    'notes'          => __('salary.notes.edited_from_profile'),
+                ]);
+            }
 
             // 1. دخول بوابة الموظف: كلمة مرور جديدة = تفعيل / إعادة تعيين
             $this->applyPortalPassword($employee, $portalPassword);

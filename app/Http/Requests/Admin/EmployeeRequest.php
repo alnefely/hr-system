@@ -81,8 +81,8 @@ class EmployeeRequest extends FormRequest
             'gender'                          => ['nullable', 'in:male,female'],
             'marital_status'                  => ['nullable', 'string', 'max:50'],
             'nationality'                     => ['nullable', 'string', 'max:100'],
-            'img'                             => ['nullable', 'string', 'max:255'],
-            'avatar'                          => ['nullable', 'string', 'max:255'],
+            'img'                             => ['nullable', 'string', 'max:255', new \App\Rules\SafeFileReference],
+            'avatar'                          => ['nullable', 'string', 'max:255', new \App\Rules\SafeFileReference],
 
             // بيانات التواصل
             // اسم الدخول لبوابة الموظف — لازم يبقى فريد (شامل المحذوفين)
@@ -149,7 +149,7 @@ class EmployeeRequest extends FormRequest
             ],
             'documents.*.document_type'       => ['nullable', 'string', 'max:50'],
             'documents.*.title'               => ['nullable', 'string', 'max:150'],
-            'documents.*.file_path'           => ['nullable', 'string', 'max:255'],
+            'documents.*.file_path'           => ['nullable', 'string', 'max:255', new \App\Rules\SafeFileReference],
             'documents.*.issue_date'          => ['nullable', 'date'],
             'documents.*.expiry_date'         => ['nullable', 'date', 'after_or_equal:documents.*.issue_date'],
             'documents.*.is_verified'         => ['nullable', 'boolean'],

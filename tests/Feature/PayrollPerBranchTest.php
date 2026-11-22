@@ -56,7 +56,7 @@ class PayrollPerBranchTest extends TestCase
                 'branch_id' => $branch->id, 'job_title_id' => $this->job->id,
                 'name' => $name . $i, 'employee_code' => $code . '-' . $i,
                 'phone' => '+20100' . $code . $i, 'status' => 'active', 'basic_salary' => 3000,
-                'hire_date' => now()->subYear()->toDateString(),
+                'hire_date' => '2024-01-01',
             ]);
         }
 

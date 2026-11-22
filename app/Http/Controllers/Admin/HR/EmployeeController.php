@@ -49,7 +49,15 @@ class EmployeeController extends Controller
                     $query->where('employees.status', $keyword);
                 })
                 ->filterColumn('hire_date', function ($query, $keyword) {
-                    $query->whereDate('employees.hire_date', $keyword);
+                    // نطاق اليوم بدل whereDate() عشان فهرس hire_date يشتغل
+                    try {
+                        $day = \Carbon\CarbonImmutable::parse($keyword)->startOfDay();
+                    } catch (\Throwable) {
+                        return $query->whereRaw('1 = 0');
+                    }
+
+                    $query->where('employees.hire_date', '>=', $day->toDateString())
+                        ->where('employees.hire_date', '<', $day->addDay()->toDateString());
                 })
                 ->addColumn('code_badge', function ($row) {
                     $profileUrl = route('admin.employees.show', $row->id);
@@ -59,7 +67,7 @@ class EmployeeController extends Controller
                     $profileUrl = route('admin.employees.show', $row->id);
                     return '<div class="d-flex align-items-center">
                         <a href="' . $profileUrl . '" class="avatar avatar-sm me-2 text-decoration-none">
-                            <img src="' . $row->avatar_url . '" alt="' . e($row->name) . '" class="rounded-circle">
+                            <img src="' . e($row->avatar_url) . '" alt="' . e($row->name) . '" class="rounded-circle">
                         </a>
                         <div>
                             <a href="' . $profileUrl . '" class="fw-bold d-block text-heading text-truncate text-decoration-none text-primary">' . e($row->name) . '</a>

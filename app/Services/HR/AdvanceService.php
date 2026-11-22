@@ -49,6 +49,8 @@ class AdvanceService
 
     public function approve(EmployeeAdvance $advance): void
     {
+        ApprovalService::ensureNotBeneficiary($advance->employee_id, 'advance');
+
         $this->decide($advance, AdvanceStatus::Approved);
     }
 
@@ -85,6 +87,12 @@ class AdvanceService
     {
         if ((float) $advance->paid_amount > 0 || (float) $advance->waived_amount > 0 || $advance->repayments()->exists()) {
             throw new InvalidStateException(__('advance.errors.cannot_delete_repaid'));
+        }
+
+        // قسطها محجوز في مسير لسه ماتصرفش: الحذف كان بيخلي المسير يخصم
+        // المبلغ من غير ما يتسجّل سداد على أي سلفة.
+        if (isset(PayrollRules::reservedAdvanceInstallments([$advance->employee_id])[$advance->id])) {
+            throw new InvalidStateException(__('advance.errors.in_open_payroll'));
         }
 
         $advance->delete();
@@ -129,10 +137,15 @@ class AdvanceService
                 throw new InvalidStateException(__('advance.errors.already_fully_paid'));
             }
 
-            if ($amount > (float) $locked->remaining_amount) {
+            // المتاح = الرصيد ناقص الأقساط المحجوزة في مسيرات لسه ماتصرفتش،
+            // عشان المسير وقت صرفه يلاقي القسط اللي خصمه من الموظف.
+            $reserved  = (float) (PayrollRules::reservedAdvanceInstallments([$locked->employee_id])[$locked->id] ?? 0);
+            $available = round((float) $locked->remaining_amount - $reserved, 2);
+
+            if ($amount > $available) {
                 throw new InvalidStateException(__('advance.errors.amount_exceeds_remaining', [
                     'amount'    => number_format($amount, 2),
-                    'remaining' => number_format((float) $locked->remaining_amount, 2),
+                    'remaining' => number_format(max(0, $available), 2),
                 ]));
             }
 

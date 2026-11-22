@@ -86,6 +86,7 @@ return [
         'amount_exceeds_remaining'        => 'The requested amount (:amount) exceeds the remaining balance on this advance (:remaining).',
         'not_approved'                    => 'Payments or waivers can only be recorded on an approved advance.',
         'cannot_delete_repaid'            => 'An advance with recorded repayments or waivers cannot be deleted.',
+        'in_open_payroll'                 => 'This advance has an installment in an unpaid payroll — remove it from the payroll first.',
     ],
 
     'export' => [
