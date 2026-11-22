@@ -62,6 +62,9 @@ Route::prefix('portal')->name('portal.')->middleware('throttle:WebRateLimiter')-
         Route::get('/penalties', [PenaltyController::class, 'index'])->name('penalties.index');
         Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
 
+        // دليل الموظف للمهام والمشاريع (صفحة ثابتة)
+        Route::view('/guide', 'portal.guide.tasks')->name('guide');
+
         // الإشعارات
         Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::get('/notifications/latest', [NotificationController::class, 'latest'])->name('notifications.latest');

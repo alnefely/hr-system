@@ -10,6 +10,7 @@ return [
         'projects'        => 'مشاريعي',
         'time'            => 'سجل وقتي',
         'performance'     => 'أدائي',
+        'guide'           => 'دليل المهام',
         'permissions'     => 'استئذاناتي',
         'leaves'          => 'إجازاتي',
         'advances'        => 'سلفي',

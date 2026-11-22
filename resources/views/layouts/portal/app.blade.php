@@ -51,6 +51,7 @@
         ['portal.leaves.index',      'fa-calendar-check',      'leaves',      'portal.leaves.*'],
         ['portal.advances.index',    'fa-hand-holding-dollar', 'advances',    'portal.advances.*'],
         ['portal.documents.index',   'fa-folder-open',         'documents',   'portal.documents.*'],
+        ['portal.guide',             'fa-book-open',           'guide',       'portal.guide'],
     ];
 
     // الشاشات المالية (عرض بس) في مجموعة واحدة
