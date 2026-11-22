@@ -243,7 +243,7 @@ class EmployeeRewardController extends Controller
     public function approve(EmployeeReward $reward)
     {
         return $this->attempt(
-            fn () => $this->approvals->approve($reward, 'reward', separateDuties: true),
+            fn () => $this->approvals->approve($reward, 'reward'),
             'reward.messages.approved'
         );
     }

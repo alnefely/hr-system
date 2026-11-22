@@ -80,8 +80,6 @@ class LeaveService
 
     public function approve(EmployeeLeave $leave): void
     {
-        ApprovalService::ensureNotBeneficiary($leave->employee_id, 'leave');
-
         DB::transaction(function () use ($leave) {
             // الفحص جوّه القفل: طلبين اعتماد/رفض متزامنين مايشتغلوش على حالة قديمة
             $locked = EmployeeLeave::whereKey($leave->id)->lockForUpdate()->firstOrFail();

@@ -11,7 +11,6 @@ return [
     'updated_at'           => 'Updated At',
     'save'                 => 'Save',
     'cancel'               => 'Cancel',
-    'cannot_approve_own_request' => 'You cannot approve your own request — another admin must approve it.',
     'close'                => 'Close',
     'search'               => 'Search...',
     'reset'                => 'Reset',

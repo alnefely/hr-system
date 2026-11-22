@@ -10,33 +10,21 @@ use Illuminate\Database\Eloquent\Model;
  * دورة الاعتماد المشتركة للأذونات والجزاءات والمكافآت.
  *
  * كانت نفس الشروط مكررة في كل كنترولر بنصوص زي 'pending' و'approved'.
- * الرسائل بتتاخد من ملف ترجمة الموديول: "{module}.messages.not_pending"
- * و "{module}.messages.cannot_self_approve".
+ * الرسائل بتتاخد من ملف ترجمة الموديول: "{module}.messages.not_pending".
+ *
+ * مين يعتمد بتحدده صلاحية الاعتماد في الدور بس — مفيش منع لاعتماد
+ * حركة سجّلها المسؤول بنفسه أو طلب خاص بيه.
  */
 class ApprovalService
 {
     /**
      * اعتماد طلب معلّق.
-     *
-     * $separateDuties: اللي سجّل الحركة مايعتمدهاش (إلا المدير العام) —
-     * أي حركة بتأثر على راتب الموظف لازم يراجعها شخص تاني.
      */
-    public function approve(Model $record, string $module, bool $separateDuties = false): void
+    public function approve(Model $record, string $module): void
     {
         $this->ensurePending($record, $module);
 
-        if ($record->employee_id ?? null) {
-            self::ensureNotBeneficiary((int) $record->employee_id, $module);
-        }
-
         $this->ensurePayrollOpen($record);
-
-        if ($separateDuties
-            && $record->created_by
-            && $record->created_by === admin()?->id
-            && ! admin()?->main) {
-            throw new InvalidStateException(__("{$module}.messages.cannot_self_approve"));
-        }
 
         $record->update([
             'status'      => ApprovalStatus::Approved->value,
@@ -73,18 +61,6 @@ class ApprovalService
             'approved_by'      => admin()?->id,
             'approved_at'      => now(),
         ]);
-    }
-
-    /**
-     * المسؤول مايعتمدش طلب لنفسه (إجازته أو سلفته أو مكافأته) — إلا المدير العام.
-     */
-    public static function ensureNotBeneficiary(?int $employeeId, string $module): void
-    {
-        $admin = admin();
-
-        if ($admin && ! $admin->main && $employeeId && (int) $admin->employee_id === $employeeId) {
-            throw new InvalidStateException(__('global.cannot_approve_own_request'));
-        }
     }
 
     /**

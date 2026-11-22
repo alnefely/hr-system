@@ -204,8 +204,8 @@ class PayrollSafetyTest extends TestCase
         $this->assertSame('paid', $advance->fresh()->status);
     }
 
-    /** اللي أصدر المسير مايعتمدهوش بنفسه (لو مش المدير العام). */
-    public function test_payroll_creator_cannot_approve_it(): void
+    /** اللي أصدر المسير يعتمده لو دوره فيه payroll_approve — الصلاحية هي الحكم. */
+    public function test_payroll_creator_with_permission_can_approve_it(): void
     {
         $role = Role::create(['name' => 'HR', 'roles' => ['payroll_create', 'payroll_approve', 'payroll_show']]);
         $hr = Admin::create([
@@ -216,8 +216,9 @@ class PayrollSafetyTest extends TestCase
 
         $payroll = app(PayrollGenerator::class)->generate(2026, 6, $this->branch->id, null, $hr->id);
 
-        $this->expectException(InvalidStateException::class);
         app(PayrollWorkflow::class)->approve($payroll);
+
+        $this->assertEquals('approved', $payroll->fresh()->status);
     }
 
     /** المعيّن في نص الشهر بياخد أيامه، واللي "في إجازة" بياخد راتبه. */
@@ -246,8 +247,8 @@ class PayrollSafetyTest extends TestCase
         $this->assertEquals(8000, (float) $this->itemFor($this->generate(2026, 12))->basic_salary);
     }
 
-    /** المشرف مايعتمدش إجازة لنفسه. */
-    public function test_admin_cannot_approve_own_leave(): void
+    /** صاحب صلاحية leave_approve يعتمد إجازته — الصلاحية هي الحكم. */
+    public function test_admin_with_permission_can_approve_own_leave(): void
     {
         $role = Role::create(['name' => 'Mgr', 'roles' => ['leave_approve']]);
         $manager = Admin::create([
@@ -261,8 +262,9 @@ class PayrollSafetyTest extends TestCase
             'start_date' => '2026-06-01', 'end_date' => '2026-06-02', 'days_count' => 2, 'status' => 'pending',
         ]);
 
-        $this->expectException(InvalidStateException::class);
         app(LeaveService::class)->approve($leave);
+
+        $this->assertEquals('approved', $leave->fresh()->status);
     }
 
     /** إجازة 30 يوم ماتتسجّلش "يوم واحد". */

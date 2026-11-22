@@ -236,7 +236,7 @@ class EmployeePenaltyController extends Controller
     public function approve(EmployeePenalty $penalty)
     {
         return $this->attempt(
-            fn () => $this->approvals->approve($penalty, 'penalty', separateDuties: true),
+            fn () => $this->approvals->approve($penalty, 'penalty'),
             'penalty.messages.approved'
         );
     }

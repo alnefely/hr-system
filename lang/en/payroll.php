@@ -127,7 +127,6 @@ return [
         'deleted'              => 'Payroll sheet deleted successfully',
         'item_updated'         => 'Salary item updated successfully',
         'cant_unapprove_partially_paid' => 'A payroll that is partly paid cannot be unapproved or deleted. Finish paying it or adjust next month\'s payroll.',
-        'cannot_self_approve'  => 'You cannot approve a payroll you generated yourself — another admin must approve it.',
         'period_closed'        => 'This month\'s payroll is already approved or paid, so this decision can no longer change. Record the adjustment in next month\'s payroll.',
         'already_exists'       => 'A payroll sheet already exists for this branch and month.',
         'cant_edit_approved'   => 'Cannot edit or delete an approved or disbursed payroll sheet.',

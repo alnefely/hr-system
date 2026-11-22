@@ -32,7 +32,6 @@ return [
         'approved' => 'Reward approved and will be paid in this month payroll.',
         'rejected' => 'Reward rejected and will not be paid.',
         'not_pending' => 'This action cannot be applied to a reward that was already decided.',
-        'cannot_self_approve' => 'You cannot approve a reward you recorded yourself — another officer must review it.',
         'cannot_modify_approved' => 'An approved reward cannot be edited or deleted because it entered the payroll.',
         'created' => 'Reward granted successfully',
         'updated' => 'Reward updated successfully',

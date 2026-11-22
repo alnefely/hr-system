@@ -49,8 +49,6 @@ class AdvanceService
 
     public function approve(EmployeeAdvance $advance): void
     {
-        ApprovalService::ensureNotBeneficiary($advance->employee_id, 'advance');
-
         $this->decide($advance, AdvanceStatus::Approved);
     }
 

@@ -32,7 +32,6 @@ return [
         'approved' => 'Penalty approved and will be deducted in this month payroll.',
         'rejected' => 'Penalty rejected and will not be deducted.',
         'not_pending' => 'This action cannot be applied to a penalty that was already decided.',
-        'cannot_self_approve' => 'You cannot approve a penalty you recorded yourself — another officer must review it.',
         'cannot_modify_approved' => 'An approved penalty cannot be edited or deleted because it entered the payroll.',
         'created' => 'Disciplinary penalty recorded successfully',
         'updated' => 'Penalty updated successfully',

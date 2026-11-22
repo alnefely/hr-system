@@ -49,7 +49,7 @@ class ApprovalWorkflowTest extends TestCase
             'status' => 'active', 'basic_salary' => 3000, 'hire_date' => '2024-01-01',
         ]);
 
-        // مسجّل غير رئيسي عشان قاعدة "مايعتمدش اللي سجّله" تنطبق
+        // مسجّل غير رئيسي: الاعتماد بيتحدد بالصلاحية بس
         $this->recorder = Admin::create([
             'name' => 'Recorder', 'email' => 'rec@ap.test',
             'password' => bcrypt('x'), 'main' => false,
@@ -115,7 +115,8 @@ class ApprovalWorkflowTest extends TestCase
         $this->assertEquals(500.00, (float) $item->deductions);
     }
 
-    public function test_recorder_cannot_approve_their_own_penalty(): void
+    /** صاحب صلاحية الاعتماد يعتمد حتى اللي سجّله بنفسه. */
+    public function test_recorder_with_permission_can_approve_their_own_penalty(): void
     {
         $penalty = EmployeePenalty::create([
             'employee_id' => $this->employee->id, 'penalty_type' => 'amount_deduction',
@@ -127,11 +128,7 @@ class ApprovalWorkflowTest extends TestCase
         $this->actingAs($this->recorder, 'admin')
             ->post(route('admin.penalties.approve', $penalty->id));
 
-        $this->assertEquals(
-            'pending',
-            $penalty->fresh()->status,
-            'المسجّل قدر يعتمد جزاء سجّله بنفسه — فصل المهام مكسور'
-        );
+        $this->assertEquals('approved', $penalty->fresh()->status);
     }
 
     public function test_another_officer_can_approve(): void
@@ -261,7 +258,7 @@ class ApprovalWorkflowTest extends TestCase
         $this->assertEquals(700.00, (float) $item->allowances);
     }
 
-    public function test_recorder_cannot_approve_their_own_reward(): void
+    public function test_recorder_with_permission_can_approve_their_own_reward(): void
     {
         $reward = EmployeeReward::create([
             'employee_id' => $this->employee->id, 'reward_type' => 'bonus',
@@ -272,7 +269,7 @@ class ApprovalWorkflowTest extends TestCase
         $this->actingAs($this->recorder, 'admin')
             ->post(route('admin.rewards.approve', $reward->id));
 
-        $this->assertEquals('pending', $reward->fresh()->status);
+        $this->assertEquals('approved', $reward->fresh()->status);
     }
 
     // ========================================================

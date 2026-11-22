@@ -107,11 +107,6 @@ class PayrollWorkflow
 
     public function approve(Payroll $payroll): void
     {
-        // فصل المهام: اللي أصدر المسير مايعتمدهوش بنفسه (إلا المدير العام).
-        if ($payroll->created_by && $payroll->created_by === admin()?->id && ! admin()?->main) {
-            throw new InvalidStateException(__('payroll.messages.cannot_self_approve'));
-        }
-
         $this->transition($payroll, PayrollStatus::Approved, 'payroll.messages.cant_edit_approved', [
             'approved_by' => admin()?->id,
             'approved_at' => now(),
