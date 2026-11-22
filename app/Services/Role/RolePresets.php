@@ -127,6 +127,7 @@ final class RolePresets
             ...self::actions('sale', ['show']),
             'report_employee_statement',
             'report_documents',
+            ...self::taskManagement(),
         ]);
     }
 
@@ -158,6 +159,7 @@ final class RolePresets
             'report_employee_statement',
             'report_salary_audit',
             'report_documents',
+            ...self::taskManagement(),
         ]);
     }
 
@@ -242,7 +244,25 @@ final class RolePresets
             'report_financial_pl',
             'report_documents',
             'link_stats',
+            // task_show و project_show جايين من *_show فوق
+            'task_report',
         ]);
+    }
+
+    /**
+     * إدارة المهام والمشاريع اليومية (مدير الفرع ومدير الموارد البشرية):
+     * المهام كاملة ما عدا الحذف النهائي، والمشاريع من غير حذف ولا قوالب.
+     * مشرف الفرع بيشوف فرعه بس تلقائياً.
+     */
+    private static function taskManagement(): array
+    {
+        return [
+            ...self::actions('task', [
+                'show', 'create', 'update', 'delete', 'trash', 'restore',
+                'assign', 'review', 'board', 'label_manage', 'recurrence_manage', 'report',
+            ]),
+            ...self::actions('project', ['show', 'create', 'update']),
+        ];
     }
 
     // ========================================================
