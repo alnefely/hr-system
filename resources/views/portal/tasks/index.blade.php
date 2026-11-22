@@ -67,7 +67,9 @@
             </div>
             <div class="col-6 col-md-2">
                 <label for="f_status" class="form-label small mb-1">{{ __('task.fields.status') }}</label>
-                <select name="status" id="f_status" class="form-select" onchange="this.form.submit()">
+                {{-- required: من غير زرار المسح (×) — المسح كان بيرجّعها للمفتوحة من غير ما تاخد بالك --}}
+                <select name="status" id="f_status" class="form-select" onchange="this.form.submit()" required>
+                    <option value="{{ \App\Services\Tasks\TaskFilters::STATUS_ALL }}" @selected($statusFilter === \App\Services\Tasks\TaskFilters::STATUS_ALL)>{{ __('task.filters.all_statuses') }}</option>
                     <option value="open" @selected($statusFilter === 'open')>{{ __('task.filters.open') }}</option>
                     <option value="overdue" @selected($statusFilter === 'overdue')>{{ __('task.filters.overdue') }}</option>
                     @foreach (\App\Enums\TaskStatus::options() as $value => $label)

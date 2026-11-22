@@ -76,6 +76,22 @@ class PortalTaskScreensTest extends TestCase
             ->assertOk()->assertDontSee(__('task.tabs.team'));
     }
 
+    public function test_status_filter_defaults_to_open_and_all_includes_closed(): void
+    {
+        $this->taskFor($this->staff, $this->colleague, ['title' => 'Still open']);
+        $done = $this->taskFor($this->staff, $this->colleague, ['title' => 'Already cancelled']);
+        app(TaskService::class)->changeStatus($done, \App\Enums\TaskStatus::Cancelled, $this->colleague);
+
+        // الافتراضي: المفتوحة بس
+        $this->as($this->staff)->get(route('portal.tasks.index'))
+            ->assertOk()->assertSee('Still open')->assertDontSee('Already cancelled');
+
+        // "كل الحالات" بتجيب المقفولة كمان، والاختيار بيفضل متعلّم
+        $this->as($this->staff)->get(route('portal.tasks.index', ['status' => 'all']))
+            ->assertOk()->assertSee('Still open')->assertSee('Already cancelled')
+            ->assertSee('value="all" selected', false);
+    }
+
     public function test_employee_creates_task_for_colleague(): void
     {
         $this->as($this->staff)->get(route('portal.tasks.create'))->assertOk()->assertSee('Karim Colleague');

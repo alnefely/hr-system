@@ -22,6 +22,13 @@ class TaskFilters
 
     public const STATUS_OVERDUE = 'overdue';
 
+    /**
+     * كل الحالات — للشاشات اللي افتراضيها "المفتوحة" (البوابة): القيمة
+     * الفاضية بتتشال وترجع للافتراضي، فلازم قيمة صريحة. apply() بتتجاهلها
+     * زي أي قيمة مش حالة، فمفيش فلتر على الحالة.
+     */
+    public const STATUS_ALL = 'all';
+
     public static function fromRequest(Request $request): array
     {
         return array_filter($request->only(self::KEYS), fn ($v) => $v !== null && $v !== '');
