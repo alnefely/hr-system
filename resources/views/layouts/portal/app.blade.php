@@ -44,6 +44,7 @@
         ['portal.home',              'fa-house',               'home',        'portal.home'],
         ['portal.tasks.index',       'fa-list-check',          'tasks',       'portal.tasks.*'],
         ['portal.projects.index',    'fa-diagram-project',     'projects',    'portal.projects.*'],
+        ['portal.time.index',        'fa-stopwatch',           'time',        'portal.time.*'],
         ['portal.permissions.index', 'fa-clock',               'permissions', 'portal.permissions.*'],
         ['portal.leaves.index',      'fa-calendar-check',      'leaves',      'portal.leaves.*'],
         ['portal.advances.index',    'fa-hand-holding-dollar', 'advances',    'portal.advances.*'],
@@ -188,6 +189,7 @@
                             </a>
                         </li>
 
+                        @include('portal.partials.running-timer')
                         @include('portal.partials.notifications-bell')
 
                         {{-- المستخدم --}}

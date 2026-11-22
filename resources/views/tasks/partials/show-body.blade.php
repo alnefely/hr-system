@@ -210,6 +210,7 @@
                                     'to'    => isset($p['to']) ? (\App\Enums\TaskStatus::tryFrom((string) $p['to'])?->label() ?? $p['to']) : '',
                                     'names' => isset($p['names']) ? implode('، ', (array) $p['names']) : $namesOf($p['employee_ids'] ?? []),
                                     'title' => $p['title'] ?? '',
+                                    'minutes' => $p['minutes'] ?? '',
                                 ]);
                             @endphp
                             <li>
@@ -310,6 +311,8 @@
                 @endforelse
             </ul>
         </div>
+
+        @include('tasks.partials.time')
 
         @include('tasks.partials.attachments')
 

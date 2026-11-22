@@ -54,6 +54,8 @@ class TaskViewData
             'comments.attachments',
             'comments.replies.author',
             'comments.replies.attachments',
+            'timeEntries' => fn ($q) => $q->whereNotNull('ended_at')->latest('started_at')->limit(20),
+            'timeEntries.employee:id,name',
             'attachments' => fn ($q) => $q->latest('id'),
             'attachments.uploader',
         ]);
@@ -69,6 +71,8 @@ class TaskViewData
             'health'       => $task->progressHealth(),
             'blocked'      => $task->isOpen() && $task->dependencies->contains(fn ($d) => $d->status !== TaskStatus::Completed->value),
             'actor'        => $actor,
+            // العدّاد الشغّال للموظف الحالي (على أي مهمة) — زرار البدء/الإيقاف
+            'runningEntry' => $actor instanceof Employee ? app(TaskTimeService::class)->running($actor) : null,
             'dependencyCandidates' => $abilities['update'] && $task->isOpen() ? $this->dependencyCandidates($task) : collect(),
             'mentionable'  => Employee::withoutGlobalScopes()
                 ->whereIn('id', app(TaskCollaborationService::class)->mentionableIds($task))

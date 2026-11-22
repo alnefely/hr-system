@@ -72,6 +72,10 @@ Route::prefix('portal')->name('portal.')->middleware('throttle:WebRateLimiter')-
         Route::post('/broadcasting/auth', fn (\Illuminate\Http\Request $request) => \Illuminate\Support\Facades\Broadcast::auth($request))
             ->name('broadcasting.auth');
 
+        // سجل وقتي + إيقاف العدّاد الشغّال من أي صفحة
+        Route::get('/time', [\App\Http\Controllers\Portal\TimesheetController::class, 'index'])->name('time.index');
+        Route::post('/time/stop', [\App\Http\Controllers\Portal\TimesheetController::class, 'stop'])->name('time.stop');
+
         // مشاريعي — مدير المشروع بيعدّله من هنا
         Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
         Route::get('/projects/{project}', [ProjectController::class, 'show'])->whereNumber('project')->name('projects.show');
@@ -98,6 +102,9 @@ Route::prefix('portal')->name('portal.')->middleware('throttle:WebRateLimiter')-
         Route::delete('/tasks/{task}/comments/{comment}', [TaskCollaborationController::class, 'destroyComment'])->whereNumber(['task', 'comment'])->name('tasks.comments.destroy');
         Route::post('/tasks/{task}/dependencies', [TaskCollaborationController::class, 'storeDependency'])->whereNumber('task')->name('tasks.dependencies.store');
         Route::delete('/tasks/{task}/dependencies/{dependency}', [TaskCollaborationController::class, 'destroyDependency'])->whereNumber(['task', 'dependency'])->name('tasks.dependencies.destroy');
+        Route::post('/tasks/{task}/timer', [TaskCollaborationController::class, 'startTimer'])->whereNumber('task')->name('tasks.timer.start');
+        Route::post('/tasks/{task}/time', [TaskCollaborationController::class, 'storeTime'])->whereNumber('task')->name('tasks.time.store');
+        Route::delete('/tasks/{task}/time/{entry}', [TaskCollaborationController::class, 'destroyTime'])->whereNumber(['task', 'entry'])->name('tasks.time.destroy');
         Route::post('/tasks/{task}/attachments', [TaskCollaborationController::class, 'storeAttachments'])->whereNumber('task')->name('tasks.attachments.store');
         Route::get('/tasks/{task}/attachments/{attachment}', [TaskCollaborationController::class, 'downloadAttachment'])->whereNumber(['task', 'attachment'])->name('tasks.attachments.download');
         Route::delete('/tasks/{task}/attachments/{attachment}', [TaskCollaborationController::class, 'destroyAttachment'])->whereNumber(['task', 'attachment'])->name('tasks.attachments.destroy');

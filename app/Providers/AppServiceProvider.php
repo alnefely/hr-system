@@ -64,6 +64,13 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\Event::listen($event, [\App\Services\Tasks\TaskNotifier::class, $method]);
         }
 
+        // المهمة اتقفلت (اكتملت أو اتلغت) ← أي عدّاد شغّال عليها بيقف
+        \Illuminate\Support\Facades\Event::listen(\App\Events\Tasks\TaskStatusChanged::class, function ($event) {
+            if (in_array($event->to, ['completed', 'cancelled'], true)) {
+                app(\App\Services\Tasks\TaskTimeService::class)->stopAllFor($event->task);
+            }
+        });
+
         // لوحة المهام المباشرة
         foreach (\App\Services\Tasks\TaskBoardBroadcaster::events() as $event) {
             \Illuminate\Support\Facades\Event::listen($event, [\App\Services\Tasks\TaskBoardBroadcaster::class, 'handle']);

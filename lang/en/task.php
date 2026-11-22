@@ -143,6 +143,7 @@ return [
         'review_returned'   => 'returned the task to work',
         'dependency_added'  => 'made it wait on: :title',
         'dependency_removed'=> 'removed the link to: :title',
+        'time_logged'       => 'logged :minutes minutes',
     ],
 
     'messages' => [
@@ -164,6 +165,10 @@ return [
         'file_deleted'      => 'File deleted',
         'dependency_added'  => 'Task linked',
         'dependency_removed'=> 'Link removed',
+        'timer_started'     => 'Timer started',
+        'timer_stopped'     => 'Timer stopped and time logged',
+        'time_logged'       => 'Time logged',
+        'time_deleted'      => 'Time entry deleted',
     ],
 
     'errors' => [
@@ -181,6 +186,9 @@ return [
         'return_reason_required' => 'Write a reason so the employee knows what to fix',
         'invalid_dependency'     => 'This task cannot be linked (it must be in the same branch or project)',
         'dependency_cycle'       => 'This link would create a loop — the other task already waits on this one',
+        'invalid_minutes'        => 'Time must be between 1 minute and 24 hours',
+        'future_time'            => 'You cannot log time on a future date',
+        'employee_only'          => 'The timer is for employees from the employee portal',
     ],
 
     'hints' => [
@@ -336,6 +344,41 @@ return [
         'next_month'         => 'Next month',
         'today'              => 'Today',
         'no_due_this_month'  => 'No tasks due this month',
+    ],
+
+
+    'time' => [
+        'title'          => 'Time tracking',
+        'start'          => 'Start timer',
+        'stop'           => 'Stop',
+        'running'        => 'Timer running',
+        'running_on'     => 'Running on: :title',
+        'estimated'      => 'Estimated',
+        'spent'          => 'Actual',
+        'remaining'      => ':time left',
+        'over'           => ':time over estimate',
+        'add_manual'     => 'Add time manually',
+        'hours'          => 'Hours',
+        'minutes'        => 'Minutes',
+        'date'           => 'Date',
+        'employee'       => 'Employee',
+        'note'           => 'Note',
+        'save'           => 'Log time',
+        'entries'        => 'Time log',
+        'no_entries'     => 'No time logged yet',
+        'manual'         => 'manual',
+        'timesheet'      => 'My timesheet',
+        'week_of'        => 'Week of :date',
+        'total'          => 'Total',
+        'prev_week'      => 'Previous week',
+        'next_week'      => 'Next week',
+        'this_week'      => 'This week',
+        'by_task'        => 'By task',
+        'by_day'         => 'By day',
+        'cap_hint'       => 'The timer stops by itself after :hours hours if you forget it.',
+        'h'              => ':hh',
+        'm'              => ':mm',
+        'hm'             => ':hh :mm',
     ],
 
 ];

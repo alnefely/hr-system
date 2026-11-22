@@ -8,6 +8,7 @@ return [
         'home'            => 'Home',
         'tasks'           => 'My Tasks',
         'projects'        => 'My Projects',
+        'time'            => 'My Timesheet',
         'permissions'     => 'My Permissions',
         'leaves'          => 'My Leaves',
         'advances'        => 'My Advances',

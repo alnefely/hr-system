@@ -16,4 +16,9 @@ return [
         'mimes'     => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'zip'],
     ],
 
+    'time' => [
+        // عدّاد نسيه الموظف شغّال بيتحسب بالحد ده بس (مش أيام)
+        'max_timer_hours' => (int) env('TASK_MAX_TIMER_HOURS', 12),
+    ],
+
 ];

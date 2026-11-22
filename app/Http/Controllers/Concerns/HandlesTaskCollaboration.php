@@ -10,6 +10,7 @@ use App\Models\TaskAttachment;
 use App\Models\TaskComment;
 use App\Services\Tasks\TaskCollaborationService;
 use App\Services\Tasks\TaskService;
+use App\Services\Tasks\TaskTimeService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -88,6 +89,47 @@ trait HandlesTaskCollaboration
         $task = $this->resolveTask($task);
 
         return $this->collaborate(fn () => $tasks->removeDependency($task, $dependency, $this->actor()), 'task.messages.dependency_removed', '#dependencies');
+    }
+
+    // ========================================================
+    //  تتبع الوقت
+    // ========================================================
+
+    public function startTimer(int $task, TaskTimeService $time): RedirectResponse
+    {
+        $task = $this->resolveTask($task);
+        $actor = $this->actor();
+
+        if (! $actor instanceof \App\Models\Employee) {
+            return back()->with('error', __('task.errors.employee_only'));
+        }
+
+        return $this->collaborate(fn () => $time->start($task, $actor), 'task.messages.timer_started', '#time');
+    }
+
+    public function storeTime(Request $request, int $task, TaskTimeService $time): RedirectResponse
+    {
+        $task = $this->resolveTask($task);
+        $data = $request->validate([
+            'hours'       => ['nullable', 'integer', 'min:0', 'max:24'],
+            'minutes'     => ['nullable', 'integer', 'min:0', 'max:59'],
+            'date'        => ['required', 'date'],
+            'note'        => ['nullable', 'string', 'max:500'],
+            'employee_id' => ['nullable', 'integer'],
+        ]);
+        $minutes = (int) ($data['hours'] ?? 0) * 60 + (int) ($data['minutes'] ?? 0);
+
+        return $this->collaborate(fn () => $time->addManual(
+            $task, $this->actor(), $minutes, \Illuminate\Support\Carbon::parse($data['date']), $data['note'] ?? null, $data['employee_id'] ?? null,
+        ), 'task.messages.time_logged', '#time');
+    }
+
+    public function destroyTime(int $task, int $entry, TaskTimeService $time): RedirectResponse
+    {
+        $task = $this->resolveTask($task);
+        $entry = \App\Models\TaskTimeEntry::where('task_id', $task->id)->findOrFail($entry);
+
+        return $this->collaborate(fn () => $time->delete($task, $entry, $this->actor()), 'task.messages.time_deleted', '#time');
     }
 
     /**

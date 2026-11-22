@@ -8,6 +8,7 @@ return [
         'home'            => 'الرئيسية',
         'tasks'           => 'مهامي',
         'projects'        => 'مشاريعي',
+        'time'            => 'سجل وقتي',
         'permissions'     => 'استئذاناتي',
         'leaves'          => 'إجازاتي',
         'advances'        => 'سلفي',

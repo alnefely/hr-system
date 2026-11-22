@@ -196,6 +196,11 @@ class NPlusOneCrawlTest extends TestCase
                 $service->addDependency($task, $previous->id, $employee);
             }
             $previous = $task;
+
+            // وقت متسجّل (يدوي + عدّاد) — سجل الوقت في المهمة وصفحة سجل وقتي
+            $time = app(\App\Services\Tasks\TaskTimeService::class);
+            $time->addManual($task, $employee, 30 * $i, today(), "work {$i}");
+            $time->start($task, $employee);
         }
     }
 

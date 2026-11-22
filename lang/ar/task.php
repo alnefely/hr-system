@@ -143,6 +143,7 @@ return [
         'review_returned'   => 'رجّع المهمة للتنفيذ',
         'dependency_added'  => 'ربط المهمة بـ: :title',
         'dependency_removed'=> 'شال ربط: :title',
+        'time_logged'       => 'سجّل وقت :minutes دقيقة',
     ],
 
     'messages' => [
@@ -164,6 +165,10 @@ return [
         'file_deleted'      => 'تم حذف الملف',
         'dependency_added'  => 'تم ربط المهمة',
         'dependency_removed'=> 'تم إلغاء الربط',
+        'timer_started'     => 'العدّاد اشتغل',
+        'timer_stopped'     => 'العدّاد وقف واتسجّل الوقت',
+        'time_logged'       => 'تم تسجيل الوقت',
+        'time_deleted'      => 'تم حذف سجل الوقت',
     ],
 
     'errors' => [
@@ -181,6 +186,9 @@ return [
         'return_reason_required' => 'اكتب سبب الإرجاع عشان الموظف يعرف المطلوب',
         'invalid_dependency'     => 'المهمة دي مينفعش تترابط (لازم تكون في نفس الفرع أو المشروع)',
         'dependency_cycle'       => 'الربط ده هيعمل حلقة — المهمة التانية مستنية المهمة دي أصلاً',
+        'invalid_minutes'        => 'الوقت لازم يكون بين دقيقة و24 ساعة',
+        'future_time'            => 'مينفعش تسجّل وقت في تاريخ لسه ماجاش',
+        'employee_only'          => 'تتبع الوقت بالعدّاد للموظفين من بوابة الموظف',
     ],
 
     'hints' => [
@@ -336,6 +344,41 @@ return [
         'next_month'         => 'الشهر الجاي',
         'today'              => 'النهاردة',
         'no_due_this_month'  => 'مفيش مهام مواعيدها في الشهر ده',
+    ],
+
+
+    'time' => [
+        'title'          => 'تتبع الوقت',
+        'start'          => 'ابدأ العدّاد',
+        'stop'           => 'إيقاف',
+        'running'        => 'العدّاد شغّال',
+        'running_on'     => 'شغّال على: :title',
+        'estimated'      => 'المتوقع',
+        'spent'          => 'الفعلي',
+        'remaining'      => 'متبقي :time',
+        'over'           => 'زيادة :time عن المتوقع',
+        'add_manual'     => 'إضافة وقت يدوي',
+        'hours'          => 'ساعات',
+        'minutes'        => 'دقائق',
+        'date'           => 'التاريخ',
+        'employee'       => 'الموظف',
+        'note'           => 'ملاحظة',
+        'save'           => 'تسجيل',
+        'entries'        => 'سجل الوقت',
+        'no_entries'     => 'مفيش وقت متسجّل لسه',
+        'manual'         => 'يدوي',
+        'timesheet'      => 'سجل وقتي',
+        'week_of'        => 'أسبوع :date',
+        'total'          => 'الإجمالي',
+        'prev_week'      => 'الأسبوع اللي فات',
+        'next_week'      => 'الأسبوع الجاي',
+        'this_week'      => 'الأسبوع ده',
+        'by_task'        => 'حسب المهمة',
+        'by_day'         => 'حسب اليوم',
+        'cap_hint'       => 'العدّاد بيقف لوحده عند :hours ساعة لو نسيته شغّال.',
+        'h'              => ':h س',
+        'm'              => ':m د',
+        'hm'             => ':h س :m د',
     ],
 
 ];
