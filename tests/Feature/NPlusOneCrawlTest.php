@@ -44,6 +44,8 @@ class NPlusOneCrawlTest extends TestCase
         \App\Models\Link::create(['short_code' => 'Crw1111', 'original_url' => 'https://example.com/a', 'is_active' => true]);
         \App\Models\Link::create(['short_code' => 'Crw2222', 'original_url' => 'https://example.com/b', 'is_active' => true]);
 
+        $this->seedTasks(Employee::withoutGlobalScopes()->orderBy('id')->first());
+
         $advanceId = DB::table('employee_advances')->min('id');
         foreach ([100, 50] as $amount) {
             \App\Models\EmployeeAdvanceRepayment::create([
@@ -129,6 +131,13 @@ class NPlusOneCrawlTest extends TestCase
             ]);
         }
 
+        $this->seedTasks($employee);
+
+        // الفحص بيفتح أول مهمة في الجدول — الموظف بيتابع كل المهام عشان يشوفها
+        foreach (\App\Models\Task::withoutGlobalScopes()->pluck('id') as $taskId) {
+            \App\Models\TaskWatcher::firstOrCreate(['task_id' => $taskId, 'watcher_type' => Employee::class, 'watcher_id' => $employee->id]);
+        }
+
         // قسيمتين مصروفين في مسيرين مختلفين (عشان علاقة payroll)
         foreach ([$payroll, \App\Models\Payroll::create([
             'title' => 'Crawl 2', 'year' => 2025, 'month' => 2, 'branch_id' => $employee->branch_id, 'status' => 'paid',
@@ -137,6 +146,32 @@ class NPlusOneCrawlTest extends TestCase
                 'payroll_id' => $p->id, 'employee_id' => $employee->id, 'basic_salary' => 5000,
                 'allowances' => 0, 'deductions' => 0, 'status' => 'paid', 'paid_at' => now(),
             ]);
+        }
+    }
+
+    /**
+     * مهام بكل علاقاتها (مكلّفين، خطوات، فرعية، تصنيفات، تحديثات نسبة)
+     * مكلّف بيها الموظف ده — عشان N+1 في قوائم وتفاصيل المهام يبان.
+     */
+    private function seedTasks(Employee $employee): void
+    {
+        $service = app(\App\Services\Tasks\TaskService::class);
+        $colleagues = Employee::withoutGlobalScopes()->where('branch_id', $employee->branch_id)
+            ->whereKeyNot($employee->id)->limit(2)->pluck('id')->all();
+        $label = \App\Models\TaskLabel::create(['name' => 'Crawl', 'color' => '#7367f0']);
+        $project = \App\Models\Project::create(['branch_id' => $employee->branch_id, 'name' => 'Crawl project', 'manager_id' => $employee->id]);
+
+        foreach ([1, 2, 3] as $i) {
+            $task = $service->create([
+                'title' => "Crawl task {$i}", 'branch_id' => $employee->branch_id, 'project_id' => $i === 1 ? $project->id : null,
+                'assignee_ids' => [$employee->id, ...$colleagues], 'checklist' => ['a', 'b'], 'label_ids' => [$label->id],
+                'due_at' => now()->addDays($i - 2)->toDateTimeString(), 'starts_at' => now()->subDays(3)->toDateTimeString(),
+            ], $employee);
+
+            $service->create(['title' => "Crawl sub {$i}", 'parent_id' => $task->id, 'assignee_ids' => [$employee->id]], $employee);
+            $service->updateProgress($task, 20 * $i, $employee, 'note');
+            $service->changeStatus($task->fresh(), \App\Enums\TaskStatus::InReview, $employee);
+            \App\Models\TaskWatcher::create(['task_id' => $task->id, 'watcher_type' => Employee::class, 'watcher_id' => $employee->id]);
         }
     }
 

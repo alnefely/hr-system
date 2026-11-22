@@ -30,6 +30,12 @@ class TaskLabel extends Model
         return $this->belongsToMany(Task::class, 'task_label_task');
     }
 
+    /** اللون كـ hex بس — القيمة بتتحط في style فمينفعش تكون نص حر. */
+    public function cssColor(): string
+    {
+        return preg_match('/^#[0-9a-fA-F]{3,8}$/', (string) $this->color) ? $this->color : '#6c757d';
+    }
+
     public function scopeAvailableFor(Builder $query, ?int $branchId): Builder
     {
         return $query->where(fn (Builder $q) => $q->whereNull('branch_id')

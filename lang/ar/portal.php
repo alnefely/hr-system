@@ -6,6 +6,7 @@ return [
 
     'nav' => [
         'home'            => 'الرئيسية',
+        'tasks'           => 'مهامي',
         'permissions'     => 'استئذاناتي',
         'leaves'          => 'إجازاتي',
         'advances'        => 'سلفي',

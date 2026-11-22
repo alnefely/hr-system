@@ -143,6 +143,15 @@
             </li>
         @endif
 
+        @if (admin_can('task_show'))
+            <li class="menu-item {{ request()->is('admin/tasks*') ? 'active' : '' }}">
+                <a href="{{ route('admin.tasks.index') }}" class="menu-link">
+                    <i class="fa-solid fa-list-check"></i>
+                    <div>{{ __('task.title') }}</div>
+                </a>
+            </li>
+        @endif
+
         @if (admin_can('payroll_show'))
             <li class="menu-item {{ request()->is('admin/payrolls*') ? 'active' : '' }}">
                 <a href="{{ route('admin.payrolls.index') }}" class="menu-link">

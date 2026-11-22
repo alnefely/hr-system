@@ -6,6 +6,7 @@ return [
 
     'nav' => [
         'home'            => 'Home',
+        'tasks'           => 'My Tasks',
         'permissions'     => 'My Permissions',
         'leaves'          => 'My Leaves',
         'advances'        => 'My Advances',

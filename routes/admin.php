@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\LinkStatsController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\Tasks\TaskController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthAdminController::class,'login'])->name('login');
@@ -616,3 +617,37 @@ Route::resource('/links', LinkController::class)
     ->middlewareFor('edit', 'AdminPermission:link_update')
     ->middlewareFor('update', 'AdminPermission:link_update')
     ->middlewareFor('destroy', 'AdminPermission:link_delete');
+
+/*
+|--------------------------------------------------------------------------
+| المهام
+|--------------------------------------------------------------------------
+| المسارات الثابتة (trash) قبل الـ resource عشان {task} مايبلعش الكلمة.
+| العمليات من شاشة التفاصيل ليها صلاحية مبدئية هنا، والقاعدة الكاملة
+| (مين يعتمد، مين يتكلّف) في TaskService.
+*/
+Route::get('/tasks/trash', [TaskController::class, 'trash'])->name('tasks.trash')->middleware('AdminPermission:task_trash');
+Route::post('/tasks/{id}/restore', [TaskController::class, 'restore'])->name('tasks.restore')->middleware('AdminPermission:task_restore');
+Route::delete('/tasks/{id}/force-delete', [TaskController::class, 'forceDelete'])->name('tasks.forceDelete')->middleware('AdminPermission:task_force_delete');
+
+Route::post('/tasks/{task}/status', [TaskController::class, 'status'])->name('tasks.status')->middleware('AdminPermission:task_show');
+Route::post('/tasks/{task}/progress', [TaskController::class, 'progress'])->name('tasks.progress')->middleware('AdminPermission:task_update');
+Route::put('/tasks/{task}/assignees', [TaskController::class, 'assignees'])->name('tasks.assignees')->middleware('AdminPermission:task_assign');
+Route::post('/tasks/{task}/checklist', [TaskController::class, 'storeChecklist'])->name('tasks.checklist.store')->middleware('AdminPermission:task_update');
+Route::patch('/tasks/{task}/checklist/{item}', [TaskController::class, 'toggleChecklist'])->name('tasks.checklist.toggle')->middleware('AdminPermission:task_update');
+Route::delete('/tasks/{task}/checklist/{item}', [TaskController::class, 'destroyChecklist'])->name('tasks.checklist.destroy')->middleware('AdminPermission:task_update');
+
+Route::resource('/tasks', TaskController::class)
+    ->names([
+        'index'   => 'tasks.index',
+        'create'  => 'tasks.create',
+        'store'   => 'tasks.store',
+        'show'    => 'tasks.show',
+        'edit'    => 'tasks.edit',
+        'update'  => 'tasks.update',
+        'destroy' => 'tasks.destroy',
+    ])->middlewareFor('index', 'AdminPermission:task_show')
+    ->middlewareFor('show', 'AdminPermission:task_show')
+    ->middlewareFor(['create', 'store'], 'AdminPermission:task_create')
+    ->middlewareFor(['edit', 'update'], 'AdminPermission:task_update')
+    ->middlewareFor('destroy', 'AdminPermission:task_delete');

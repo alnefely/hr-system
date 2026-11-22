@@ -468,7 +468,7 @@ class Task extends Model
      *  - لو موظف أنشأها لنفسه بس (هو المكلّف الوحيد) ← مديره المباشر.
      *  - لو مفيش مدير مباشر ← null (المهمة بتتقفل من غير مراجعة).
      *
-     * يحتاج creator و assignees محمّلين أو بيستعلم.
+     * يحتاج creator و assignments (أو assignees) محمّلين أو بيستعلم.
      */
     public function resolveReviewer(): ?Model
     {
@@ -478,7 +478,9 @@ class Task extends Model
             return $creator;
         }
 
-        $assigneeIds = $this->assignees->pluck('id');
+        $assigneeIds = $this->relationLoaded('assignments')
+            ? $this->assignments->where('status', TaskAssigneeStatus::Active->value)->pluck('employee_id')->map(fn ($i) => (int) $i)->values()
+            : $this->assignees->pluck('id');
         $selfOnly = $assigneeIds->isEmpty() || $assigneeIds->all() === [$creator->id];
 
         return $selfOnly ? $creator->manager : $creator;

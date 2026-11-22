@@ -12,6 +12,7 @@ use App\Http\Controllers\Portal\PayslipController;
 use App\Http\Controllers\Portal\PermissionController;
 use App\Http\Controllers\Portal\ProfileController;
 use App\Http\Controllers\Portal\RewardController;
+use App\Http\Controllers\Portal\TaskController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -57,6 +58,22 @@ Route::prefix('portal')->name('portal.')->middleware('throttle:WebRateLimiter')-
         Route::get('/rewards', [RewardController::class, 'index'])->name('rewards.index');
         Route::get('/penalties', [PenaltyController::class, 'index'])->name('penalties.index');
         Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+
+        // مهامي — الصلاحية بدور الموظف في المهمة (TaskAccess) مش بصلاحيات أدوار
+        Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+        Route::get('/tasks/create', [TaskController::class, 'create'])->name('tasks.create');
+        Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+        Route::get('/tasks/{task}', [TaskController::class, 'show'])->whereNumber('task')->name('tasks.show');
+        Route::get('/tasks/{task}/edit', [TaskController::class, 'edit'])->whereNumber('task')->name('tasks.edit');
+        Route::put('/tasks/{task}', [TaskController::class, 'update'])->whereNumber('task')->name('tasks.update');
+        Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->whereNumber('task')->name('tasks.destroy');
+        Route::post('/tasks/{task}/status', [TaskController::class, 'status'])->whereNumber('task')->name('tasks.status');
+        Route::post('/tasks/{task}/progress', [TaskController::class, 'progress'])->whereNumber('task')->name('tasks.progress');
+        Route::put('/tasks/{task}/assignees', [TaskController::class, 'assignees'])->whereNumber('task')->name('tasks.assignees');
+        Route::post('/tasks/{task}/decline', [TaskController::class, 'decline'])->whereNumber('task')->name('tasks.decline');
+        Route::post('/tasks/{task}/checklist', [TaskController::class, 'storeChecklist'])->whereNumber('task')->name('tasks.checklist.store');
+        Route::patch('/tasks/{task}/checklist/{item}', [TaskController::class, 'toggleChecklist'])->whereNumber(['task', 'item'])->name('tasks.checklist.toggle');
+        Route::delete('/tasks/{task}/checklist/{item}', [TaskController::class, 'destroyChecklist'])->whereNumber(['task', 'item'])->name('tasks.checklist.destroy');
 
         Route::get('/payslips', [PayslipController::class, 'index'])->name('payslips.index');
         Route::get('/payslips/{id}', [PayslipController::class, 'show'])->name('payslips.show');
