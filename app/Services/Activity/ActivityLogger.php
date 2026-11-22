@@ -15,9 +15,8 @@ use Illuminate\Support\Facades\Log;
  *  - نقدر نوقف التسجيل مؤقتاً في العمليات الجماعية (seeders, imports).
  *  - نقدر نحوّله للطابور من مكان واحد.
  *
- * الكتابة بتتم عبر الطابور افتراضياً (config: activity.queue_writes) عشان
- * الـ INSERT مايوقفش الـ request — مهم بشكل خاص في العمليات اللي بتكتب
- * عشرات السجلات زي إصدار مسير الرواتب.
+ * الكتابة مباشرة افتراضياً. ممكن تتحوّل للطابور من config: activity.queue_writes
+ * لو السيرفر فيه queue worker دايم.
  */
 class ActivityLogger
 {
@@ -90,7 +89,7 @@ class ActivityLogger
      */
     protected function shouldQueue(): bool
     {
-        return config('activity.queue_writes', true)
+        return config('activity.queue_writes', false)
             && config('queue.default') !== 'sync';
     }
 

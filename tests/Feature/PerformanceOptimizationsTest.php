@@ -344,13 +344,13 @@ class PerformanceOptimizationsTest extends TestCase
         $this->assertTrue(Schema::hasIndex('settings', ['key']));
     }
 
-    public function test_activity_writes_are_queued_by_default(): void
+    public function test_activity_writes_are_direct_by_default(): void
     {
         $config = require config_path('activity.php');
 
-        // من غير متغير البيئة الافتراضي true (والاختبارات sync فبيتجاهل)
+        // السيرفر على الـ Schedule من غير worker دايم: الافتراضي كتابة مباشرة
         if (env('ACTIVITY_LOG_QUEUE_WRITES') === null) {
-            $this->assertTrue($config['queue_writes']);
+            $this->assertFalse($config['queue_writes']);
         }
 
         $this->assertSame('sync', config('queue.default'));
