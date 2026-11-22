@@ -40,35 +40,46 @@ class TaskBoardService
     /**
      * @return array<string, array{status: TaskStatus, tasks: Collection, total: int}>
      */
+    /**
+     * كل عمود ليه حد أقصى لوحده، والعدد اللي فوقه هو العدد الحقيقي.
+     *
+     * قبل كده كان فيه حد واحد (180) للأعمدة المفتوحة كلها مرتّب بالـ position،
+     * فعمود مزحوم كان بياكل الحد ويبان التاني فاضي، والعدد كان للمحمّل بس.
+     * دلوقتي: استعلام كروت لكل عمود (4) + استعلام عدد مجمّع واحد.
+     */
     public function board(Builder $query): array
     {
-        $open = (clone $query)
-            ->whereIn('tasks.status', TaskStatus::openValues())
-            ->with(self::CARD_RELATIONS)
-            ->orderBy('tasks.position')
-            ->orderByRaw("CASE tasks.priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END")
-            ->orderByRaw('CASE WHEN tasks.due_at IS NULL THEN 1 ELSE 0 END')
-            ->orderBy('tasks.due_at')
-            ->limit(self::COLUMN_LIMIT * 3)
-            ->get();
+        // من غير type: بيتنادى على Eloquent Builder (الكروت) وعلى Query Builder (العدد)
+        $recentlyCompleted = fn ($q) => $q->where('tasks.completed_at', '>=', now()->subDays(self::COMPLETED_DAYS));
 
-        $completed = (clone $query)
-            ->where('tasks.status', TaskStatus::Completed->value)
-            ->where('tasks.completed_at', '>=', now()->subDays(self::COMPLETED_DAYS))
-            ->with(self::CARD_RELATIONS)
-            ->latest('tasks.completed_at')
-            ->limit(self::COLUMN_LIMIT)
-            ->get();
+        // العدد الحقيقي لكل عمود في استعلام واحد
+        $open = TaskStatus::openValues();
+        // select و reorder صريحين: الاستعلام الجاي ممكن يكون عليه select('tasks.*') أو ترتيب
+        $counts = (clone $query)->toBase()
+            ->where(fn ($q) => $q->whereIn('tasks.status', $open)
+                ->orWhere(fn ($c) => $recentlyCompleted($c->where('tasks.status', TaskStatus::Completed->value))))
+            ->reorder()
+            ->select('tasks.status')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('tasks.status')
+            ->pluck('total', 'status');
 
-        $all = $open->concat($completed);
         $board = [];
 
         foreach (self::columns() as $status) {
-            $tasks = $all->where('status', $status->value)->values();
+            $cards = (clone $query)->where('tasks.status', $status->value)->with(self::CARD_RELATIONS)->limit(self::COLUMN_LIMIT);
+
+            $cards = $status === TaskStatus::Completed
+                ? $recentlyCompleted($cards)->latest('tasks.completed_at')
+                : $cards->orderBy('tasks.position')
+                    ->orderByRaw("CASE tasks.priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END")
+                    ->orderByRaw('CASE WHEN tasks.due_at IS NULL THEN 1 ELSE 0 END')
+                    ->orderBy('tasks.due_at');
+
             $board[$status->value] = [
                 'status' => $status,
-                'tasks'  => $tasks->take(self::COLUMN_LIMIT),
-                'total'  => $tasks->count(),
+                'tasks'  => $cards->get(),
+                'total'  => (int) ($counts[$status->value] ?? 0),
             ];
         }
 
