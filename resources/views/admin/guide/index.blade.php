@@ -69,7 +69,7 @@
                 <nav class="nav nav-pills flex-column gap-1" id="guideToc">
                     <a class="nav-link py-2 px-3" href="#sec-dashboard"><i class="fa-solid fa-gauge-high"></i><span class="toc-text">لوحة التحكم والمؤشرات</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-employees"><i class="fa-solid fa-users"></i><span class="toc-text">الموظفون والفروع والمسميات</span><span class="badge bg-label-success ms-1">جديد</span></a>
-                    <a class="nav-link py-2 px-3" href="#sec-portal"><i class="fa-solid fa-door-open"></i><span class="toc-text">بوابة الموظف</span><span class="badge bg-label-success ms-1">جديد</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-portal"><i class="fa-solid fa-door-open"></i><span class="toc-text">بوابة الموظف</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-formula"><i class="fa-solid fa-calculator"></i><span class="toc-text">1. معادلة صافي الراتب والشرح بالعربي</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-example"><i class="fa-solid fa-receipt"></i><span class="toc-text">2. مثال عملي رقمي خطوة بخطوة</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-permissions"><i class="fa-solid fa-clock"></i><span class="toc-text">3. الأذونات والاستئذان وحساب الساعات</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
@@ -85,6 +85,7 @@
                     <a class="nav-link py-2 px-3" href="#sec-expenses-petty-cash"><i class="fa-solid fa-wallet"></i><span class="toc-text">11. العهد النقدية وتعدد العملات</span><span class="badge bg-label-info ms-1">محدَّث</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-short-links"><i class="fa-solid fa-link"></i><span class="toc-text">الروابط المختصرة والإحصائيات</span></a>
                     <a class="nav-link py-2 px-3" href="#sec-reports"><i class="fa-solid fa-chart-pie"></i><span class="toc-text">التقارير</span><span class="badge bg-label-success ms-1">جديد</span></a>
+                    <a class="nav-link py-2 px-3" href="#sec-tasks"><i class="fa-solid fa-list-check"></i><span class="toc-text">المهام والمشاريع</span><span class="badge bg-label-success ms-1">جديد</span></a>
 
                     <hr class="my-2">
                     <div class="px-3 pb-1"><small class="text-muted fw-bold">الحوكمة والأمان</small></div>
@@ -356,6 +357,11 @@
                         </thead>
                         <tbody>
                             <tr><td class="fw-bold">الرئيسية</td><td class="small">أرصدة إجازاته المتبقية، ساعات الاستئذان هذا الشهر مقابل حده، طلباته المعلّقة، المتبقي من سلفه، وآخر قسائم راتبه، و<strong>تنبيه بالمستندات</strong> المنتهية أو اللي هتنتهي خلال 30 يوم.</td></tr>
+                            <tr><td class="fw-bold">مهامي</td><td class="small">المهام المكلّف بيها واللي أنشأها ومهام فريقه (للمدير المباشر) واللي مستنية مراجعته — مع عرض قائمة أو لوحة أو تقويم. <a href="#sec-tasks">التفاصيل</a>.</td></tr>
+                            <tr><td class="fw-bold">مشاريعي</td><td class="small">المشاريع اللي هو مديرها أو عضو أو مشاهد فيها. مدير المشروع يعدّل بياناته وأعضاءه من هنا.</td></tr>
+                            <tr><td class="fw-bold">سجل وقتي</td><td class="small">الوقت المسجّل على المهام أسبوع بأسبوع، حسب اليوم وحسب المهمة.</td></tr>
+                            <tr><td class="fw-bold">أدائي</td><td class="small">مؤشرات أدائه في المهام، ولو عنده فريق: أداء فريقه وأكتر المهام تأخيراً.</td></tr>
+                            <tr><td class="fw-bold">دليل المهام</td><td class="small">شرح مبسّط للموظف لكل خطوات المهام: الاستلام، النسبة، الوقت، التسليم والمراجعة، والرسائل الشائعة. <a href="{{ route('portal.guide') }}" target="_blank">افتح الدليل</a>.</td></tr>
                             <tr><td class="fw-bold">استئذاناتي</td><td class="small">طلب استئذان (التاريخ ووقت الخروج والعودة — الساعات تُحسب تلقائياً) ومتابعة حالته وسبب الرفض.</td></tr>
                             <tr><td class="fw-bold">إجازاتي</td><td class="small">طلب إجازة بنفس قواعد لوحة التحكم (لا تداخل، أيام منطقية) مع عرض رصيده لكل نوع.</td></tr>
                             <tr><td class="fw-bold">سلفي</td><td class="small">طلب سلفة بالمبلغ وعدد الأقساط وبداية الخصم، ومتابعة القسط والمتبقي.</td></tr>
@@ -1568,6 +1574,156 @@
             </div>
         </div>
 
+        {{-- المهام والمشاريع --}}
+        <div class="card border-0 shadow-sm mb-4" id="sec-tasks">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="card-title mb-0 fw-bold text-primary">
+                    <i class="fa-solid fa-list-check me-2"></i> المهام والمشاريع
+                </h5>
+                <span class="badge bg-label-success font-monospace">جديد</span>
+            </div>
+            <div class="card-body pt-4">
+
+                <p class="text-muted mb-4">
+                    موديول لتوزيع الشغل ومتابعته: مهام بمكلّفين ومواعيد ونسبة إنجاز، ومشاريع تجمع المهام،
+                    ومراجعة قبل الإغلاق، وتتبع وقت، ولوحة مباشرة، وتقارير أداء، ومهام متكررة وتذكيرات تلقائية.
+                    نفس القواعد بالظبط بتشتغل في لوحة الإدارة وفي <a href="#sec-portal">بوابة الموظف</a> —
+                    المشرف بالصلاحيات، والموظف <strong>بدوره في المهمة</strong>.
+                </p>
+
+                <h6 class="fw-bold mb-3 text-heading"><i class="fa-solid fa-sitemap me-2 text-primary"></i> الشاشات في لوحة الإدارة:</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered align-middle">
+                        <thead><tr><th style="width:26%">الشاشة</th><th>الوظيفة</th><th style="width:22%">الصلاحية</th></tr></thead>
+                        <tbody>
+                            <tr><td class="fw-bold">المهام ← قائمة</td><td class="small">كل المهام بفلاتر (الحالة، الأولوية، المشروع، الموظف، موعد التسليم)، والإنشاء والتعديل والحذف، وسلة المهام.</td><td><code dir="ltr">task_show</code> · <code dir="ltr">task_create</code> · <code dir="ltr">task_update</code> · <code dir="ltr">task_delete</code></td></tr>
+                            <tr><td class="fw-bold">لوحة المهام المباشرة</td><td class="small">كانبان بعمود لكل حالة، السحب بيغيّر الحالة بنفس القواعد. بتتحدّث لحظياً مع أي تغيير، والمكتملة بتظهر لآخر 14 يوم.</td><td><code dir="ltr">task_board</code></td></tr>
+                            <tr><td class="fw-bold">تقويم المهام</td><td class="small">المهام على أيام الشهر حسب موعد التسليم.</td><td><code dir="ltr">task_show</code></td></tr>
+                            <tr><td class="fw-bold">المهام المتكررة</td><td class="small">قاعدة بتعمل مهمة تلقائياً (يومي/أسبوعي بأيام محددة/شهري بيوم محدد/سنوي) في ساعة محددة، بمدة تسليم وتاريخ بداية ونهاية اختياري، مع إيقاف وتشغيل.</td><td><code dir="ltr">task_recurrence_manage</code></td></tr>
+                            <tr><td class="fw-bold">تقارير المهام والأداء</td><td class="small">المؤشرات بالفترة والمشروع، أداء كل موظف، الإنجاز الأسبوعي، أكتر المهام تأخيراً، والتصدير لـ Excel.</td><td><code dir="ltr">task_report</code></td></tr>
+                            <tr><td class="fw-bold">المشاريع</td><td class="small">إنشاء المشروع بمدير وأعضاء (من أي فرع) وحالة وتواريخ ولون، أو من قالب. النسبة والعدادات بتتحسب من مهامه.</td><td><code dir="ltr">project_*</code></td></tr>
+                            <tr><td class="fw-bold">قوالب المشاريع</td><td class="small">مجموعة مهام جاهزة بخطواتها ومواعيد نسبية (تبدأ بعد X يوم وتتسلّم بعد Y يوم من بداية المشروع). أي مشروع ينفع يتحفظ كقالب.</td><td><code dir="ltr">project_template_manage</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h6 class="fw-bold mb-3 text-heading"><i class="fa-solid fa-arrows-spin me-2 text-primary"></i> دورة حياة المهمة:</h6>
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <span class="badge bg-label-secondary">جديدة</span><i class="fa-solid fa-arrow-left text-muted"></i>
+                    <span class="badge bg-label-primary">قيد التنفيذ</span><i class="fa-solid fa-arrow-left text-muted"></i>
+                    <span class="badge bg-label-warning">قيد المراجعة</span><i class="fa-solid fa-arrow-left text-muted"></i>
+                    <span class="badge bg-label-success">مكتملة</span>
+                    <span class="small text-muted ms-2">· أو</span> <span class="badge bg-label-dark">ملغية</span>
+                </div>
+                <ul class="small mb-4">
+                    <li>المهمة بتبدأ تلقائياً أول ما المكلّف يحدّث النسبة لأكتر من 0%.</li>
+                    <li><strong>الإلغاء وإعادة الفتح</strong> لصاحب القرار بس (اللي أنشأها، مدير المشروع، المدير المباشر للمكلّف، أو مشرف بصلاحية).</li>
+                    <li>المكتملة ترجع <strong>قيد التنفيذ</strong> بس، والملغية ترجع جديدة أو قيد التنفيذ.</li>
+                    <li><strong>ارتباط المهام:</strong> مهمة مستنية مهمة تانية مابتبدأش ولا تتسلّم إلا لما التانية تكتمل، والنظام بيرفض أي ربط يعمل حلقة. لازم يكونوا في نفس الفرع أو المشروع.</li>
+                </ul>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="alert alert-warning mb-0 h-100">
+                            <h6 class="alert-heading fw-bold"><i class="fa-solid fa-clipboard-check me-1"></i> المراجعة قبل الإغلاق</h6>
+                            <ul class="small mb-0 ps-3">
+                                <li>لو «تحتاج مراجعة» مفعّلة، المكلّف <strong>يسلّم</strong> ومايقفلش بنفسه.</li>
+                                <li><strong>المراجع:</strong> اللي أنشأ المهمة. لو موظف عملها لنفسه ← مديره المباشر. لو مالوش مدير ← يقفلها مباشرة.</li>
+                                <li>يقدر يعتمد كمان: مدير المشروع، المدير المباشر لأي مكلّف، والمشرف اللي عنده <code dir="ltr">task_review</code> أو <code dir="ltr">task_update</code>.</li>
+                                <li>الإرجاع للتنفيذ <strong>بسبب إجباري</strong> بيوصل للموظف.</li>
+                                <li>كل تسليم وقرار بيتسجّل في «المراجعات» باسم اللي قرر فعلاً، وبيدخل في «نسبة الإرجاع» في التقارير.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-info mb-0 h-100">
+                            <h6 class="alert-heading fw-bold"><i class="fa-solid fa-percent me-1"></i> نسبة الإنجاز</h6>
+                            <ul class="small mb-0 ps-3">
+                                <li><strong>يدوي:</strong> المكلّف بيكتبها مع ملاحظة، وكل تحديث بيتسجّل.</li>
+                                <li><strong>من الخطوات:</strong> المنتهية ÷ الكل.</li>
+                                <li><strong>من المهام الفرعية:</strong> متوسط نسبها (المكتملة 100%، والملغية مستبعدة).</li>
+                                <li><strong>المستهدفة:</strong> نسبة الوقت اللي عدّى من البداية لموعد التسليم. الفرق ±10% = في الموعد، وأكتر = سابق أو متأخر عن الخطة.</li>
+                                <li><strong>تحديث مطلوب:</strong> يومي/أسبوعي/كل X يوم، والنظام بيفكّر المكلّف.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-3 text-heading"><i class="fa-solid fa-user-tag me-2 text-primary"></i> الموظف في البوابة — بدوره في المهمة مش بصلاحيات:</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered align-middle small">
+                        <thead><tr><th style="width:30%">الدور</th><th>يقدر</th></tr></thead>
+                        <tbody>
+                            <tr><td class="fw-bold">اللي أنشأ المهمة</td><td>يعدّل، يكلّف، يربط، يعتمد أو يرجّع، يلغي، ويحذف.</td></tr>
+                            <tr><td class="fw-bold">مدير المشروع</td><td>نفس صلاحيات اللي أنشأها على كل مهام مشروعه (ماعدا الحذف)، ويعدّل بيانات المشروع وأعضاءه.</td></tr>
+                            <tr><td class="fw-bold">المكلّف</td><td>يبدأ، يحدّث النسبة، الخطوات والمهام الفرعية، يسجّل وقت، يسلّم للمراجعة، أو يعتذر بسبب.</td></tr>
+                            <tr><td class="fw-bold">المدير المباشر للمكلّف</td><td>يشوف مهام فريقه، يغيّر الحالة، ويعتمد أو يرجّع.</td></tr>
+                            <tr><td class="fw-bold">عضو المشروع / المشاهد</td><td>العضو يشوف ويضيف مهام في المشروع · المشاهد يشوف بس.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 h-100">
+                            <h6 class="fw-bold"><i class="fa-solid fa-user-plus me-1 text-primary"></i> مين يتكلّف؟</h6>
+                            <p class="small mb-0">الموظفين النشطين في <strong>فرع المهمة</strong>، وأعضاء ومدير <strong>المشروع</strong> حتى لو من فروع تانية. أي اختيار برّه ده بيترفض برسالة واضحة.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 h-100">
+                            <h6 class="fw-bold"><i class="fa-solid fa-stopwatch me-1 text-primary"></i> تتبع الوقت</h6>
+                            <p class="small mb-0">العدّاد للموظف من البوابة بس — عدّاد واحد في المرة، وحد أقصى {{ config('tasks.time.max_timer_hours', 12) }} ساعة لو اتنسى. الوقت اليدوي من دقيقة لـ 24 ساعة ومن غير تاريخ مستقبلي. المشرف بـ <code dir="ltr">task_update</code> يسجّل وقت يدوي لمكلّف ويحذف أي سجل.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 h-100">
+                            <h6 class="fw-bold"><i class="fa-solid fa-paperclip me-1 text-primary"></i> التعليقات والمرفقات</h6>
+                            <p class="small mb-0">ردود وإشارة (&#64;) للمعنيين بالمهمة. المرفقات لحد {{ config('tasks.attachments.max_files', 5) }} ملفات في المرة، والملف لحد {{ round(config('tasks.attachments.max_kb', 10240) / 1024) }} ميجا، ومحفوظة على مساحة <strong>خاصة</strong> مابتتنزلش إلا لمن يحق له يشوف المهمة.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-3 text-heading"><i class="fa-solid fa-chart-line me-2 text-primary"></i> مؤشرات التقارير:</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered align-middle small">
+                        <tbody>
+                            <tr><td class="fw-bold" style="width:30%">الالتزام بالمواعيد</td><td>نسبة المهام المكتملة قبل موعد تسليمها (من المهام اللي ليها موعد).</td></tr>
+                            <tr><td class="fw-bold">متوسط مدة الإنجاز</td><td>من بداية الشغل لحد الإكمال.</td></tr>
+                            <tr><td class="fw-bold">الفعلي مقابل المتوقع</td><td>الوقت المسجّل ÷ الوقت المتوقع — أكتر من 100% يعني التقدير كان أقل من الحقيقة.</td></tr>
+                            <tr><td class="fw-bold">نسبة الإرجاع</td><td>المراجعات اللي رجعت للتعديل من كل قرارات المراجعة.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="alert alert-primary mb-0 h-100">
+                            <h6 class="alert-heading fw-bold"><i class="fa-solid fa-robot me-1"></i> الأتمتة (كل 5 دقايق)</h6>
+                            <ul class="small mb-0 ps-3">
+                                <li>إنشاء المهام المتكررة اللي ميعادها جه — لو السيرفر كان واقف بيعمل <strong>الأحدث بس</strong> مش كل اللي فات.</li>
+                                <li>تذكير قرب التسليم قبل الموعد بـ {{ config('tasks.reminders.due_soon_hours', 24) }} ساعة، وتنبيه التأخير — مرة واحدة لكل موعد.</li>
+                                <li>تذكير تحديث النسبة حسب إعداد المهمة.</li>
+                                <li>قفل العدّادات المنسية.</li>
+                            </ul>
+                            <p class="small mb-0 mt-2">الأمر: <code dir="ltr">tasks:automation</code> — <a href="#sec-maintenance">التفاصيل</a>.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-warning mb-0 h-100">
+                            <h6 class="alert-heading fw-bold"><i class="fa-solid fa-building-lock me-1"></i> عزل الفروع</h6>
+                            <p class="small mb-0">
+                                مشرف الفرع بيشوف مهام ومشاريع فرعه بس في كل الشاشات واللوحة والتقارير.
+                                المهمة داخل مشروع بتاخد فرع المشروع، والمهمة الفرعية بتاخد فرع ومشروع المهمة الأم.
+                                <a href="#sec-branch-isolation">التفاصيل</a>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         {{-- الأدوار والصلاحيات --}}
         @php($rolePresets = \App\Services\Role\RolePresets::all())
         <div class="card border-0 shadow-sm mb-4" id="sec-roles">
@@ -1671,6 +1827,21 @@
                             </ul>
                         </div>
                     </div>
+                </div>
+
+                <div class="alert alert-primary mt-3 mb-0">
+                    <h6 class="alert-heading fw-bold"><i class="fa-solid fa-list-check me-1"></i> صلاحيات المهام والمشاريع</h6>
+                    <p class="small mb-2">
+                        مجموعتي <strong>«المهام»</strong> و<strong>«المشاريع»</strong> <strong>مش داخلة في الأدوار الجاهزة</strong> —
+                        افتح كل دور محتاجها من شاشة الأدوار وفعّل المناسب:
+                    </p>
+                    <ul class="small mb-0 ps-3">
+                        <li><code dir="ltr">task_show</code> القائمة والتفاصيل والتقويم · <code dir="ltr">task_create</code> / <code dir="ltr">task_update</code> / <code dir="ltr">task_delete</code> · السلة والاسترجاع والحذف النهائي.</li>
+                        <li><code dir="ltr">task_assign</code> تعديل المكلّفين · <code dir="ltr">task_review</code> اعتماد أو إرجاع أي مهمة مسلّمة حتى لو مش هو المراجع.</li>
+                        <li><code dir="ltr">task_board</code> اللوحة المباشرة · <code dir="ltr">task_recurrence_manage</code> المهام المتكررة · <code dir="ltr">task_report</code> التقارير · <code dir="ltr">task_label_manage</code> التصنيفات.</li>
+                        <li><code dir="ltr">project_*</code> المشاريع · <code dir="ltr">project_template_manage</code> قوالب المشاريع وحفظ مشروع كقالب.</li>
+                        <li>الموظفين في البوابة <strong>مش محتاجين صلاحيات</strong> — صلاحيتهم من دورهم في المهمة. <a href="#sec-tasks">التفاصيل</a>.</li>
+                    </ul>
                 </div>
 
             </div>
@@ -2082,6 +2253,16 @@
                                 </td>
                                 <td class="small">من له صلاحية عرض المبيعات في نفس الفرع</td>
                             </tr>
+                            <tr>
+                                <td><span class="badge bg-label-warning">مهمة بانتظار المراجعة</span></td>
+                                <td class="small">لما مكلّف يسلّم مهمة عملها مشرف</td>
+                                <td class="small">المشرف اللي أنشأ المهمة</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-label-info">نشاط على مهمة</span></td>
+                                <td class="small">اعتذار مكلّف، تعليق جديد، أو اعتماد/إرجاع/إلغاء على مهمة عملها مشرف</td>
+                                <td class="small">المشرف اللي أنشأ المهمة (بصلاحية <code dir="ltr">task_show</code>)</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -2115,6 +2296,15 @@
                             </p>
                         </div>
                     </div>
+                </div>
+
+                <div class="alert alert-primary mb-4">
+                    <h6 class="alert-heading fw-bold"><i class="fa-solid fa-door-open me-1"></i> إشعارات الموظفين في البوابة</h6>
+                    <p class="small mb-0">
+                        الموظف ليه جرس إشعارات خاص بيه في البوابة: التكليف، التسليم للمراجعة، الاعتماد والإرجاع والإلغاء،
+                        الاعتذار، التعليقات والإشارة (&#64;)، انتهاء مهمة كان مستنيها، وتذكيرات قرب التسليم والتأخير وتحديث النسبة.
+                        بيوصل لحظياً بنفس إعداد Pusher، وعلى قناة خاصة بكل موظف.
+                    </p>
                 </div>
 
                 <div class="alert alert-warning mb-0">
@@ -2207,6 +2397,10 @@ PUSHER_APP_CLUSTER=eu</pre>
                             <tr>
                                 <td><code class="small" dir="ltr">php artisan links:prune</code></td>
                                 <td class="small">حذف تفاصيل النقرات الأقدم من {{ config('links.clicks_retention', 90) }} يوم — الملخّص اليومي يبقى دائماً (تلقائية 3:30 صباحاً)</td>
+                            </tr>
+                            <tr>
+                                <td><code class="small" dir="ltr">php artisan tasks:automation</code></td>
+                                <td class="small">أتمتة <a href="#sec-tasks">المهام</a>: إنشاء المهام المتكررة، تذكير قرب التسليم، تنبيه المتأخرة، تذكير تحديث النسبة، وقفل العدّادات المنسية (تلقائية كل 5 دقائق — آمنة لو اتشغّلت أكتر من مرة، مابتكرّرش حاجة)</td>
                             </tr>
                             <tr>
                                 <td><code class="small" dir="ltr">php artisan realtime:test</code></td>
