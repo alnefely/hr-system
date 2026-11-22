@@ -430,3 +430,22 @@ label [data-bs-toggle="tooltip"] {
   line-height: 1.5;
   margin: .5em .75em;
 }
+
+/* ===== Select2 multiple: علامة × فوق اسم الاختيار =====
+   الثيم سايب 1rem في آخر الاختيار للعلامة، بس الزرار نفسه (مع الـ padding
+   الافتراضي وبعده عن الحافة) أعرض من كده، فكان بيغطي أول حرف — في RTL
+   على الشمال. بنوسّع المساحة ونصفّر padding الزرار ونوسّطه رأسياً.
+   تحديد أعلى (5 كلاسات) عشان يكسب حتى لو select2.css اتحمّل بعد الملف ده. */
+.select2-container.select2-container--default .select2-selection.select2-selection--multiple .select2-selection__choice {
+  padding-inline-end: 1.5rem;
+}
+.select2-container.select2-container--default .select2-selection.select2-selection--multiple .select2-selection__choice__remove {
+  inset-inline-end: .35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: 1;
+}
