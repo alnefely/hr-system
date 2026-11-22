@@ -198,15 +198,8 @@ class NotificationService
     /** البث اللحظي — فشله مايأثرش على حفظ الإشعار. */
     protected function broadcast(AdminNotification $notification): void
     {
-        if (config('broadcasting.default') === 'null') {
-            return;
-        }
-
-        try {
-            AdminNotificationCreated::dispatch($notification);
-        } catch (\Throwable $e) {
-            Log::warning('Notification broadcast failed: ' . $e->getMessage());
-        }
+        // بعد الرد — مايأخرش الطلب (App\Support\Realtime)
+        \App\Support\Realtime::broadcast(fn () => AdminNotificationCreated::dispatch($notification), 'Notification');
     }
 
     /** عدّاد غير المقروء لمشرف. */

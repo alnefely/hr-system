@@ -150,6 +150,11 @@ class NotificationTest extends TestCase
             title: 'Broadcast me',
         );
 
+        // البث بيتأجّل لبعد الرد (App\Support\Realtime) — لسه ماحصلش
+        Event::assertNotDispatched(AdminNotificationCreated::class);
+
+        // وبعد ما الطلب يخلص بيتبعت
+        app(\Illuminate\Support\Defer\DeferredCallbackCollection::class)->invoke();
         Event::assertDispatched(AdminNotificationCreated::class);
     }
 

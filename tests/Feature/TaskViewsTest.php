@@ -137,6 +137,9 @@ class TaskViewsTest extends TestCase
         $task = $this->task('Live');
         app(TaskService::class)->updateProgress($task, 30, $this->admin);
 
+        // البث بيتأجّل لبعد الرد (App\Support\Realtime) — بننفّذه زي آخر الطلب
+        app(\Illuminate\Support\Defer\DeferredCallbackCollection::class)->invoke();
+
         Event::assertDispatched(TaskBoardChanged::class, fn ($e) => $e->taskId === $task->id && $e->action === 'created');
         Event::assertDispatched(TaskBoardChanged::class, function ($e) use ($task) {
             $channels = array_map(fn ($c) => $c->name, $e->broadcastOn());

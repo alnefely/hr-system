@@ -56,15 +56,8 @@ class EmployeeNotificationService
 
     protected function broadcast(EmployeeNotification $notification): void
     {
-        if (config('broadcasting.default') === 'null') {
-            return;
-        }
-
-        try {
-            EmployeeNotificationCreated::dispatch($notification);
-        } catch (\Throwable $e) {
-            Log::warning('Employee notification broadcast failed: ' . $e->getMessage());
-        }
+        // بعد الرد — مايأخرش الطلب (App\Support\Realtime)
+        \App\Support\Realtime::broadcast(fn () => EmployeeNotificationCreated::dispatch($notification), 'Employee notification');
     }
 
     public function unreadCount(int $employeeId): int

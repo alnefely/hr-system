@@ -30,18 +30,15 @@ class TaskBoardBroadcaster
 
     public function handle(object $event): void
     {
-        if (config('broadcasting.default') === 'null' || ! isset($event->task)) {
+        if (! isset($event->task)) {
             return;
         }
 
-        try {
-            TaskBoardChanged::dispatch(
-                (int) $event->task->id,
-                (int) $event->task->branch_id,
-                $event->task->trashed() ? 'deleted' : ($event instanceof TaskCreated ? 'created' : 'updated'),
-            );
-        } catch (\Throwable $e) {
-            Log::warning('Task board broadcast failed: ' . $e->getMessage());
-        }
+        // القيم بتتحسب دلوقتي (حالة المهمة وقت الحدث)، والإرسال بعد الرد
+        $id = (int) $event->task->id;
+        $branchId = (int) $event->task->branch_id;
+        $action = $event->task->trashed() ? 'deleted' : ($event instanceof TaskCreated ? 'created' : 'updated');
+
+        \App\Support\Realtime::broadcast(fn () => TaskBoardChanged::dispatch($id, $branchId, $action), 'Task board');
     }
 }
