@@ -62,7 +62,21 @@ class Project extends Model
         static::creating(function (Project $project) {
             $project->code ??= CodeSequence::next(static::class, 'code', self::CODE_PREFIX);
         });
+
+        // الحذف النهائي بيشيل مهامه بالـ cascade — ملفات مرفقاتها تتمسح بعده
+        static::forceDeleting(function (Project $project) {
+            $ids = Task::withoutGlobalScopes()->where('project_id', $project->id)
+                ->pluck('id')->map(fn ($id) => (int) $id)->all();
+            $project->pendingFileCleanup = TaskAttachment::filesForTasks($ids);
+        });
+
+        static::forceDeleted(function (Project $project) {
+            TaskAttachment::deleteFiles($project->pendingFileCleanup);
+        });
     }
+
+    /** @var array<int, array{disk: string, path: string}> ملفات تتمسح بعد الحذف النهائي */
+    public array $pendingFileCleanup = [];
 
     // ========================================================
     //  العلاقات

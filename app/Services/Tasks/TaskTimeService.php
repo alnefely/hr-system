@@ -47,6 +47,11 @@ class TaskTimeService
             throw new InvalidStateException(__('task.errors.closed'));
         }
 
+        // مستنية مهمة تانية = الشغل عليها لسه مابدأش
+        if ($task->isBlocked()) {
+            throw new InvalidStateException(__('task.errors.blocked'));
+        }
+
         return DB::transaction(function () use ($task, $employee) {
             // قفل على عدادات الموظف: ضغطتين ورا بعض مايشغّلوش عدّادين
             $current = TaskTimeEntry::query()->running()->where('employee_id', $employee->id)->lockForUpdate()->get();
@@ -104,6 +109,7 @@ class TaskTimeService
         }
 
         if ($actor instanceof Employee) {
+            // مسموح حتى على مهمة مقفولة: وقت اتنسى يتسجّل قبل الإغلاق
             $this->authorizeWork($task, $actor);
             $employeeId = $actor->id;
         } else {

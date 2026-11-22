@@ -69,7 +69,8 @@ class TaskViewData
             'names'        => $this->timelineNames($task),
             'expected'     => $task->expectedProgress(),
             'health'       => $task->progressHealth(),
-            'blocked'      => $task->isOpen() && $task->dependencies->contains(fn ($d) => $d->status !== TaskStatus::Completed->value),
+            // نفس قاعدة isBlocked (الـ dependencies محمّلة فمفيش استعلام زيادة)
+            'blocked'      => $task->isOpen() && $task->isBlocked(),
             'actor'        => $actor,
             // العدّاد الشغّال للموظف الحالي (على أي مهمة) — زرار البدء/الإيقاف
             'runningEntry' => $actor instanceof Employee ? app(TaskTimeService::class)->running($actor) : null,

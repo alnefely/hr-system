@@ -200,16 +200,17 @@ class NPlusOneCrawlTest extends TestCase
             $collab->addComment($task, "second {$i}", $employee);
             $collab->addAttachments($task, [\Illuminate\Http\UploadedFile::fake()->image("p{$i}.png")], $employee);
 
+            // وقت متسجّل (يدوي + عدّاد) — سجل الوقت في المهمة وصفحة سجل وقتي.
+            // قبل الارتباط: العدّاد مابيبدأش على مهمة مستنية مهمة تانية.
+            $time = app(\App\Services\Tasks\TaskTimeService::class);
+            $time->addManual($task, $employee, 30 * $i, today(), "work {$i}");
+            $time->start($task, $employee);
+
             // ارتباط بالمهمة اللي قبلها (نفس الفرع، من غير مشروع)
             if ($previous && ! $task->project_id && ! $previous->project_id) {
                 $service->addDependency($task, $previous->id, $employee);
             }
             $previous = $task;
-
-            // وقت متسجّل (يدوي + عدّاد) — سجل الوقت في المهمة وصفحة سجل وقتي
-            $time = app(\App\Services\Tasks\TaskTimeService::class);
-            $time->addManual($task, $employee, 30 * $i, today(), "work {$i}");
-            $time->start($task, $employee);
         }
     }
 

@@ -176,6 +176,7 @@ return [
         'branch_required'    => 'The task branch is required',
         'invalid_transition' => 'A task cannot move from ":from" to ":to"',
         'blocked'            => 'The task is waiting on another task to finish first',
+        'open_subtasks'      => 'Some subtasks are still open — finish or cancel them first',
         'needs_review'       => 'This task needs review — submit it for review instead of closing it',
         'closed'             => 'The task is closed — reopen it first',
         'progress_automatic' => 'This task progress is calculated automatically from its steps or subtasks',

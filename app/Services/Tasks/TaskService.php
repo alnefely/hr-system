@@ -188,6 +188,11 @@ class TaskService
         }
 
         if ($to === TaskStatus::Completed) {
+            // الأم ماتكتملش وفيه مهام فرعية مفتوحة (تخلص أو تتلغي الأول)
+            if ($task->hasOpenSubtasks()) {
+                throw new InvalidStateException(__('task.errors.open_subtasks'));
+            }
+
             $this->ensureCanComplete($task, $actor);
         }
 
@@ -515,6 +520,15 @@ class TaskService
             ]);
 
             $this->record($task, $actor, $done ? 'checklist_done' : 'checklist_undone', ['title' => $item->title]);
+
+            // أول خطوة تخلص = الشغل بدأ (زي أول تحديث نسبة)
+            if ($done && $task->status === TaskStatus::New->value && ! $task->isBlocked()) {
+                $task->status = TaskStatus::InProgress->value;
+                $task->started_at ??= now();
+                $this->record($task, $actor, 'status_changed', ['from' => TaskStatus::New->value, 'to' => TaskStatus::InProgress->value]);
+            }
+
+            // refreshCounters بيحفظ المهمة (الحالة + النسبة الجديدة)
             $this->afterChecklistChange($task);
         });
 
@@ -632,16 +646,32 @@ class TaskService
     //  الحذف والاسترجاع
     // ========================================================
 
+    /**
+     * حذف المهمة ومهامها الفرعية (كل المستويات) بنفس الوقت بالظبط —
+     * عشان الاسترجاع يرجّع اللي اتحذف معاها بس، مش فرعية كانت محذوفة قبلها.
+     * المهام الفرعية لو فضلت، كانت بتختفي من القوائم وتفضل تبعت تذكيرات.
+     */
     public function delete(Task $task, Model $actor): void
     {
         $this->authorize($this->access->canDelete($task, $actor));
 
-        DB::transaction(function () use ($task, $actor) {
+        $deleted = DB::transaction(function () use ($task, $actor) {
             $this->record($task, $actor, 'deleted');
+
+            $children = $this->descendantIds([$task->id]);
+
+            // المهمة نفسها بالـ model (سجل حركات النظام)، والفرعية بنفس وقتها بالظبط
+            app(TaskTimeService::class)->stopAllFor($task);
             $task->delete();
+            $this->softDeleteTasks($children, $task->deleted_at);
             $this->refreshParents($task);
+
+            return Task::withoutGlobalScopes()->onlyTrashed()->whereKey([$task->id, ...$children])->get();
         });
-        TaskUpdated::dispatch($task, $actor);
+
+        foreach ($deleted as $gone) {
+            TaskUpdated::dispatch($gone, $actor);
+        }
     }
 
     public function restore(int $id, Model $actor): Task
@@ -649,7 +679,17 @@ class TaskService
         $task = Task::onlyTrashed()->findOrFail($id);
 
         DB::transaction(function () use ($task, $actor) {
+            $deletedAt = $task->deleted_at;
+
+            // الفرعية اللي اتحذفت مع المهمة (نفس اللحظة) بترجع معاها
+            $children = $this->descendantIds([$task->id], withTrashed: true);
             $task->restore();
+
+            if ($children !== []) {
+                Task::withoutGlobalScopes()->onlyTrashed()->whereKey($children)
+                    ->where('deleted_at', $deletedAt)->update(['deleted_at' => null]);
+            }
+
             $this->record($task, $actor, 'restored');
             $this->refreshParents($task);
         });
@@ -657,6 +697,53 @@ class TaskService
         TaskUpdated::dispatch($task, $actor);
 
         return $task;
+    }
+
+    /**
+     * Soft delete لمجموعة مهام بوقت واحد + إيقاف أي عدّاد شغّال عليها
+     * (العدّاد كان بيفضل يعدّ على مهمة محذوفة ولينكه 404).
+     * للمهام التابعة (فرعية / مهام مشروع) — الأصل بيتحذف بالـ model عشان سجل الحركات.
+     *
+     * @param  array<int, int>  $ids
+     */
+    public function softDeleteTasks(array $ids, \DateTimeInterface $at): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        // TaskTimeService بتعتمد على TaskService، فبنجيبها وقت الاستخدام
+        $time = app(TaskTimeService::class);
+
+        foreach (Task::withoutGlobalScopes()->whereKey($ids)->whereNull('deleted_at')->get() as $task) {
+            $time->stopAllFor($task);
+        }
+
+        Task::withoutGlobalScopes()->whereKey($ids)->whereNull('deleted_at')->update(['deleted_at' => $at]);
+    }
+
+    /**
+     * كل المهام الفرعية تحت المهام دي (كل المستويات) — استعلام لكل مستوى.
+     *
+     * @param  array<int, int>  $ids
+     * @return array<int, int>
+     */
+    public function descendantIds(array $ids, bool $withTrashed = false): array
+    {
+        $all = [];
+        $frontier = $ids;
+
+        while ($frontier !== []) {
+            $frontier = Task::withoutGlobalScopes()
+                ->whereIn('parent_id', $frontier)
+                ->when(! $withTrashed, fn ($q) => $q->whereNull('deleted_at'))
+                ->pluck('id')->map(fn ($id) => (int) $id)
+                ->diff($all)->values()->all();
+
+            $all = array_merge($all, $frontier);
+        }
+
+        return $all;
     }
 
     // ========================================================

@@ -83,7 +83,8 @@ class TaskNotifier
 
         $recipients = $this->assignees($task)->push($task->creator);
 
-        if ($key === 'completed') {
+        // اكتملت أو اتلغت: الاتنين بيفكّوا المهام المستنياها
+        if ($key === 'completed' || $key === 'cancelled') {
             $this->notifyUnblocked($task, $event->actor);
         }
 
@@ -107,7 +108,7 @@ class TaskNotifier
                 ->join('tasks as blocker', 'blocker.id', '=', 'd.depends_on_id')
                 ->whereColumn('d.task_id', 'tasks.id')
                 ->whereNull('blocker.deleted_at')
-                ->where('blocker.status', '!=', TaskStatus::Completed->value))
+                ->whereIn('blocker.status', TaskStatus::openValues()))
             ->get();
 
         foreach ($ready as $dependent) {

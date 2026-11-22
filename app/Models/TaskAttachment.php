@@ -45,4 +45,43 @@ class TaskAttachment extends Model
     {
         return str_starts_with((string) $this->mime_type, 'image/');
     }
+
+    /**
+     * ملفات مرفقات المهام دي (والمهام الفرعية تحتها) — قبل الحذف النهائي.
+     *
+     * الحذف النهائي بيشيل الصفوف بالـ cascade من قاعدة البيانات، فلازم نعرف
+     * الملفات قبله ونمسحها بعده (deleteFiles)؛ وإلا بتفضل في storage للأبد.
+     *
+     * @param  array<int, int>  $taskIds
+     * @return array<int, array{disk: string, path: string}>
+     */
+    public static function filesForTasks(array $taskIds): array
+    {
+        $ids = $taskIds;
+        $frontier = $taskIds;
+
+        // المهام الفرعية (حتى المحذوفة) بتتشال بالـ cascade برضه
+        while ($frontier !== []) {
+            $frontier = Task::withoutGlobalScopes()->whereIn('parent_id', $frontier)
+                ->pluck('id')->map(fn ($id) => (int) $id)->diff($ids)->values()->all();
+            $ids = array_merge($ids, $frontier);
+        }
+
+        return $ids === [] ? [] : static::withTrashed()->whereIn('task_id', $ids)
+            ->get(['disk', 'path'])
+            ->map(fn (self $a) => ['disk' => $a->disk, 'path' => $a->path])
+            ->all();
+    }
+
+    /** @param  array<int, array{disk: string, path: string}>  $files */
+    public static function deleteFiles(array $files): void
+    {
+        foreach ($files as $file) {
+            try {
+                \Illuminate\Support\Facades\Storage::disk($file['disk'])->delete($file['path']);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Task attachment cleanup failed: ' . $e->getMessage(), $file);
+            }
+        }
+    }
 }

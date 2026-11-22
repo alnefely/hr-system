@@ -102,13 +102,34 @@ class ProjectService
     {
         $this->authorize($this->access->canDelete($project, $actor));
 
-        $project->delete();
+        // مهام المشروع بتتحذف معاه بنفس الوقت — كانت بتفضل في "مهامي"
+        // وبتبعت تذكيرات وتأخير على مشروع محذوف
+        DB::transaction(function () use ($project) {
+            $project->delete();
+
+            $ids = Task::withoutGlobalScopes()->where('project_id', $project->id)->whereNull('deleted_at')
+                ->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+            $this->tasks->softDeleteTasks($ids, $project->deleted_at);
+        });
     }
 
+    /** بيرجّع المشروع والمهام اللي اتحذفت معاه بس (نفس لحظة الحذف). */
     public function restore(int $id): Project
     {
         $project = Project::onlyTrashed()->findOrFail($id);
-        $project->restore();
+
+        DB::transaction(function () use ($project) {
+            $deletedAt = $project->deleted_at;
+            $project->restore();
+
+            Task::withoutGlobalScopes()->onlyTrashed()
+                ->where('project_id', $project->id)
+                ->where('deleted_at', $deletedAt)
+                ->update(['deleted_at' => null]);
+
+            $project->refreshStats();
+        });
 
         return $project;
     }

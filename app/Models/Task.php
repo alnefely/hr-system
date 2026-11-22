@@ -120,7 +120,20 @@ class Task extends Model
                 $task->project_id ??= $parent?->project_id;
             }
         });
+
+        // الحذف النهائي: نجمع ملفات المرفقات قبله ونمسحها بعد ما ينجح
+        // (الصفوف بتتشال بالـ cascade، والملفات كانت بتفضل في storage)
+        static::forceDeleting(function (Task $task) {
+            $task->pendingFileCleanup = TaskAttachment::filesForTasks([$task->id]);
+        });
+
+        static::forceDeleted(function (Task $task) {
+            TaskAttachment::deleteFiles($task->pendingFileCleanup);
+        });
     }
+
+    /** @var array<int, array{disk: string, path: string}> ملفات تتمسح بعد الحذف النهائي */
+    public array $pendingFileCleanup = [];
 
     // ========================================================
     //  العلاقات
@@ -344,14 +357,30 @@ class Task extends Model
         return $this->isOpen() && $this->due_at !== null && $this->due_at->isPast();
     }
 
-    /** في مهمة لازم تخلص قبلها ولسه ماخلصتش. يحتاج dependencies محمّلة أو بيستعلم مرة واحدة. */
+    /**
+     * في مهمة لازم تخلص قبلها ولسه مفتوحة. يحتاج dependencies محمّلة أو بيستعلم مرة واحدة.
+     *
+     * المهمة المطلوبة لو اتقفلت بأي شكل (اكتملت أو اتلغت) ماتعطّلش اللي بعدها —
+     * وإلا الإلغاء كان بيقفل المهمة المستنية للأبد. المحذوفة مابتتحسبش أصلاً
+     * (الـ soft delete scope على العلاقة).
+     */
     public function isBlocked(): bool
     {
         $deps = $this->relationLoaded('dependencies')
             ? $this->dependencies
             : $this->dependencies()->get(['tasks.id', 'tasks.status']);
 
-        return $deps->contains(fn (Task $t) => $t->status !== TaskStatus::Completed->value);
+        return $deps->contains(fn (Task $t) => in_array($t->status, TaskStatus::openValues(), true));
+    }
+
+    /** مهام فرعية لسه مفتوحة (من غير المحذوفة) — الأم ماتكتملش قبلها. */
+    public function hasOpenSubtasks(): bool
+    {
+        return static::withoutGlobalScopes()
+            ->where('parent_id', $this->id)
+            ->whereNull('deleted_at')
+            ->whereIn('status', TaskStatus::openValues())
+            ->exists();
     }
 
     // ========================================================
