@@ -117,6 +117,7 @@ return [
         'you'           => 'You',
         'system'        => 'System',
         'every_days'    => 'Every :days days',
+        'refresh'       => 'Refresh',
     ],
 
     'activity' => [
@@ -133,6 +134,9 @@ return [
         'checklist_removed' => 'removed a step: :title',
         'deleted'           => 'deleted the task',
         'restored'          => 'restored the task',
+        'commented'         => 'commented on the task',
+        'attachment_added'  => 'uploaded files: :names',
+        'attachment_removed'=> 'removed a file: :names',
     ],
 
     'messages' => [
@@ -147,6 +151,11 @@ return [
         'declined'          => 'You declined the task',
         'checklist_saved'   => 'Step saved',
         'checklist_removed' => 'Step removed',
+        'comment_added'     => 'Comment added',
+        'comment_updated'   => 'Comment updated',
+        'comment_deleted'   => 'Comment deleted',
+        'files_uploaded'    => 'Files uploaded',
+        'file_deleted'      => 'File deleted',
     ],
 
     'errors' => [
@@ -158,6 +167,8 @@ return [
         'closed'             => 'The task is closed — reopen it first',
         'progress_automatic' => 'This task progress is calculated automatically from its steps or subtasks',
         'invalid_assignee'   => 'A selected employee cannot be assigned to this task (another branch and not a project member)',
+        'empty_comment'      => 'Write a comment or attach a file',
+        'upload_failed'      => 'File upload failed — please try again',
     ],
 
     'hints' => [
@@ -231,6 +242,43 @@ return [
         'overdue'         => 'Overdue task',
         'progress_update' => 'Progress update',
         'custom'          => 'Custom reminder',
+    ],
+
+
+    'notifications' => [
+        'assigned'         => ':actor assigned you a task',
+        'review_requested' => ':actor submitted a task for review',
+        'completed'        => ':actor approved the task — completed',
+        'returned'         => ':actor returned the task to work',
+        'reopened'         => ':actor reopened the task',
+        'cancelled'        => ':actor cancelled the task',
+        'declined'         => ':actor declined the task',
+        'commented'        => ':actor commented on a task',
+        'mentioned'        => ':actor mentioned you in a comment',
+    ],
+
+    'comments' => [
+        'title'        => 'Comments',
+        'placeholder'  => 'Write a comment...',
+        'send'         => 'Send',
+        'reply'        => 'Reply',
+        'edit'         => 'Edit',
+        'delete'       => 'Delete',
+        'save'         => 'Save',
+        'cancel'       => 'Cancel',
+        'edited'       => 'edited',
+        'empty'        => 'No comments yet — start the discussion',
+        'mention'      => 'Mention colleagues (@)',
+        'attach'       => 'Attach files',
+        'replying_to'  => 'Reply to :name',
+    ],
+
+    'attachments' => [
+        'title'    => 'Attachments',
+        'upload'   => 'Upload files',
+        'empty'    => 'No attachments',
+        'download' => 'Download',
+        'hint'     => 'Up to :count files, :size MB each (images, PDF, Word, Excel, PowerPoint, text, ZIP).',
     ],
 
 ];

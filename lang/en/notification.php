@@ -28,6 +28,8 @@ return [
         'subscription_due_soon'   => 'Subscription Renewal Approaching',
         'petty_cash_low'          => 'Low Petty Cash Balance',
         'invoice_overdue'         => 'Overdue Invoice',
+        'task_review_requested'   => 'Task awaiting review',
+        'task_activity'           => 'Task activity',
     ],
 
     'messages' => [

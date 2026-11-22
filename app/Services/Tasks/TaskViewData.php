@@ -20,6 +20,8 @@ class TaskViewData
 
     private const PROGRESS_LIMIT = 20;
 
+    private const COMMENTS_LIMIT = 100;
+
     public function __construct(
         private TaskAccess $access,
     ) {}
@@ -42,6 +44,14 @@ class TaskViewData
             'progressUpdates.author',
             'activities' => fn ($q) => $q->limit(self::TIMELINE_LIMIT),
             'activities.actor',
+            // التعليقات الرئيسية (الأقدم أولاً) بردودها ومرفقاتها
+            'comments' => fn ($q) => $q->whereNull('parent_id')->oldest('id')->limit(self::COMMENTS_LIMIT),
+            'comments.author',
+            'comments.attachments',
+            'comments.replies.author',
+            'comments.replies.attachments',
+            'attachments' => fn ($q) => $q->latest('id'),
+            'attachments.uploader',
         ]);
 
         $abilities = $this->access->abilities($task, $actor);
@@ -55,6 +65,9 @@ class TaskViewData
             'health'       => $task->progressHealth(),
             'blocked'      => $task->isOpen() && $task->dependencies->contains(fn ($d) => $d->status !== TaskStatus::Completed->value),
             'actor'        => $actor,
+            'mentionable'  => Employee::withoutGlobalScopes()
+                ->whereIn('id', app(TaskCollaborationService::class)->mentionableIds($task))
+                ->orderBy('name')->get(['id', 'name']),
         ];
     }
 

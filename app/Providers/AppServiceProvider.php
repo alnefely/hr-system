@@ -59,6 +59,11 @@ class AppServiceProvider extends ServiceProvider
         // الافتراضي تاني.
         $this->registerBroadcastChannels();
 
+        // إشعارات المهام: كل حدث ← دالة في TaskNotifier
+        foreach (\App\Services\Tasks\TaskNotifier::subscribe() as $event => $method) {
+            \Illuminate\Support\Facades\Event::listen($event, [\App\Services\Tasks\TaskNotifier::class, $method]);
+        }
+
         // الأوامر المجدولة والطابور مالهمش طلب متصفح، فلارافيل كان
         // بياخد الدومين من APP_URL. بقى بياخد آخر دومين اتفتح منه النظام.
         if ($this->app->runningInConsole()) {
@@ -96,6 +101,11 @@ class AppServiceProvider extends ServiceProvider
         Broadcast::channel('admin.{adminId}', function ($admin, $adminId) {
             return $admin !== null && (int) $admin->id === (int) $adminId;
         }, ['guards' => ['admin']]);
+
+        // قناة الموظف في البوابة — كل موظف قناته بس
+        Broadcast::channel('employee.{employeeId}', function ($employee, $employeeId) {
+            return $employee !== null && (int) $employee->id === (int) $employeeId;
+        }, ['guards' => ['employee']]);
     }
 
     /**

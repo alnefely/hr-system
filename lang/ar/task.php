@@ -117,6 +117,7 @@ return [
         'you'           => 'انت',
         'system'        => 'النظام',
         'every_days'    => 'كل :days يوم',
+        'refresh'       => 'تحديث',
     ],
 
     'activity' => [
@@ -133,6 +134,9 @@ return [
         'checklist_removed' => 'حذف خطوة: :title',
         'deleted'           => 'حذف المهمة',
         'restored'          => 'استرجع المهمة',
+        'commented'         => 'علّق على المهمة',
+        'attachment_added'  => 'رفع ملفات: :names',
+        'attachment_removed'=> 'حذف ملف: :names',
     ],
 
     'messages' => [
@@ -147,6 +151,11 @@ return [
         'declined'          => 'تم تسجيل اعتذارك عن المهمة',
         'checklist_saved'   => 'تم حفظ الخطوة',
         'checklist_removed' => 'تم حذف الخطوة',
+        'comment_added'     => 'تم إضافة التعليق',
+        'comment_updated'   => 'تم تعديل التعليق',
+        'comment_deleted'   => 'تم حذف التعليق',
+        'files_uploaded'    => 'تم رفع الملفات',
+        'file_deleted'      => 'تم حذف الملف',
     ],
 
     'errors' => [
@@ -158,6 +167,8 @@ return [
         'closed'             => 'المهمة مقفولة — افتحها الأول',
         'progress_automatic' => 'نسبة المهمة دي بتتحسب تلقائي من الخطوات أو المهام الفرعية',
         'invalid_assignee'   => 'فيه موظف مختار مينفعش يتكلّف بالمهمة دي (من فرع تاني ومش عضو في المشروع)',
+        'empty_comment'      => 'اكتب تعليق أو ارفع ملف',
+        'upload_failed'      => 'فشل رفع الملف — حاول تاني',
     ],
 
     'hints' => [
@@ -231,6 +242,43 @@ return [
         'overdue'         => 'مهمة متأخرة',
         'progress_update' => 'تحديث نسبة الإنجاز',
         'custom'          => 'تذكير مخصص',
+    ],
+
+
+    'notifications' => [
+        'assigned'         => ':actor كلّفك بمهمة',
+        'review_requested' => ':actor سلّم مهمة للمراجعة',
+        'completed'        => ':actor اعتمد المهمة واكتملت',
+        'returned'         => ':actor رجّع المهمة للتنفيذ',
+        'reopened'         => ':actor أعاد فتح المهمة',
+        'cancelled'        => ':actor ألغى المهمة',
+        'declined'         => ':actor اعتذر عن المهمة',
+        'commented'        => ':actor علّق على مهمة',
+        'mentioned'        => ':actor أشار إليك في تعليق',
+    ],
+
+    'comments' => [
+        'title'        => 'التعليقات',
+        'placeholder'  => 'اكتب تعليق...',
+        'send'         => 'إرسال',
+        'reply'        => 'رد',
+        'edit'         => 'تعديل',
+        'delete'       => 'حذف',
+        'save'         => 'حفظ',
+        'cancel'       => 'إلغاء',
+        'edited'       => 'معدّل',
+        'empty'        => 'مفيش تعليقات لسه — ابدأ النقاش',
+        'mention'      => 'إشارة لزملاء (@)',
+        'attach'       => 'إرفاق ملفات',
+        'replying_to'  => 'رد على :name',
+    ],
+
+    'attachments' => [
+        'title'    => 'المرفقات',
+        'upload'   => 'رفع ملفات',
+        'empty'    => 'مفيش مرفقات',
+        'download' => 'تنزيل',
+        'hint'     => 'حتى :count ملفات، الملف لحد :size ميجا (صور، PDF، Word، Excel، PowerPoint، نصوص، ZIP).',
     ],
 
 ];

@@ -1,0 +1,109 @@
+<?php
+
+namespace App\Http\Controllers\Concerns;
+
+use App\Exceptions\InvalidStateException;
+use App\Http\Requests\Tasks\AttachmentRequest;
+use App\Http\Requests\Tasks\CommentRequest;
+use App\Models\Task;
+use App\Models\TaskAttachment;
+use App\Models\TaskComment;
+use App\Services\Tasks\TaskCollaborationService;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+/**
+ * التعليقات والمرفقات — نفس الإجراءات في لوحة الإدارة والبوابة.
+ *
+ * كل كنترولر بيحدد:
+ *   actor()            مين بيعمل العملية
+ *   resolveTask($id)   المهمة لو المستخدم يحق له يشوفها (وإلا 404)
+ */
+trait HandlesTaskCollaboration
+{
+    abstract protected function actor(): Model;
+
+    abstract protected function resolveTask(int $id): Task;
+
+    public function storeComment(CommentRequest $request, int $task, TaskCollaborationService $service): RedirectResponse
+    {
+        $task = $this->resolveTask($task);
+
+        return $this->collaborate(fn () => $service->addComment(
+            $task,
+            (string) $request->validated('body'),
+            $this->actor(),
+            $request->validated('parent_id'),
+            $request->validated('mentions') ?? [],
+            $request->file('files', []),
+        ), 'task.messages.comment_added', '#comments');
+    }
+
+    public function updateComment(Request $request, int $task, int $comment, TaskCollaborationService $service): RedirectResponse
+    {
+        $task = $this->resolveTask($task);
+        $comment = TaskComment::where('task_id', $task->id)->findOrFail($comment);
+        $body = $request->validate(['body' => ['required', 'string', 'max:5000']])['body'];
+
+        return $this->collaborate(fn () => $service->updateComment($comment, $body, $this->actor()), 'task.messages.comment_updated', '#comment-' . $comment->id);
+    }
+
+    public function destroyComment(int $task, int $comment, TaskCollaborationService $service): RedirectResponse
+    {
+        $task = $this->resolveTask($task);
+        $comment = TaskComment::where('task_id', $task->id)->findOrFail($comment);
+
+        return $this->collaborate(fn () => $service->deleteComment($task, $comment, $this->actor()), 'task.messages.comment_deleted', '#comments');
+    }
+
+    public function storeAttachments(AttachmentRequest $request, int $task, TaskCollaborationService $service): RedirectResponse
+    {
+        $task = $this->resolveTask($task);
+
+        return $this->collaborate(fn () => $service->addAttachments($task, $request->file('files', []), $this->actor()), 'task.messages.files_uploaded', '#attachments');
+    }
+
+    public function destroyAttachment(int $task, int $attachment, TaskCollaborationService $service): RedirectResponse
+    {
+        $task = $this->resolveTask($task);
+        $attachment = TaskAttachment::where('task_id', $task->id)->findOrFail($attachment);
+
+        return $this->collaborate(fn () => $service->deleteAttachment($task, $attachment, $this->actor()), 'task.messages.file_deleted', '#attachments');
+    }
+
+    /**
+     * تنزيل/عرض مرفق — بعد التحقق إن المستخدم يشوف المهمة.
+     * الصور بتتعرض في المتصفح (?inline=1)، وأي نوع تاني بيتنزل دايماً
+     * (مانعرضش HTML أو SVG مرفوع جوّه الموقع).
+     */
+    public function downloadAttachment(Request $request, int $task, int $attachment): StreamedResponse
+    {
+        $task = $this->resolveTask($task);
+        $attachment = TaskAttachment::where('task_id', $task->id)->findOrFail($attachment);
+        $disk = Storage::disk($attachment->disk);
+
+        abort_unless($disk->exists($attachment->path), 404);
+
+        $inline = $request->boolean('inline') && in_array($attachment->mime_type, ['image/jpeg', 'image/png', 'image/gif', 'image/webp'], true);
+
+        return $disk->response($attachment->path, $attachment->original_name, [
+            'Content-Type'           => $inline ? $attachment->mime_type : 'application/octet-stream',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control'          => 'private, max-age=3600',
+        ], $inline ? 'inline' : 'attachment');
+    }
+
+    private function collaborate(\Closure $action, string $successKey, string $anchor = ''): RedirectResponse
+    {
+        try {
+            $action();
+        } catch (InvalidStateException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return redirect()->to(url()->previous() . $anchor)->with('success', __($successKey));
+    }
+}

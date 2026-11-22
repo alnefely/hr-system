@@ -188,6 +188,8 @@
                             </a>
                         </li>
 
+                        @include('portal.partials.notifications-bell')
+
                         {{-- المستخدم --}}
                         <li class="nav-item navbar-dropdown dropdown-user dropdown">
                             <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" role="button" aria-label="{{ __('global.user_menu') }}" data-bs-toggle="dropdown">

@@ -180,6 +180,8 @@
             </div>
         @endif
 
+        @include('tasks.partials.comments')
+
         {{-- الخط الزمني --}}
         <div class="card">
             <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>{{ __('task.labels_text.timeline') }}</h6></div>
@@ -194,7 +196,7 @@
                                 $text = __('task.activity.' . $activity->event, [
                                     'from'  => isset($p['from']) ? (\App\Enums\TaskStatus::tryFrom((string) $p['from'])?->label() ?? $p['from']) : '',
                                     'to'    => isset($p['to']) ? (\App\Enums\TaskStatus::tryFrom((string) $p['to'])?->label() ?? $p['to']) : '',
-                                    'names' => $namesOf($p['employee_ids'] ?? []),
+                                    'names' => isset($p['names']) ? implode('، ', (array) $p['names']) : $namesOf($p['employee_ids'] ?? []),
                                     'title' => $p['title'] ?? '',
                                 ]);
                             @endphp
@@ -204,8 +206,8 @@
                                     <div><strong>{{ $actorName($activity->actor) }}</strong> {{ $text }}</div>
                                     <small class="text-body-secondary text-nowrap" title="{{ $activity->created_at->format('Y-m-d H:i') }}">{{ $activity->created_at->diffForHumans() }}</small>
                                 </div>
-                                @if (! empty($p['note']) || ! empty($p['reason']))
-                                    <div class="small text-body-secondary mt-1 text-break">{{ $p['note'] ?? $p['reason'] }}</div>
+                                @if (! empty($p['note']) || ! empty($p['reason']) || ! empty($p['excerpt']))
+                                    <div class="small text-body-secondary mt-1 text-break">{{ $p['note'] ?? $p['reason'] ?? $p['excerpt'] }}</div>
                                 @endif
                             </li>
                         @endforeach
@@ -297,6 +299,8 @@
             </ul>
         </div>
 
+        @include('tasks.partials.attachments')
+
         {{-- التفاصيل --}}
         <div class="card">
             <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-solid fa-circle-info me-2 text-primary"></i>{{ __('task.labels_text.details') }}</h6></div>
@@ -379,3 +383,28 @@
         </div>
     </div>
 @endif
+
+{{-- تحديث لحظي: إشعار جديد عن المهمة المفتوحة ← شريط "فيه جديد" بزرار تحديث --}}
+<div class="position-fixed bottom-0 start-50 translate-middle-x mb-3 d-none" style="z-index: 1090" id="taskLiveBanner">
+    <div class="alert alert-primary shadow d-flex align-items-center gap-3 mb-0 py-2">
+        <i class="fa-solid fa-bolt"></i>
+        <span class="small" data-text></span>
+        <a href="{{ url()->current() }}" class="btn btn-sm btn-primary">{{ __('task.labels_text.refresh') }}</a>
+    </div>
+</div>
+@push('js')
+<script>
+    (function () {
+        const banner = document.getElementById('taskLiveBanner');
+        const taskUrl = @json(route($routes . '.show', $task->id, false));
+        ['admin:notification', 'portal:notification'].forEach(function (name) {
+            document.addEventListener(name, function (e) {
+                const n = e.detail || {};
+                if (!n.url || n.url.split('#')[0] !== taskUrl) return;
+                banner.querySelector('[data-text]').textContent = n.title || '';
+                banner.classList.remove('d-none');
+            });
+        });
+    })();
+</script>
+@endpush

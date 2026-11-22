@@ -38,6 +38,7 @@ class NPlusOneCrawlTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        \Illuminate\Support\Facades\Storage::fake('local');
         $this->seed(ComprehensiveDummySeeder::class);
 
         // بيانات مش في الـ seeder: أكتر من سجل عشان N+1 يبان
@@ -179,6 +180,14 @@ class NPlusOneCrawlTest extends TestCase
             $service->updateProgress($task, 20 * $i, $employee, 'note');
             $service->changeStatus($task->fresh(), \App\Enums\TaskStatus::InReview, $employee);
             \App\Models\TaskWatcher::create(['task_id' => $task->id, 'watcher_type' => Employee::class, 'watcher_id' => $employee->id]);
+
+            // تعليقات بردود ومرفقات + إشعارات — عشان N+1 في النقاش يبان
+            $collab = app(\App\Services\Tasks\TaskCollaborationService::class);
+            $comment = $collab->addComment($task, "comment {$i}", $employee, null, $colleagues,
+                [\Illuminate\Http\UploadedFile::fake()->create("c{$i}.pdf", 5, 'application/pdf')]);
+            $collab->addComment($task, "reply {$i}", $employee, $comment->id);
+            $collab->addComment($task, "second {$i}", $employee);
+            $collab->addAttachments($task, [\Illuminate\Http\UploadedFile::fake()->image("p{$i}.png")], $employee);
         }
     }
 

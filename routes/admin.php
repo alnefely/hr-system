@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\Projects\ProjectController;
 use App\Http\Controllers\Admin\Projects\ProjectTemplateController;
+use App\Http\Controllers\Admin\Tasks\TaskCollaborationController;
 use App\Http\Controllers\Admin\Tasks\TaskController;
 use Illuminate\Support\Facades\Route;
 
@@ -635,6 +636,12 @@ Route::delete('/tasks/{id}/force-delete', [TaskController::class, 'forceDelete']
 Route::post('/tasks/{task}/status', [TaskController::class, 'status'])->name('tasks.status')->middleware('AdminPermission:task_show');
 Route::post('/tasks/{task}/progress', [TaskController::class, 'progress'])->name('tasks.progress')->middleware('AdminPermission:task_update');
 Route::put('/tasks/{task}/assignees', [TaskController::class, 'assignees'])->name('tasks.assignees')->middleware('AdminPermission:task_assign');
+Route::post('/tasks/{task}/comments', [TaskCollaborationController::class, 'storeComment'])->whereNumber('task')->name('tasks.comments.store')->middleware('AdminPermission:task_show');
+Route::put('/tasks/{task}/comments/{comment}', [TaskCollaborationController::class, 'updateComment'])->whereNumber(['task', 'comment'])->name('tasks.comments.update')->middleware('AdminPermission:task_show');
+Route::delete('/tasks/{task}/comments/{comment}', [TaskCollaborationController::class, 'destroyComment'])->whereNumber(['task', 'comment'])->name('tasks.comments.destroy')->middleware('AdminPermission:task_show');
+Route::post('/tasks/{task}/attachments', [TaskCollaborationController::class, 'storeAttachments'])->whereNumber('task')->name('tasks.attachments.store')->middleware('AdminPermission:task_show');
+Route::get('/tasks/{task}/attachments/{attachment}', [TaskCollaborationController::class, 'downloadAttachment'])->whereNumber(['task', 'attachment'])->name('tasks.attachments.download')->middleware('AdminPermission:task_show');
+Route::delete('/tasks/{task}/attachments/{attachment}', [TaskCollaborationController::class, 'destroyAttachment'])->whereNumber(['task', 'attachment'])->name('tasks.attachments.destroy')->middleware('AdminPermission:task_show');
 Route::post('/tasks/{task}/checklist', [TaskController::class, 'storeChecklist'])->name('tasks.checklist.store')->middleware('AdminPermission:task_update');
 Route::patch('/tasks/{task}/checklist/{item}', [TaskController::class, 'toggleChecklist'])->name('tasks.checklist.toggle')->middleware('AdminPermission:task_update');
 Route::delete('/tasks/{task}/checklist/{item}', [TaskController::class, 'destroyChecklist'])->name('tasks.checklist.destroy')->middleware('AdminPermission:task_update');
