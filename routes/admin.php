@@ -635,6 +635,14 @@ Route::delete('/tasks/{id}/force-delete', [TaskController::class, 'forceDelete']
 
 Route::get('/tasks/reports', [\App\Http\Controllers\Admin\Tasks\TaskReportController::class, 'index'])->name('tasks.reports')->middleware('AdminPermission:task_report');
 Route::get('/tasks/reports/export', [\App\Http\Controllers\Admin\Tasks\TaskReportController::class, 'export'])->name('tasks.reports.export')->middleware('AdminPermission:task_report');
+Route::post('/tasks/recurrences/{recurrence}/toggle', [\App\Http\Controllers\Admin\Tasks\TaskRecurrenceController::class, 'toggle'])->name('tasks.recurrences.toggle')->middleware('AdminPermission:task_recurrence_manage');
+Route::resource('/tasks/recurrences', \App\Http\Controllers\Admin\Tasks\TaskRecurrenceController::class)
+    ->except(['show'])
+    ->parameters(['recurrences' => 'recurrence'])
+    ->names([
+        'index' => 'tasks.recurrences.index', 'create' => 'tasks.recurrences.create', 'store' => 'tasks.recurrences.store',
+        'edit' => 'tasks.recurrences.edit', 'update' => 'tasks.recurrences.update', 'destroy' => 'tasks.recurrences.destroy',
+    ])->middleware('AdminPermission:task_recurrence_manage');
 Route::get('/tasks/board', [TaskController::class, 'board'])->name('tasks.board')->middleware('AdminPermission:task_board');
 Route::get('/tasks/board/cards/{task}', [TaskController::class, 'card'])->whereNumber('task')->name('tasks.board.card')->middleware('AdminPermission:task_board');
 Route::post('/tasks/{task}/move', [TaskController::class, 'move'])->name('tasks.move')->middleware('AdminPermission:task_board');

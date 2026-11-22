@@ -171,6 +171,15 @@ class NPlusOneCrawlTest extends TestCase
 
         $previous = null;
 
+        // قواعد تكرار (شاشة المهام المتكررة)
+        foreach (['weekly', 'monthly'] as $frequency) {
+            app(\App\Services\Tasks\TaskRecurrenceService::class)->save([
+                'title' => "Crawl {$frequency}", 'priority' => 'low', 'branch_id' => $employee->branch_id,
+                'assignee_ids' => [$employee->id, ...$colleagues], 'frequency' => $frequency, 'interval' => 1,
+                'weekdays' => [0, 3], 'month_day' => 10, 'run_time' => '08:00', 'duration_days' => 1, 'starts_on' => today()->toDateString(),
+            ], $employee);
+        }
+
         foreach ([1, 2, 3] as $i) {
             $task = $service->create([
                 'title' => "Crawl task {$i}", 'branch_id' => $employee->branch_id, 'project_id' => $i === 1 ? $project->id : null,
@@ -292,6 +301,7 @@ class NPlusOneCrawlTest extends TestCase
                 'customer_source' => 'customer_sources',
                 'sales_channel'   => 'sales_channels',
                 'vendor_subscription', 'subscription' => 'vendor_subscriptions',
+                'recurrence'      => 'task_recurrences',
                 'group'           => null,
                 default           => Str::plural(Str::snake($param)),
             };

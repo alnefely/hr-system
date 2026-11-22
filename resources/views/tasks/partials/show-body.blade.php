@@ -35,6 +35,9 @@
                     <span class="badge bg-label-secondary" dir="ltr">{{ $task->code }}</span>
                     {!! $statusEnum->badgeHtml() !!}
                     {!! $priority->badgeHtml() !!}
+                    @if ($task->recurrence_id)
+                        <span class="badge bg-label-info"><i class="fa-solid fa-repeat me-1"></i>{{ __('task.recurrence.badge') }}</span>
+                    @endif
                     @foreach ($task->labels as $label)
                         <span class="task-label" style="background: {{ $label->cssColor() }}">{{ $label->name }}</span>
                     @endforeach

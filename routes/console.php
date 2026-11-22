@@ -119,3 +119,10 @@ Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')
     ->withoutOverlapping()
     ->onOneServer()
     ->skip(fn () => (bool) config('queue.supervised'));
+
+// أتمتة المهام كل 5 دقايق: المهام المتكررة، تذكير قرب التسليم، تنبيه
+// المتأخر، تذكير تحديث النسبة، وقفل العدادات المنسية. مابيكرّرش حاجة.
+Schedule::command('tasks:automation')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();

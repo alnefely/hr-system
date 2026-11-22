@@ -21,4 +21,9 @@ return [
         'max_timer_hours' => (int) env('TASK_MAX_TIMER_HOURS', 12),
     ],
 
+    'reminders' => [
+        // تذكير "قرب التسليم" قبل الموعد بكام ساعة
+        'due_soon_hours' => (int) env('TASK_DUE_SOON_HOURS', 24),
+    ],
+
 ];

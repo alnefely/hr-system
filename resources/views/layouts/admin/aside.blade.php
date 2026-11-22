@@ -159,7 +159,7 @@
                     <div>{{ __('task.title') }}</div>
                 </a>
                 <ul class="menu-sub">
-                    <li class="menu-item {{ request()->is('admin/tasks') || (request()->is('admin/tasks/*') && ! request()->is('admin/tasks/board*') && ! request()->is('admin/tasks/calendar*') && ! request()->is('admin/tasks/reports*')) ? 'active' : '' }}">
+                    <li class="menu-item {{ request()->is('admin/tasks') || (request()->is('admin/tasks/*') && ! request()->is('admin/tasks/board*') && ! request()->is('admin/tasks/calendar*') && ! request()->is('admin/tasks/reports*') && ! request()->is('admin/tasks/recurrences*')) ? 'active' : '' }}">
                         <a href="{{ route('admin.tasks.index') }}" class="menu-link"><div>{{ __('task.views.list') }}</div></a>
                     </li>
                     @if (admin_can('task_board'))
@@ -170,6 +170,11 @@
                     <li class="menu-item {{ request()->is('admin/tasks/calendar*') ? 'active' : '' }}">
                         <a href="{{ route('admin.tasks.calendar') }}" class="menu-link"><div>{{ __('task.views.calendar_title') }}</div></a>
                     </li>
+                    @if (admin_can('task_recurrence_manage'))
+                        <li class="menu-item {{ request()->is('admin/tasks/recurrences*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.tasks.recurrences.index') }}" class="menu-link"><div>{{ __('task.recurrence.title') }}</div></a>
+                        </li>
+                    @endif
                     @if (admin_can('task_report'))
                         <li class="menu-item {{ request()->is('admin/tasks/reports*') ? 'active' : '' }}">
                             <a href="{{ route('admin.tasks.reports') }}" class="menu-link"><div>{{ __('task.reports.title') }}</div></a>

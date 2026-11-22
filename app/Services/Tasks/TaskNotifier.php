@@ -140,6 +140,12 @@ class TaskNotifier
         $this->notify($others, $task, $event->actor, 'commented', 'fa-solid fa-comment', 'info', body: $excerpt);
     }
 
+    /** تذكير من النظام (مالوش صاحب) — بيستخدمه TaskReminderService. */
+    public function remind(Task $task, string $key, Collection $recipients, string $icon, string $level): void
+    {
+        $this->notify($recipients, $task, null, $key, $icon, $level);
+    }
+
     // ========================================================
     //  الإرسال
     // ========================================================

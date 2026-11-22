@@ -71,6 +71,27 @@ class TaskRecurrence extends Model
             ->where('next_run_at', '<=', now());
     }
 
+    /** وصف مقروء: "كل 2 أسبوع · أيام: الأحد، الأربعاء · الساعة 08:00". */
+    public function describe(): string
+    {
+        $parts = [$this->interval <= 1
+            ? __('task.recurrence.every_one', ['unit' => __('task.recurrence.units_one.' . $this->frequency)])
+            : __('task.recurrence.every', ['n' => $this->interval, 'unit' => __('task.recurrence.units.' . $this->frequency)])];
+
+        if ($this->frequency === TaskRecurrenceFrequency::Weekly->value && ! empty($this->weekdays)) {
+            $names = collect($this->weekdays)->sort()->map(fn ($d) => Carbon::now()->startOfWeek(Carbon::SUNDAY)->addDays((int) $d)->translatedFormat('l'));
+            $parts[] = __('task.recurrence.on_days', ['days' => $names->implode('، ')]);
+        }
+
+        if ($this->frequency === TaskRecurrenceFrequency::Monthly->value && $this->month_day) {
+            $parts[] = __('task.recurrence.on_day', ['day' => $this->month_day]);
+        }
+
+        $parts[] = __('task.recurrence.at', ['time' => substr((string) $this->run_time, 0, 5)]);
+
+        return implode(' · ', $parts);
+    }
+
     /**
      * الموعد اللي بعد $after حسب قاعدة التكرار، أو null لو القاعدة خلصت.
      */
