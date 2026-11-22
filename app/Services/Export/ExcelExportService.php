@@ -12,6 +12,21 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class ExcelExportService
 {
     /**
+     * أقصى عدد صفوف في ملف تصدير واحد.
+     *
+     * التصدير بيبني الملف كله في الذاكرة — من غير سقف، تصدير "الكل" على
+     * جدول كبير كان ممكن يوقّع الـ worker. الكنترولرات بتعمل ->limit(MAX_ROWS).
+     */
+    public const MAX_ROWS = 5000;
+
+    /** عدد الصفوف اللي بنقيس عليها عرض الأعمدة بدل autosize على الكل. */
+    private const WIDTH_SAMPLE_ROWS = 200;
+
+    /** حدود عرض العمود (بوحدات Excel). */
+    private const MIN_COL_WIDTH = 8;
+    private const MAX_COL_WIDTH = 60;
+
+    /**
      * Generate and stream an Excel file.
      *
      * @param string $title Main title of the sheet/report
@@ -126,24 +141,44 @@ class ExcelExportService
         ]);
 
         // 4. Data Rows
-        $currentRow = 5;
+        //
+        // التنسيق بيتعمل على النطاق كله مرة واحدة مش خلية خلية: الطريقة
+        // القديمة (style لكل خلية + borders وارتفاع لكل صف) كانت بتعمل
+        // آلاف كائنات Style وبتبطّأ التصدير جداً مع الملفات الكبيرة.
+        $firstDataRow = $headerRow + 1;
+        $currentRow   = $firstDataRow;
+        $numericCols  = array_fill(1, max(1, $colCount), true);
+
         foreach ($rows as $row) {
             $colIndex = 1;
-            $sheet->getRowDimension($currentRow)->setRowHeight(22);
 
             foreach (array_values($row) as $cellVal) {
-                $coord = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex) . $currentRow;
-                $sheet->setCellValue($coord, $cellVal);
+                $sheet->setCellValue(
+                    \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex) . $currentRow,
+                    $cellVal
+                );
 
-                // Align numbers right/center and text right
-                $hAlign = is_numeric($cellVal) ? Alignment::HORIZONTAL_CENTER : Alignment::HORIZONTAL_RIGHT;
-                $sheet->getStyle($coord)->getAlignment()->setHorizontal($hAlign)->setVertical(Alignment::VERTICAL_CENTER);
+                // العمود يتوسّط لو كل قيمه أرقام، وإلا يمين (نفس الشكل القديم تقريباً)
+                if ($cellVal !== null && $cellVal !== '' && !is_numeric($cellVal)) {
+                    $numericCols[$colIndex] = false;
+                }
 
                 $colIndex++;
             }
 
-            // Light border for data row
-            $sheet->getStyle("A{$currentRow}:{$lastColLetter}{$currentRow}")->applyFromArray([
+            $currentRow++;
+        }
+
+        $lastDataRow = $currentRow - 1;
+
+        if ($lastDataRow >= $firstDataRow) {
+            $dataRange = "A{$firstDataRow}:{$lastColLetter}{$lastDataRow}";
+
+            $sheet->getStyle($dataRange)->applyFromArray([
+                'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_RIGHT,
+                    'vertical'   => Alignment::VERTICAL_CENTER,
+                ],
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -152,8 +187,18 @@ class ExcelExportService
                 ],
             ]);
 
-            $currentRow++;
+            // الأعمدة الرقمية بالكامل في نداء واحد لكل عمود
+            for ($c = 1; $c <= $colCount; $c++) {
+                if ($numericCols[$c] ?? false) {
+                    $letter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($c);
+                    $sheet->getStyle("{$letter}{$firstDataRow}:{$letter}{$lastDataRow}")
+                        ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                }
+            }
         }
+
+        // ارتفاع افتراضي واحد للشيت بدل setRowHeight لكل صف
+        $sheet->getDefaultRowDimension()->setRowHeight(22);
 
         // 5. Totals Row (if provided)
         if (!empty($totals)) {
@@ -198,10 +243,25 @@ class ExcelExportService
             $currentRow++;
         }
 
-        // 6. Auto-fit column widths
+        // 6. عرض الأعمدة: من الهيدر + عيّنة من الصفوف بدل setAutoSize
+        //    (الـ autosize بيقيس كل خلية في العمود وقت الحفظ — بطيء جداً).
+        $sample = array_map('array_values', array_slice($rows, 0, self::WIDTH_SAMPLE_ROWS));
+        if (!empty($totals)) {
+            $sample[] = array_values($totals);
+        }
+        $headerValues = array_values($headers);
+
         for ($c = 1; $c <= $colCount; $c++) {
+            $max = mb_strwidth((string) ($headerValues[$c - 1] ?? ''));
+
+            foreach ($sample as $row) {
+                $value = $row[$c - 1] ?? '';
+                $max   = max($max, mb_strwidth(is_scalar($value) ? (string) $value : ''));
+            }
+
+            $width = min(self::MAX_COL_WIDTH, max(self::MIN_COL_WIDTH, $max + 4));
             $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($c);
-            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+            $sheet->getColumnDimension($colLetter)->setWidth($width);
         }
 
         // File download response

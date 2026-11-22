@@ -26,4 +26,14 @@ final class RoleCache extends _CacheKeys
     {
         return "role.{$roleId}";
     }
+
+    /**
+     * اسم دور واحد (للنافبار).
+     *
+     *   RoleCache::roleName(5)  →  "role_name.5"
+     */
+    public static function roleName(int|string $roleId): string
+    {
+        return "role_name.{$roleId}";
+    }
 }

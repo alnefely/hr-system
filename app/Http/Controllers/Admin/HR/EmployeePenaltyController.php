@@ -89,7 +89,8 @@ class EmployeePenaltyController extends Controller
                 $query->where('penalty_type', $request->penalty_type);
             }
 
-            $penalties = $query->latest('penalty_date')->get();
+            // سقف للتصدير عشان الملف مايبلعش الذاكرة (الأحدث الأول)
+            $penalties = $query->latest('penalty_date')->limit(ExcelExportService::MAX_ROWS)->get();
             $headers = [
                 __('global.export.row_no'),
                 __('global.export.employee_code'),

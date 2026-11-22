@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\ScopedToBranch;
 use App\Models\Concerns\LogsActivity;
+use App\Models\Concerns\FlushesDashboardCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payroll extends Model
 {
-    use HasFactory, LogsActivity, ScopedToBranch;
+    use HasFactory, LogsActivity, ScopedToBranch, FlushesDashboardCache;
 
     protected $fillable = [
         'title',
@@ -87,10 +88,16 @@ class Payroll extends Model
 
     public function recalculateTotals(): void
     {
-        $this->total_basic_salary = $this->items()->sum('basic_salary');
-        $this->total_allowances   = $this->items()->sum('allowances');
-        $this->total_deductions   = $this->items()->sum('deductions');
-        $this->total_net_salary   = $this->items()->sum('net_salary');
+        // استعلام واحد بدل ٤ SUM منفصلين
+        $totals = $this->items()
+            ->toBase()
+            ->selectRaw('COALESCE(SUM(basic_salary), 0) as basic, COALESCE(SUM(allowances), 0) as allowances, COALESCE(SUM(deductions), 0) as deductions, COALESCE(SUM(net_salary), 0) as net')
+            ->first();
+
+        $this->total_basic_salary = $totals->basic ?? 0;
+        $this->total_allowances   = $totals->allowances ?? 0;
+        $this->total_deductions   = $totals->deductions ?? 0;
+        $this->total_net_salary   = $totals->net ?? 0;
         $this->saveQuietly();
     }
 }

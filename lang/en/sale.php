@@ -103,6 +103,7 @@ return [
         'created'        => 'Sales invoice created successfully',
         'updated'        => 'Sales invoice updated successfully',
         'deleted'        => 'Sales invoice deleted successfully',
+        'total_below_paid' => 'Invoice total (:total) cannot be less than the amount already paid (:paid). Delete a payment first.',
     ],
 
     'hints' => [

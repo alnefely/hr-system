@@ -59,8 +59,12 @@ class Admin extends Authenticatable
 
     protected static function booted(): void
     {
-        static::saved(function () {
-            Role::ClearCache();
+        // مش كل حفظ للمشرف (زي remember_token وقت اللوجين) يستاهل نمسح
+        // كاش الأدوار — بس لما الدور نفسه يتغيّر.
+        static::saved(function (Admin $admin) {
+            if ($admin->isDirty('role_id')) {
+                Role::ClearCache();
+            }
         });
 
         static::deleted(function () {
@@ -70,9 +74,14 @@ class Admin extends Authenticatable
 
 
     // $admin->role_name
+    // لو العلاقة متحمّلة نستخدمها، غير كده من كاش الأدوار (من غير lazy load)
     public function getRoleNameAttribute()
     {
-        return $this->role?->name ?? '';
+        if ($this->relationLoaded('role')) {
+            return $this->role?->name ?? '';
+        }
+
+        return app(\App\Services\Role\RoleService::class)->roleName($this->role_id);
     }
 
     public function getCreatedAtAttribute($date)

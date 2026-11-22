@@ -79,16 +79,19 @@ class EmployeeDocument extends Model
     /** مستندات قرب انتهاء صلاحيتها (ولسه ما انتهتش). */
     public function scopeExpiringSoon(Builder $query, int $days = self::EXPIRY_ALERT_DAYS): Builder
     {
+        // مقارنة نطاق بدل whereDate() عشان فهرس expiry_date يشتغل.
+        // "< اليوم اللي بعده" بدل "<= اليوم" عشان يشتغل لو SQLite خزّن
+        // التاريخ بوقت ('2026-09-01 00:00:00').
         return $query->whereNotNull('expiry_date')
-            ->whereDate('expiry_date', '>=', now()->toDateString())
-            ->whereDate('expiry_date', '<=', now()->addDays($days)->toDateString());
+            ->where('expiry_date', '>=', now()->toDateString())
+            ->where('expiry_date', '<', now()->addDays($days + 1)->toDateString());
     }
 
     /** مستندات انتهت صلاحيتها بالفعل. */
     public function scopeExpired(Builder $query): Builder
     {
         return $query->whereNotNull('expiry_date')
-            ->whereDate('expiry_date', '<', now()->toDateString());
+            ->where('expiry_date', '<', now()->toDateString());
     }
 
     /** مستندات لسه قيد المراجعة (مش معتمدة). */

@@ -51,7 +51,8 @@ class HomeController extends PortalController
         // المستندات المنتهية أو اللي هتنتهي خلال 30 يوم — يجددها قبل ما تبقى مشكلة
         $expiringDocuments = $employee->documents()->reorder()
             ->whereNotNull('expiry_date')
-            ->whereDate('expiry_date', '<=', now()->addDays(self::DOCUMENT_ALERT_DAYS)->toDateString())
+            // نطاق بدل whereDate() عشان الفهرس (شامل يوم الحد)
+            ->where('expiry_date', '<', now()->addDays(self::DOCUMENT_ALERT_DAYS + 1)->toDateString())
             ->orderBy('expiry_date')
             ->get(['id', 'title', 'document_type', 'expiry_date']);
 

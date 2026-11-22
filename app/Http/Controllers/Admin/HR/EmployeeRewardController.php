@@ -88,7 +88,8 @@ class EmployeeRewardController extends Controller
                 $query->where('status', $request->status);
             }
 
-            $rewards = $query->latest('reward_date')->get();
+            // سقف للتصدير عشان الملف مايبلعش الذاكرة (الأحدث الأول)
+            $rewards = $query->latest('reward_date')->limit(ExcelExportService::MAX_ROWS)->get();
             $headers = [
                 __('global.export.row_no'),
                 __('global.export.employee_code'),

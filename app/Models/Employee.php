@@ -6,6 +6,7 @@ use App\Models\Concerns\LogsActivity;
 use App\Models\Concerns\ScopedToBranch;
 use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 use Illuminate\Contracts\Auth\Authenticatable;
+use App\Models\Concerns\FlushesDashboardCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Employee extends Model implements Authenticatable
 {
-    use HasFactory, SoftDeletes, ScopedToBranch, LogsActivity, AuthenticatableTrait;
+    use HasFactory, SoftDeletes, ScopedToBranch, LogsActivity, AuthenticatableTrait, FlushesDashboardCache;
 
     /** حقول حساسة مابتتسجّلش في سجل الحركات. */
     protected array $activityHidden = ['national_id', 'iban', 'bank_account_number', 'insurance_number'];

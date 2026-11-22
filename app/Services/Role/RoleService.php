@@ -52,7 +52,9 @@ class RoleService
             ],
             'filemanager' => [
                 'label' => 'lfm.title',
-                'items' => ['filemanager_show'],
+                // الحذف وإعادة التسمية والنقل صلاحية منفصلة: "عرض" كانت بتسمح
+                // لأي مشرف فرع يمسح مستندات الفروع التانية من المجلد المشترك.
+                'items' => ['filemanager_show', 'filemanager_delete'],
             ],
             'admin' => [
                 'label' => 'admin.title',
@@ -481,6 +483,23 @@ class RoleService
             RoleCache::class,
             RoleCache::role($roleId),
             fn () => RoleModel::find($roleId)?->roles ?? []
+        );
+    }
+
+    /**
+     * اسم الدور — متكاش مع باقي مفاتيح الأدوار (بيتلغي مع RoleCache).
+     * بيتقرا في النافبار في كل صفحة، فمش عايزين lazy load للعلاقة.
+     */
+    public function roleName(int|string|null $roleId): string
+    {
+        if ($roleId === null || $roleId === '') {
+            return '';
+        }
+
+        return (string) $this->cache->remember(
+            RoleCache::class,
+            RoleCache::roleName($roleId),
+            fn () => RoleModel::whereKey($roleId)->value('name') ?? ''
         );
     }
 

@@ -35,13 +35,8 @@ class LinkController extends Controller
             $this->applyStatusFilter($query, $request->status);
         }
 
-        if ($request->filled('date_from')) {
-            $query->whereDate('links.created_at', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('links.created_at', '<=', $request->date_to);
-        }
+        // نطاق بدل whereDate() عشان فهرس created_at يشتغل
+        $query->betweenDays($request->input('date_from'), $request->input('date_to'), 'created_at');
 
         if ($request->ajax()) {
             return datatables($query)

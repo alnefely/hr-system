@@ -51,7 +51,7 @@ return [
     | محتاج queue:work شغال. لو الطابور sync الإعداد ده بيتجاهل تلقائياً.
     */
 
-    'queue_writes' => env('ACTIVITY_LOG_QUEUE_WRITES', false),
+    'queue_writes' => env('ACTIVITY_LOG_QUEUE_WRITES', true),
 
     /*
     | الطابور اللي سجلات الحركات بتتدفع عليه — يفضّل يبقى منفصل عن

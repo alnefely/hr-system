@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasDateRangeScopes;
 use App\Models\Concerns\ScopedToBranch;
 use App\Models\Concerns\LogsActivity;
+use App\Models\Concerns\FlushesDashboardCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EmployeePermission extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity, HasDateRangeScopes, ScopedToBranch;
+    use HasFactory, SoftDeletes, LogsActivity, HasDateRangeScopes, ScopedToBranch, FlushesDashboardCache;
 
     /** العزل بيتم عبر فرع الموظف مش عمود على الجدول نفسه. */
     public $branchScopeVia = 'employee';

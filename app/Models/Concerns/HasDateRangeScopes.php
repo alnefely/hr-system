@@ -66,6 +66,39 @@ trait HasDateRangeScopes
     }
 
     /**
+     * فلتر "من يوم — لحد يوم" (شامل الطرفين) بمقارنة نطاق بدل whereDate().
+     *
+     *   col >= 'from'  AND  col < 'to + 1 day'
+     *
+     * بنقارن بنص التاريخ بس (Y-m-d) عشان يشتغل صح مع أعمدة DATE و DATETIME
+     * على MySQL و SQLite (اللي ممكن تخزّن الـ DATE كـ '2026-09-01 00:00:00').
+     * القيمة الغلط بتتجاهل بدل ما توقع الصفحة — زي whereDate زمان.
+     */
+    public function scopeBetweenDays(Builder $query, ?string $from, ?string $to, ?string $column = null): Builder
+    {
+        $column = $query->getModel()->getTable() . '.' . ($column ?: $this->dateRangeColumn());
+        $from = static::parseRangeDay($from);
+        $to   = static::parseRangeDay($to);
+
+        return $query
+            ->when($from, fn ($q) => $q->where($column, '>=', $from->toDateString()))
+            ->when($to, fn ($q) => $q->where($column, '<', $to->addDay()->toDateString()));
+    }
+
+    protected static function parseRangeDay(?string $value): ?CarbonImmutable
+    {
+        if ($value === null || trim($value) === '') {
+            return null;
+        }
+
+        try {
+            return CarbonImmutable::parse($value)->startOfDay();
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
      * حدود شهر كنطاق جاهز — للاستعلامات المكتوبة بـ DB::table
      * اللي مش بتعدّي على Eloquent scopes.
      *

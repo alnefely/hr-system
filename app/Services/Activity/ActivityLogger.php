@@ -90,7 +90,7 @@ class ActivityLogger
      */
     protected function shouldQueue(): bool
     {
-        return config('activity.queue_writes', false)
+        return config('activity.queue_writes', true)
             && config('queue.default') !== 'sync';
     }
 

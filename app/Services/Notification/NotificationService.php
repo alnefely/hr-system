@@ -119,33 +119,15 @@ class NotificationService
      */
     public function eligibleRecipients(NotificationType $type, ?int $branchId = null, ?int $excludeAdminId = null): Collection
     {
-        // ذاكرة داخل نفس العملية: الأمر المجدول بيبعت نفس النوع لنفس الفرع
-        // عشرات المرات (فاتورة متأخرة لكل فاتورة)، فمالوش لازمة نعيد تحميل
-        // كل المشرفين وصلاحياتهم في كل مرة.
-        $memoKey = $type->value . '|' . $branchId . '|' . $excludeAdminId;
+        // ذاكرة داخل نفس العملية: الأمر المجدول بيبعت نفس النوع لفروع كتير
+        // عشرات المرات (فاتورة متأخرة لكل فاتورة). بنحمّل المشرفين اللي عندهم
+        // الصلاحية مرة واحدة لكل نوع (من غير الفرع في المفتاح)، والفلترة على
+        // الفرع والمستبعد بتتم في PHP.
+        $withPermission = $this->recipientsMemo[$type->value] ??= $this->loadAdminsWithPermission($type);
 
-        return $this->recipientsMemo[$memoKey] ??= $this->loadEligibleRecipients($type, $branchId, $excludeAdminId);
-    }
-
-    /** @var array<string, Collection<int, Admin>> */
-    protected array $recipientsMemo = [];
-
-    /** @return Collection<int, Admin> */
-    protected function loadEligibleRecipients(NotificationType $type, ?int $branchId, ?int $excludeAdminId): Collection
-    {
-        $permission = $type->requiredPermission();
-
-        // فرع كل مشرف بيتجاب مع المشرفين في استعلام واحد بدل استعلام لكل
-        // مشرف. من غير Global Scopes: لو اللي عامل الحدث مشرف فرع، عزل
-        // الفروع كان هيخفي موظفين الفروع التانية ويطلّع فروع المستلمين null.
-        return Admin::with([
-                'role',
-                'employee' => fn ($q) => $q->withoutGlobalScopes()->select('id', 'branch_id'),
-            ])
-            ->when($excludeAdminId, fn ($q) => $q->where('id', '!=', $excludeAdminId))
-            ->get()
-            ->filter(function (Admin $admin) use ($permission, $branchId) {
-                if (!$this->hasPermission($admin, $permission)) {
+        return $withPermission
+            ->filter(function (Admin $admin) use ($branchId, $excludeAdminId) {
+                if ($excludeAdminId !== null && $admin->id === $excludeAdminId) {
                     return false;
                 }
 
@@ -165,6 +147,26 @@ class NotificationService
 
                 return $adminBranch === null || $adminBranch === $branchId;
             })
+            ->values();
+    }
+
+    /** @var array<string, Collection<int, Admin>> */
+    protected array $recipientsMemo = [];
+
+    /** @return Collection<int, Admin> */
+    protected function loadAdminsWithPermission(NotificationType $type): Collection
+    {
+        $permission = $type->requiredPermission();
+
+        // فرع كل مشرف بيتجاب مع المشرفين في استعلام واحد بدل استعلام لكل
+        // مشرف. من غير Global Scopes: لو اللي عامل الحدث مشرف فرع، عزل
+        // الفروع كان هيخفي موظفين الفروع التانية ويطلّع فروع المستلمين null.
+        return Admin::with([
+                'role',
+                'employee' => fn ($q) => $q->withoutGlobalScopes()->select('id', 'branch_id'),
+            ])
+            ->get()
+            ->filter(fn (Admin $admin) => $this->hasPermission($admin, $permission))
             ->values();
     }
 
@@ -211,5 +213,28 @@ class NotificationService
     public function unreadCount(int $adminId): int
     {
         return AdminNotification::forAdmin($adminId)->unread()->count();
+    }
+
+    /**
+     * عدّاد غير المقروء متذكّر طول الـ Request.
+     *
+     * النافبار والرئيسية الاتنين محتاجينه في نفس الصفحة — كانوا بيعملوا
+     * COUNT مرتين. بنخزّنه في attributes بتاعة الـ Request نفسه، فالطلب
+     * الجاي بيحسبه من جديد (مفيش بيانات قديمة بين الطلبات).
+     */
+    public static function unreadCountForRequest(?int $adminId): int
+    {
+        if (!$adminId) {
+            return 0;
+        }
+
+        $attributes = request()->attributes;
+        $key = 'notifications.unread.' . $adminId;
+
+        if (!$attributes->has($key)) {
+            $attributes->set($key, AdminNotification::forAdmin($adminId)->unread()->count());
+        }
+
+        return (int) $attributes->get($key);
     }
 }

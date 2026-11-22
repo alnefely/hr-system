@@ -7,7 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Admin;
 use App\Services\Export\ExcelExportService;
+use App\Support\BranchScopeResolver;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * عرض سجل حركات النظام.
@@ -46,6 +49,13 @@ class ActivityLogController extends Controller
 
         abort_if($class === null, 404);
 
+        // مشرف الفرع: حركات سجل واحد بس، ولازم السجل نفسه يكون في فرعه.
+        // من غير ده /activity-logs/subject/Employee كان بيعرض حركات موظفين
+        // كل الفروع برواتبهم.
+        if (BranchScopeResolver::branchId() !== null && $request->filled('subject_id')) {
+            abort_unless($this->subjectVisible($class, $request->input('subject_id')), 404);
+        }
+
         $request->merge(['subject_type' => $class]);
         $query = $this->filtered($request);
 
@@ -69,6 +79,8 @@ class ActivityLogController extends Controller
     /** تفاصيل حركة واحدة: القيم قبل وبعد. */
     public function show(ActivityLog $activityLog)
     {
+        abort_unless($this->logVisible($activityLog), 404);
+
         $activityLog->load('causer:id,name,email');
 
         if (request()->ajax() || request()->wantsJson()) {
@@ -102,9 +114,71 @@ class ActivityLogController extends Controller
     //  Helpers
     // ========================================================
 
+    /**
+     * مشرف الفرع بيشوف: حركات سجل في فرعه (لما بيفتح سجل بعينه)، أو
+     * الحركات اللي عملها مشرفين فرعه. السجل مالوش عمود فرع، فده أقرب
+     * تقييد من غير ما نقرا كل موديل.
+     */
+    private function scopeToBranch($query, Request $request)
+    {
+        $branchId = BranchScopeResolver::branchId();
+
+        if ($branchId === null) {
+            return $query;
+        }
+
+        if ($request->filled('subject_id') && $request->filled('subject_type')
+            && $this->subjectVisible($request->input('subject_type'), $request->input('subject_id'))) {
+            return $query;
+        }
+
+        return $query->whereIn('causer_id', $this->branchAdminIds($branchId));
+    }
+
+    private function branchAdminIds(int $branchId)
+    {
+        return Admin::query()
+            ->whereIn('employee_id', DB::table('employees')->where('branch_id', $branchId)->select('id'))
+            ->select('id');
+    }
+
+    private function logVisible(ActivityLog $log): bool
+    {
+        $branchId = BranchScopeResolver::branchId();
+
+        if ($branchId === null) {
+            return true;
+        }
+
+        return $this->subjectVisible($log->subject_type, $log->subject_id)
+            || ($log->causer_id && $this->branchAdminIds($branchId)->whereKey($log->causer_id)->exists());
+    }
+
+    /** السجل موجود جوّه نطاق فرع المشرف؟ (عزل الفروع على الموديل نفسه) */
+    private function subjectVisible(?string $class, $id): bool
+    {
+        if (! $class || ! class_exists($class) || ! array_key_exists($class, config('activity.subjects', []))) {
+            return false;
+        }
+
+        if (! in_array(\App\Models\Concerns\ScopedToBranch::class, class_uses_recursive($class), true)) {
+            return false;
+        }
+
+        $query = $class::query();
+
+        if (method_exists($class, 'bootSoftDeletes')) {
+            $query->withTrashed();
+        }
+
+        return $query->whereKey($id)->exists();
+    }
+
     private function filtered(Request $request)
     {
-        return ActivityLog::with('causer:id,name')
+        // الجدول والتصدير بيستخدموا causer_name المتخزّن مع السجل —
+        // مالوش لازمة نحمّل علاقة المشرف.
+        return $this->scopeToBranch(ActivityLog::query(), $request)
             ->forSubjectType($request->input('subject_type'))
             ->forEvent($request->input('event'))
             ->forCauser($request->input('causer_id'))
@@ -151,15 +225,35 @@ class ActivityLogController extends Controller
 
     private function stats(?string $subjectType = null): array
     {
-        $base = ActivityLog::query()->forSubjectType($subjectType);
+        // استعلام واحد بدل ٥ COUNT، ومتكاش دقيقتين — الأرقام دي للعرض بس
+        // ومش لازم تبقى لحظية.
+        $today = today();
+        $branchId = BranchScopeResolver::branchId();
+        $key = 'activity_logs.stats.' . md5((string) $subjectType) . '.' . $today->toDateString() . '.b' . ($branchId ?? 'all');
 
-        return [
-            'total'   => (clone $base)->count(),
-            'today'   => (clone $base)->whereDate('created_at', today())->count(),
-            'created' => (clone $base)->where('event', 'created')->count(),
-            'updated' => (clone $base)->where('event', 'updated')->count(),
-            'deleted' => (clone $base)->whereIn('event', ['deleted', 'force_deleted'])->count(),
-        ];
+        return Cache::remember($key, 120, function () use ($subjectType, $today, $branchId) {
+            $row = ActivityLog::query()
+                ->when($branchId !== null, fn ($q) => $q->whereIn('causer_id', $this->branchAdminIds($branchId)))
+                ->forSubjectType($subjectType)
+                ->selectRaw('COUNT(*) as total')
+                ->selectRaw('SUM(CASE WHEN created_at >= ? AND created_at < ? THEN 1 ELSE 0 END) as today', [
+                    $today->toDateTimeString(),
+                    $today->copy()->addDay()->toDateTimeString(),
+                ])
+                ->selectRaw("SUM(CASE WHEN event = 'created' THEN 1 ELSE 0 END) as created")
+                ->selectRaw("SUM(CASE WHEN event = 'updated' THEN 1 ELSE 0 END) as updated")
+                ->selectRaw("SUM(CASE WHEN event IN ('deleted', 'force_deleted') THEN 1 ELSE 0 END) as deleted")
+                ->toBase()
+                ->first();
+
+            return [
+                'total'   => (int) ($row->total ?? 0),
+                'today'   => (int) ($row->today ?? 0),
+                'created' => (int) ($row->created ?? 0),
+                'updated' => (int) ($row->updated ?? 0),
+                'deleted' => (int) ($row->deleted ?? 0),
+            ];
+        });
     }
 
     /** بيقبل اسم الكلاس الكامل أو الاسم المختصر (Sale). */
@@ -182,7 +276,7 @@ class ActivityLogController extends Controller
 
     private function export(Request $request, $query)
     {
-        $logs = $query->limit(5000)->get();
+        $logs = $query->limit(ExcelExportService::MAX_ROWS)->get();
 
         $headers = [
             __('global.export.row_no'),

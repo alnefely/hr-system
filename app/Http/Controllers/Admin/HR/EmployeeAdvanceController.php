@@ -42,13 +42,8 @@ class EmployeeAdvanceController extends Controller
                 $query->where('status', $request->status);
             }
 
-            if ($request->filled('from_date')) {
-                $query->whereDate('advance_date', '>=', $request->from_date);
-            }
-
-            if ($request->filled('to_date')) {
-                $query->whereDate('advance_date', '<=', $request->to_date);
-            }
+            // نطاق بدل whereDate() عشان فهرس advance_date يشتغل
+            $query->betweenDays($request->input('from_date'), $request->input('to_date'));
 
             return datatables($query)
                 ->addColumn('employee_name', fn($row) => $row->employee?->name ?? '-')
@@ -116,14 +111,10 @@ class EmployeeAdvanceController extends Controller
             if ($request->filled('status')) {
                 $exportQuery->where('status', $request->status);
             }
-            if ($request->filled('from_date')) {
-                $exportQuery->whereDate('advance_date', '>=', $request->from_date);
-            }
-            if ($request->filled('to_date')) {
-                $exportQuery->whereDate('advance_date', '<=', $request->to_date);
-            }
+            $exportQuery->betweenDays($request->input('from_date'), $request->input('to_date'));
 
-            $advances = $exportQuery->orderByDesc('advance_date')->get();
+            // سقف للتصدير عشان الملف مايبلعش الذاكرة (الأحدث الأول)
+            $advances = $exportQuery->orderByDesc('advance_date')->limit(ExcelExportService::MAX_ROWS)->get();
 
             $headers = [
                 __('global.export.row_no'),
