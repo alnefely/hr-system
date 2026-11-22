@@ -44,6 +44,32 @@
     </div>
 @endif
 
+{{-- مهامي: أقرب التسليمات --}}
+<div class="card mb-4">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h6 class="mb-0 fw-bold"><i class="fa-solid fa-list-check text-primary me-2"></i>{{ __('portal.nav.tasks') }}
+            <span class="badge bg-label-primary ms-1">{{ $taskCounts['open'] }}</span>
+            @if ($taskCounts['overdue'])<span class="badge bg-label-danger ms-1">{{ __('task.stats.overdue') }}: {{ $taskCounts['overdue'] }}</span>@endif
+        </h6>
+        <a href="{{ route('portal.tasks.index') }}" class="btn btn-sm btn-label-primary">{{ __('notification.view_all') }}</a>
+    </div>
+    <div class="list-group list-group-flush">
+        @forelse ($myTasks as $task)
+            <a href="{{ route('portal.tasks.show', $task->id) }}" class="list-group-item list-group-item-action d-flex flex-wrap align-items-center gap-3">
+                <div class="flex-grow-1" style="min-width: 10rem">
+                    <div class="fw-semibold text-break">{{ $task->title }}</div>
+                    <div class="d-flex gap-2 mt-1">{!! \App\Enums\TaskStatus::badgeFor($task->status) !!} {!! \App\Enums\TaskPriority::badgeFor($task->priority) !!}</div>
+                </div>
+                <div class="small">@include('tasks.partials.due', ['task' => $task])</div>
+                <div style="width: 7rem">@include('tasks.partials.progress-bar', ['task' => $task, 'compact' => true])</div>
+            </a>
+        @empty
+            <div class="list-group-item text-body-secondary small">{{ __('task.labels_text.empty') }}</div>
+        @endforelse
+    </div>
+</div>
+@include('tasks.partials.styles')
+
 <div class="row g-4 mb-4">
     {{-- أرصدة الإجازات --}}
     @foreach ([

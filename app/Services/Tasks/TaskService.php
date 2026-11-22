@@ -671,6 +671,13 @@ class TaskService
             'requires_review', 'progress_source', 'progress_update_interval', 'progress_update_every_days',
         ]));
 
+        // تاريخ فاضي = مفيش تاريخ (مش "دلوقتي")
+        foreach (['starts_at', 'due_at', 'description', 'estimated_minutes'] as $nullable) {
+            if (array_key_exists($nullable, $attributes) && $attributes[$nullable] === '') {
+                $attributes[$nullable] = null;
+            }
+        }
+
         if (($attributes['progress_update_interval'] ?? null) !== null && $attributes['progress_update_interval'] !== 'custom') {
             $attributes['progress_update_every_days'] = null;
         }

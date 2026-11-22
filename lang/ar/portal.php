@@ -9,6 +9,7 @@ return [
         'tasks'           => 'مهامي',
         'projects'        => 'مشاريعي',
         'time'            => 'سجل وقتي',
+        'performance'     => 'أدائي',
         'permissions'     => 'استئذاناتي',
         'leaves'          => 'إجازاتي',
         'advances'        => 'سلفي',

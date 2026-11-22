@@ -8,6 +8,12 @@ class Duration
     public static function format(?int $minutes): string
     {
         $minutes = max(0, (int) $minutes);
+
+        // يوم أو أكتر: بالأيام والساعات (600 ساعة مش مقروءة)
+        if ($minutes >= 24 * 60) {
+            return __('task.time.dh', ['d' => intdiv($minutes, 24 * 60), 'h' => intdiv($minutes % (24 * 60), 60)]);
+        }
+
         $h = intdiv($minutes, 60);
         $m = $minutes % 60;
 

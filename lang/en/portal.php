@@ -9,6 +9,7 @@ return [
         'tasks'           => 'My Tasks',
         'projects'        => 'My Projects',
         'time'            => 'My Timesheet',
+        'performance'     => 'My Performance',
         'permissions'     => 'My Permissions',
         'leaves'          => 'My Leaves',
         'advances'        => 'My Advances',

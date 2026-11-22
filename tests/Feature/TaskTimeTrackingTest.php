@@ -196,5 +196,6 @@ class TaskTimeTrackingTest extends TestCase
         $this->assertSame(__('task.time.m', ['m' => 45]), Duration::format(45));
         $this->assertSame(__('task.time.h', ['h' => 2]), Duration::format(120));
         $this->assertSame(__('task.time.hm', ['h' => 1, 'm' => 5]), Duration::format(65));
+        $this->assertSame(__('task.time.dh', ['d' => 2, 'h' => 3]), Duration::format(2 * 1440 + 180));
     }
 }
