@@ -91,6 +91,9 @@
                                     <div class="input-group mb-2">
                                         <span class="input-group-text"><i class="fa-regular fa-square"></i></span>
                                         <input type="text" name="checklist[]" class="form-control" maxlength="500" value="{{ $step }}" aria-label="{{ __('task.fields.checklist') }}">
+                                        <button type="button" class="btn btn-label-danger" data-remove-step title="{{ __('task.actions.delete') }}" aria-label="{{ __('task.actions.delete') }}">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
                                     </div>
                                 @endforeach
                             </div>
@@ -210,6 +213,22 @@
             row.querySelector('input').value = '';
             rows.appendChild(row);
             row.querySelector('input').focus();
+        });
+
+        // حذف خطوة: لو هي الوحيدة بنفضّيها بس (الصف الأول هو اللي بيتنسخ للإضافة)
+        rows?.addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-remove-step]');
+            if (!btn) return;
+            const row = btn.closest('.input-group');
+            if (rows.children.length > 1) {
+                const next = row.nextElementSibling || row.previousElementSibling;
+                row.remove();
+                next?.querySelector('input')?.focus();
+            } else {
+                const input = row.querySelector('input');
+                input.value = '';
+                input.focus();
+            }
         });
     })();
 </script>
