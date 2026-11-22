@@ -176,43 +176,8 @@
           }
       });
     </script>
-    <script src="/admin/vendor/libs/select2/select2.js"></script>
+    @include('layouts.partials.select2')
     <script>
-      // Global Select2 Initializer for all select inputs & modals
-      window.initSelect2 = function (context) {
-          let $ctx = context ? $(context) : $(document);
-          $ctx.find('select.select2, select.form-select:not(.no-select2):not(.dt-select2)').each(function () {
-              let $el = $(this);
-              if ($el.hasClass('select2-hidden-accessible')) {
-                  return;
-              }
-              let $modal = $el.closest('.modal');
-              let placeholderText = $el.data('placeholder') || $el.find('option[value=""]').first().text() || 'اختر...';
-
-              let config = {
-                  dir: $('html').attr('dir') === 'rtl' ? 'rtl' : 'ltr',
-                  width: '100%',
-                  placeholder: placeholderText,
-                  allowClear: !$el.prop('required')
-              };
-
-              if ($modal.length) {
-                  config.dropdownParent = $modal;
-              }
-
-              $el.select2(config);
-          });
-      };
-
-      $(document).ready(function () {
-          window.initSelect2();
-      });
-
-      // Automatically re-initialize on modal open
-      $(document).on('shown.bs.modal', function (e) {
-          window.initSelect2(e.target);
-      });
-
       // تفعيل الـ Popovers.
       // ثيم Vuexy بيفعّل الـ Tooltips بس في main.js، فالـ popover
       // مكانش بيشتغل خالص. بنفعّله هنا بدل ما نعدّل ملف الثيم.

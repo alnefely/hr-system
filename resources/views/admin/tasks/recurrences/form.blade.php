@@ -67,7 +67,7 @@
                     <div class="row g-3 mb-3">
                         <div class="col-6">
                             <label for="priority" class="form-label">{{ __('task.fields.priority') }}</label>
-                            <select name="priority" id="priority" class="form-select no-select2">
+                            <select name="priority" id="priority" class="form-select">
                                 @foreach (\App\Enums\TaskPriority::options() as $value => $label)
                                     <option value="{{ $value }}" @selected(old('priority', $bp['priority'] ?? 'medium') === $value)>{{ $label }}</option>
                                 @endforeach
@@ -108,7 +108,7 @@
                         </div>
                         <div class="col-7">
                             <label for="frequency" class="form-label">&nbsp;</label>
-                            <select name="frequency" id="frequency" class="form-select no-select2" aria-label="{{ __('task.recurrence.schedule') }}">
+                            <select name="frequency" id="frequency" class="form-select" aria-label="{{ __('task.recurrence.schedule') }}">
                                 @foreach (array_keys(__('task.recurrence.units')) as $unit)
                                     <option value="{{ $unit }}" @selected($freq === $unit)>{{ __('task.recurrence.units.' . $unit) }}</option>
                                 @endforeach
@@ -169,7 +169,8 @@
 
 @push('js')
 <script>
-    document.getElementById('frequency').addEventListener('change', function () {
+    // jQuery عشان Select2 بيبعت change عن طريقه بس
+    $('#frequency').on('change', function () {
         document.querySelectorAll('[data-for]').forEach(el => el.classList.toggle('d-none', el.dataset.for !== this.value));
     });
 </script>

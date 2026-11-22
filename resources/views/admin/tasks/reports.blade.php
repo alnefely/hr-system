@@ -7,7 +7,7 @@
     $query = array_filter(['period' => $period['preset'], 'from' => $period['preset'] === 'custom' ? $period['from']->toDateString() : null,
         'to' => $period['preset'] === 'custom' ? $period['to']->toDateString() : null, 'project_id' => $projectId]);
     $projectSelect = '<div class="col-6 col-md-3"><label for="rp_project" class="form-label small mb-1">' . e(__('task.fields.project')) . '</label>'
-        . '<select name="project_id" id="rp_project" class="form-select no-select2" onchange="this.form.submit()"><option value="">' . e(__('task.reports.all_projects')) . '</option>'
+        . '<select name="project_id" id="rp_project" class="form-select" onchange="this.form.submit()"><option value="">' . e(__('task.reports.all_projects')) . '</option>'
         . $projectOptions->map(fn ($p) => '<option value="' . $p->id . '"' . ($projectId === $p->id ? ' selected' : '') . '>' . e($p->name) . '</option>')->implode('')
         . '</select></div>';
 @endphp

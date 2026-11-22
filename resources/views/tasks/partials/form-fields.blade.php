@@ -191,11 +191,14 @@
         const interval = document.getElementById('progress_update_interval');
         const wrapper = document.getElementById('everyDaysWrapper');
         const days = document.getElementById('progress_update_every_days');
-        interval?.addEventListener('change', function () {
-            const custom = this.value === 'custom';
-            wrapper.classList.toggle('d-none', !custom);
-            days.required = custom;
-        });
+        // jQuery عشان Select2 بيبعت change عن طريقه بس (addEventListener مابيسمعهوش)
+        if (interval) {
+            $(interval).on('change', function () {
+                const custom = this.value === 'custom';
+                wrapper.classList.toggle('d-none', !custom);
+                days.required = custom;
+            });
+        }
 
         const starts = document.getElementById('starts_at');
         const due = document.getElementById('due_at');

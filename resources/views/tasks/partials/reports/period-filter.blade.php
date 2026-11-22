@@ -5,7 +5,7 @@
     @endforeach
     <div class="col-12 col-md-3">
         <label for="rp_period" class="form-label small mb-1">{{ __('task.reports.period') }}</label>
-        <select name="period" id="rp_period" class="form-select no-select2"
+        <select name="period" id="rp_period" class="form-select"
                 onchange="document.getElementById('customRange').classList.toggle('d-none', this.value !== 'custom'); if (this.value !== 'custom') this.form.submit();">
             @foreach (__('task.reports.periods') as $value => $label)
                 <option value="{{ $value }}" @selected($period['preset'] === $value)>{{ $label }}</option>

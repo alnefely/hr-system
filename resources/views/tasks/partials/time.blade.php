@@ -56,7 +56,7 @@
                     @csrf
                     @unless ($isEmployee)
                         <label for="time_employee" class="form-label small mb-1">{{ __('task.time.employee') }}</label>
-                        <select name="employee_id" id="time_employee" class="form-select form-select-sm mb-2 no-select2" required>
+                        <select name="employee_id" id="time_employee" class="form-select form-select-sm mb-2" required>
                             @foreach ($assigneesForAdmin as $a)
                                 <option value="{{ $a->employee_id }}">{{ $a->employee?->name }}</option>
                             @endforeach
