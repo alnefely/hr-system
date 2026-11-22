@@ -10,8 +10,10 @@ use App\Models\Concerns\FlushesDashboardCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -160,6 +162,62 @@ class Employee extends Model implements Authenticatable
     public function admin(): BelongsTo
     {
         return $this->belongsTo(Admin::class);
+    }
+
+    // ========================================================
+    //  إدارة المهام
+    // ========================================================
+
+    /** المهام المكلّف بيها فعلياً (من غير اللي اعتذر عنها). */
+    public function assignedTasks(): BelongsToMany
+    {
+        return $this->belongsToMany(Task::class, 'task_assignees')
+            ->using(TaskAssignee::class)
+            ->withPivot(['id', 'status', 'decline_reason', 'responded_at'])
+            ->withTimestamps()
+            ->wherePivot('status', \App\Enums\TaskAssigneeStatus::Active->value);
+    }
+
+    public function taskAssignments(): HasMany
+    {
+        return $this->hasMany(TaskAssignee::class);
+    }
+
+    public function createdTasks(): MorphMany
+    {
+        return $this->morphMany(Task::class, 'creator');
+    }
+
+    public function projects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_members')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    public function managedProjects(): HasMany
+    {
+        return $this->hasMany(Project::class, 'manager_id');
+    }
+
+    public function taskTimeEntries(): HasMany
+    {
+        return $this->hasMany(TaskTimeEntry::class);
+    }
+
+    public function portalNotifications(): HasMany
+    {
+        return $this->hasMany(EmployeeNotification::class);
+    }
+
+    /** الموظف ده مدير مباشر لـ $employee؟ (من غير استعلام لو الموظف محمّل). */
+    public function manages(Employee|int $employee): bool
+    {
+        $managerId = $employee instanceof Employee
+            ? $employee->manager_id
+            : static::withoutGlobalScopes()->whereKey($employee)->value('manager_id');
+
+        return $managerId !== null && (int) $managerId === (int) $this->id;
     }
 
     public function allowances(): HasMany

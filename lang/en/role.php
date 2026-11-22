@@ -52,6 +52,13 @@ return [
         'penalty_reject' => 'Reject Penalty',
         'reward_approve' => 'Approve Reward',
         'reward_reject' => 'Reject Reward',
+        'project_template_manage' => 'Manage Project Templates',
+        'task_assign'             => 'Assign Employees to Tasks',
+        'task_review'             => 'Review & Approve Tasks',
+        'task_board'              => 'Live Tasks Board',
+        'task_label_manage'       => 'Manage Task Labels',
+        'task_recurrence_manage'  => 'Manage Recurring Tasks',
+        'task_report'             => 'Task & Performance Reports',
 ],
 
     // شرح الحقول (أيقونة ؟ جنب العنوان)

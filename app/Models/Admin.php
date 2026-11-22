@@ -57,6 +57,12 @@ class Admin extends Authenticatable
         return $this->belongsTo(Employee::class, 'employee_id');
     }
 
+    /** المهام اللي المشرف أنشأها من لوحة التحكم. */
+    public function createdTasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Task::class, 'creator');
+    }
+
     protected static function booted(): void
     {
         // مش كل حفظ للمشرف (زي remember_token وقت اللوجين) يستاهل نمسح
