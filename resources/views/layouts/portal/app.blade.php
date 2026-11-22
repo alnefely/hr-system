@@ -146,7 +146,7 @@
         <div class="layout-page">
 
             {{-- الشريط العلوي — نفس شريط لوحة الإدارة --}}
-            <nav class="layout-navbar container-xxl navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme" id="layout-navbar">
+            <nav class="layout-navbar container-fluid navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme" id="layout-navbar">
                 <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
                     <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)" role="button" aria-label="{{ __('global.toggle_menu') }}">
                         <i class="icon-base ti tabler-menu-2 icon-md" aria-hidden="true"></i>
@@ -244,7 +244,7 @@
             </nav>
 
             <div class="content-wrapper">
-                <div class="container-xxl flex-grow-1 container-p-y">
+                <div class="container-fluid flex-grow-1 container-p-y">
                     @foreach (['success' => 'success', 'error' => 'danger'] as $key => $class)
                         @if (session($key))
                             <div class="alert alert-{{ $class }} alert-dismissible">
@@ -268,7 +268,7 @@
                 </div>
 
                 <footer class="content-footer footer bg-footer-theme">
-                    <div class="container-xxl">
+                    <div class="container-fluid">
                         <div class="footer-container d-flex align-items-center justify-content-between py-4 flex-md-row flex-column">
                             <div class="text-body">Copyright &copy; {{ date('Y') }} {{ setting('site_name') }}. All rights reserved.</div>
                         </div>
