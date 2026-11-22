@@ -413,3 +413,20 @@ label [data-bs-toggle="tooltip"] {
 [data-bs-theme="dark"] .apexcharts-legend-text {
     color: var(--bs-body-color, #acabc1) !important;
 }
+
+/* ===== SweetAlert toast =====
+   ثيم الـ vendor بيدي كل عناوين النوافذ 2.375rem
+   (.swal2-container .swal2-popup .swal2-title) وده بيغلب قاعدة الـ toast
+   الأصلية، فرسالة صغيرة زي "تم تغيير حالة المهمة" كانت بتظهر بخط ضخم
+   وكل كلمة في سطر. التحديد هنا أعلى (4 كلاسات) فبيكسب من غير !important. */
+.swal2-container .swal2-popup.swal2-toast {
+  background: var(--bs-paper-bg, #fff);
+  border-radius: .5rem;
+  padding: .5rem 1rem;
+}
+.swal2-container .swal2-popup.swal2-toast .swal2-title {
+  font-size: .9375rem;
+  font-weight: 500;
+  line-height: 1.5;
+  margin: .5em .75em;
+}
