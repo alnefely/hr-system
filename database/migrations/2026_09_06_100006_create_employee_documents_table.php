@@ -25,6 +25,9 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index('expiry_date', 'employee_documents_expiry_date_idx');
+            $table->index('is_verified', 'employee_documents_is_verified_idx');
         });
     }
 

@@ -81,6 +81,7 @@ return new class extends Migration
 
             // فهرس الفلترة الأكثر استخداماً في القوائم والتقارير
             $table->index(['status', 'branch_id'], 'employees_status_branch_idx');
+            $table->index('hire_date', 'employees_hire_date_idx');
         });
 
         // القيد الدائري: admins.employee_id -> employees.id

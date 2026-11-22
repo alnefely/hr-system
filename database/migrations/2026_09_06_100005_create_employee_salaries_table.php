@@ -23,6 +23,8 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index(['employee_id', 'effective_date'], 'employee_salaries_employee_effective_idx');
         });
     }
 

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['employee_id', 'year']);
+            $table->index('year', 'employee_leave_balances_year_idx');
         });
     }
 

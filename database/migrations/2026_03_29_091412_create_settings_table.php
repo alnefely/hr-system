@@ -60,6 +60,7 @@ return new class extends Migration
             $table->unsignedInteger('order')->default(0);
             
             $table->timestamps();
+            $table->index('key', 'settings_key_idx');
         });
     }
 

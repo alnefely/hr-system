@@ -34,6 +34,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['year', 'month', 'branch_id']);
+            $table->index('status', 'payrolls_status_idx');
         });
     }
 

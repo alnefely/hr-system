@@ -30,6 +30,8 @@ return new class extends Migration
                 $table->foreignId('created_by')->nullable()->constrained('admins')->nullOnDelete();
                 $table->timestamps();
                 $table->softDeletes();
+
+                $table->index(['status', 'next_billing_date'], 'vendor_subscriptions_status_billing_idx');
             });
         }
     }
