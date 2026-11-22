@@ -81,13 +81,22 @@
         @if ($transitions !== [])
             <div class="task-status-actions d-flex flex-wrap gap-2 mt-3 pt-3 border-top">
                 @foreach ($transitions as $t)
-                    <form action="{{ route($routes . '.status', $task->id) }}" method="POST" class="d-inline-flex">
-                        @csrf
-                        <input type="hidden" name="status" value="{{ $t['status'] }}">
-                        <button type="submit" class="btn {{ $t['class'] }} w-100" @disabled($blocked && in_array($t['status'], ['in_progress', 'in_review', 'completed'], true))>
+                    @php $locked = $blocked && in_array($t['status'], ['in_progress', 'in_review', 'completed'], true); @endphp
+                    @if ($t['note'])
+                        {{-- التغييرات اللي محتاجة ملاحظة بتفتح نافذة --}}
+                        <button type="button" class="btn {{ $t['class'] }}" @disabled($locked)
+                                data-status-modal data-status="{{ $t['status'] }}" data-label="{{ $t['label'] }}" data-required="{{ $t['note'] === 'required' ? 1 : 0 }}">
                             <i class="fa-solid {{ $t['icon'] }} me-1"></i>{{ $t['label'] }}
                         </button>
-                    </form>
+                    @else
+                        <form action="{{ route($routes . '.status', $task->id) }}" method="POST" class="d-inline-flex">
+                            @csrf
+                            <input type="hidden" name="status" value="{{ $t['status'] }}">
+                            <button type="submit" class="btn {{ $t['class'] }} w-100" @disabled($locked)>
+                                <i class="fa-solid {{ $t['icon'] }} me-1"></i>{{ $t['label'] }}
+                            </button>
+                        </form>
+                    @endif
                 @endforeach
                 @if ($abilities['decline'] && \Illuminate\Support\Facades\Route::has($routes . '.decline'))
                     <button type="button" class="btn btn-label-danger" data-bs-toggle="modal" data-bs-target="#declineTaskModal">
@@ -179,6 +188,9 @@
                 </div>
             </div>
         @endif
+
+        @include('tasks.partials.dependencies')
+        @include('tasks.partials.reviews')
 
         @include('tasks.partials.comments')
 
@@ -382,6 +394,56 @@
             </div>
         </div>
     </div>
+@endif
+
+{{-- نافذة ملاحظة تغيير الحالة (تسليم، اعتماد، إرجاع بسبب، إلغاء) --}}
+@if ($transitions !== [])
+    <div class="modal fade" id="statusNoteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form action="{{ route($routes . '.status', $task->id) }}" method="POST" data-no-confirm>
+                    @csrf
+                    <input type="hidden" name="status" value="">
+                    <div class="modal-header border-bottom">
+                        <h5 class="modal-title fw-bold" data-title></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('global.cancel') }}"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="status_note" class="form-label" data-note-label
+                               data-required-text="{{ __('task.review.return_reason') }}" data-optional-text="{{ __('task.review.optional_note') }}"></label>
+                        <textarea name="note" id="status_note" class="form-control" rows="3" maxlength="1000"></textarea>
+                    </div>
+                    <div class="modal-footer border-top">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">{{ __('global.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>{{ __('task.review.confirm') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @push('js')
+    <script>
+        (function () {
+            const modalEl = document.getElementById('statusNoteModal');
+            if (!modalEl) return;
+            const form = modalEl.querySelector('form');
+            const note = form.querySelector('textarea');
+            const label = form.querySelector('[data-note-label]');
+            document.querySelectorAll('[data-status-modal]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const required = btn.dataset.required === '1';
+                    form.querySelector('[name=status]').value = btn.dataset.status;
+                    modalEl.querySelector('[data-title]').textContent = btn.dataset.label;
+                    label.textContent = required ? label.dataset.requiredText : label.dataset.optionalText;
+                    note.required = required;
+                    note.value = '';
+                    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    setTimeout(() => note.focus(), 300);
+                });
+            });
+        })();
+    </script>
+    @endpush
 @endif
 
 {{-- تحديث لحظي: إشعار جديد عن المهمة المفتوحة ← شريط "فيه جديد" بزرار تحديث --}}

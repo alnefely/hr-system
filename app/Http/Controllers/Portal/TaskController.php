@@ -33,7 +33,7 @@ use Illuminate\Http\Request;
  */
 class TaskController extends PortalController
 {
-    private const TABS = ['assigned', 'created', 'team', 'watching'];
+    private const TABS = ['assigned', 'review', 'created', 'team', 'watching'];
 
     private const PER_PAGE = 12;
 
@@ -67,6 +67,7 @@ class TaskController extends PortalController
             'tasks'    => $tasks,
             'tab'      => $tab,
             'hasTeam'  => $hasTeam,
+            'reviewCount' => Task::awaitingReviewBy($me)->count(),
             'filters'  => $filters,
             'stats'    => $this->stats($me),
             'projects' => Project::withoutGlobalScopes()->forEmployee($me->id)->orderBy('name')->get(['id', 'name']),
@@ -83,6 +84,7 @@ class TaskController extends PortalController
             'team'     => $query->whereIn('tasks.id', fn ($s) => $s->select('task_id')->from('task_assignees')
                 ->where('status', TaskAssigneeStatus::Active->value)
                 ->whereIn('employee_id', fn ($e) => $e->select('id')->from('employees')->where('manager_id', $me->id))),
+            'review'   => $query->awaitingReviewBy($me),
             'watching' => $query->whereIn('tasks.id', fn ($s) => $s->select('task_id')->from('task_watchers')
                 ->where('watcher_type', Employee::class)->where('watcher_id', $me->id)),
             default    => $query->assignedTo($me->id),

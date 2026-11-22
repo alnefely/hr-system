@@ -83,9 +83,36 @@ class TaskNotifier
 
         $recipients = $this->assignees($task)->push($task->creator);
 
+        if ($key === 'completed') {
+            $this->notifyUnblocked($task, $event->actor);
+        }
+
         $this->notify($recipients, $task, $event->actor, $key,
             $key === 'completed' ? 'fa-solid fa-circle-check' : ($key === 'cancelled' ? 'fa-solid fa-ban' : 'fa-solid fa-arrow-rotate-left'),
             $key === 'completed' ? 'success' : ($key === 'cancelled' ? 'danger' : 'warning'));
+    }
+
+    /**
+     * المهام اللي كانت مستنية المهمة دي وبقت جاهزة (كل اللي قبلها خلص)
+     * ← المكلّفين بيها يعرفوا إنهم يقدروا يبدأوا.
+     */
+    private function notifyUnblocked(Task $task, ?Model $actor): void
+    {
+        $ready = Task::withoutGlobalScopes()
+            ->whereNull('deleted_at')
+            ->whereIn('status', TaskStatus::openValues())
+            ->whereIn('id', fn ($q) => $q->select('task_id')->from('task_dependencies')->where('depends_on_id', $task->id))
+            // مفيش ولا مهمة قبلها لسه مفتوحة
+            ->whereNotExists(fn ($q) => $q->selectRaw('1')->from('task_dependencies as d')
+                ->join('tasks as blocker', 'blocker.id', '=', 'd.depends_on_id')
+                ->whereColumn('d.task_id', 'tasks.id')
+                ->whereNull('blocker.deleted_at')
+                ->where('blocker.status', '!=', TaskStatus::Completed->value))
+            ->get();
+
+        foreach ($ready as $dependent) {
+            $this->notify($this->assignees($dependent), $dependent, $actor, 'unblocked', 'fa-solid fa-lock-open', 'success', body: $task->title);
+        }
     }
 
     public function declined(TaskAssignmentDeclined $event): void

@@ -4,6 +4,7 @@ namespace App\Services\Tasks;
 
 use App\Enums\TaskAssigneeStatus;
 use App\Enums\TaskProgressSource;
+use App\Enums\TaskReviewStatus;
 use App\Enums\TaskStatus;
 use App\Events\Tasks\TaskAssigned;
 use App\Events\Tasks\TaskAssignmentDeclined;
@@ -18,6 +19,7 @@ use App\Models\TaskActivity;
 use App\Models\TaskAssignee;
 use App\Models\TaskChecklistItem;
 use App\Models\TaskProgressUpdate;
+use App\Models\TaskReview;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -189,11 +191,33 @@ class TaskService
             $this->ensureCanComplete($task, $actor);
         }
 
+        $note = $note !== null && trim($note) !== '' ? trim($note) : null;
+        $reviewer = null;
+
+        if ($to === TaskStatus::InReview) {
+            $task->loadMissing(['creator', 'assignees']);
+            $reviewer = $task->resolveReviewer();
+
+            // مفيش حد يراجع (موظف عمل مهمة لنفسه ومالوش مدير) ← يقفلها مباشرة
+            if ($reviewer === null) {
+                throw new InvalidStateException(__('task.errors.no_reviewer'));
+            }
+        }
+
+        // إرجاع مهمة من المراجعة: لصاحب القرار بس، وبسبب واضح للموظف
+        if ($from === TaskStatus::InReview && $to === TaskStatus::InProgress) {
+            $this->authorize($this->access->canApprove($task, $actor));
+
+            if ($note === null) {
+                throw new InvalidStateException(__('task.errors.return_reason_required'));
+            }
+        }
+
         if (in_array($to, [TaskStatus::InProgress, TaskStatus::InReview, TaskStatus::Completed], true) && $task->isBlocked()) {
             throw new InvalidStateException(__('task.errors.blocked'));
         }
 
-        DB::transaction(function () use ($task, $from, $to, $actor, $note) {
+        DB::transaction(function () use ($task, $from, $to, $actor, $note, $reviewer) {
             $task->status = $to->value;
             $task->last_activity_at = now();
 
@@ -211,7 +235,9 @@ class TaskService
 
             $task->save();
 
-            $this->record($task, $actor, 'status_changed', array_filter([
+            $event = $this->recordReview($task, $from, $to, $actor, $note, $reviewer);
+
+            $this->record($task, $actor, $event ?? 'status_changed', array_filter([
                 'from' => $from->value, 'to' => $to->value, 'note' => $note,
             ]));
 
@@ -221,6 +247,53 @@ class TaskService
         TaskStatusChanged::dispatch($task, $from->value, $to->value, $actor);
 
         return $task;
+    }
+
+    /**
+     * سجل المراجعات: التسليم بيفتح مراجعة معلّقة للمراجع، والقرار
+     * (اعتماد / إرجاع / إلغاء) بيقفلها باسم اللي قرر فعلاً.
+     *
+     * @return string|null اسم الحدث في الخط الزمني (null = تغيير حالة عادي)
+     */
+    private function recordReview(Task $task, TaskStatus $from, TaskStatus $to, Model $actor, ?string $note, ?Model $reviewer): ?string
+    {
+        if ($to === TaskStatus::InReview) {
+            // أي مراجعة قديمة معلّقة (المفروض مفيش) بتتقفل الأول
+            $task->reviews()->where('status', TaskReviewStatus::Pending->value)
+                ->update(['status' => TaskReviewStatus::Rejected->value, 'decided_at' => now()]);
+
+            TaskReview::create([
+                'task_id'         => $task->id,
+                'submitter_type'  => $actor::class,
+                'submitter_id'    => $actor->getKey(),
+                'submission_note' => $note,
+                'reviewer_type'   => $reviewer::class,
+                'reviewer_id'     => $reviewer->getKey(),
+                'status'          => TaskReviewStatus::Pending->value,
+            ]);
+
+            return 'review_submitted';
+        }
+
+        if ($from !== TaskStatus::InReview) {
+            return null;
+        }
+
+        $decision = $to === TaskStatus::Completed ? TaskReviewStatus::Approved : TaskReviewStatus::Rejected;
+
+        $task->reviews()->where('status', TaskReviewStatus::Pending->value)->update([
+            'status'        => $decision->value,
+            'decision_note' => $note,
+            'decided_at'    => now(),
+            'reviewer_type' => $actor::class,
+            'reviewer_id'   => $actor->getKey(),
+        ]);
+
+        return match ($to) {
+            TaskStatus::Completed  => 'review_approved',
+            TaskStatus::InProgress => 'review_returned',
+            default                => null,
+        };
     }
 
     /**
@@ -474,6 +547,85 @@ class TaskService
         $task->last_activity_at = now();
         $task->refreshCounters();
         $this->refreshParents($task);
+    }
+
+    // ========================================================
+    //  ارتباط المهام
+    // ========================================================
+
+    /**
+     * $task ماتبدأش إلا لما $dependsOn تخلص.
+     *
+     * - نفس الفرع (أو نفس المشروع)، ومش المهمة نفسها.
+     * - مفيش حلقة: لو $dependsOn مستنية $task (مباشرة أو بطريق غير مباشر)
+     *   الربط بيترفض — وإلا الاتنين هيفضلوا مستنيين بعض للأبد.
+     */
+    public function addDependency(Task $task, int $dependsOnId, Model $actor): void
+    {
+        $this->authorize($this->access->canUpdate($task, $actor));
+
+        $dependsOn = Task::withoutGlobalScopes()->whereNull('deleted_at')->find($dependsOnId);
+
+        if (! $dependsOn || $dependsOn->id === $task->id) {
+            throw new InvalidStateException(__('task.errors.invalid_dependency'));
+        }
+
+        $sameScope = $task->project_id ? $dependsOn->project_id === $task->project_id : $dependsOn->branch_id === $task->branch_id;
+
+        if (! $sameScope) {
+            throw new InvalidStateException(__('task.errors.invalid_dependency'));
+        }
+
+        if ($this->reaches($dependsOn->id, $task->id)) {
+            throw new InvalidStateException(__('task.errors.dependency_cycle'));
+        }
+
+        DB::transaction(function () use ($task, $dependsOn, $actor) {
+            $task->dependencies()->syncWithoutDetaching([$dependsOn->id]);
+            $this->record($task, $actor, 'dependency_added', ['title' => $dependsOn->title]);
+            $task->forceFill(['last_activity_at' => now()])->saveQuietly();
+        });
+    }
+
+    public function removeDependency(Task $task, int $dependsOnId, Model $actor): void
+    {
+        $this->authorize($this->access->canUpdate($task, $actor));
+
+        DB::transaction(function () use ($task, $dependsOnId, $actor) {
+            $title = Task::withoutGlobalScopes()->whereKey($dependsOnId)->value('title');
+
+            if ($task->dependencies()->detach($dependsOnId)) {
+                $this->record($task, $actor, 'dependency_removed', ['title' => $title]);
+            }
+        });
+    }
+
+    /**
+     * هل $from مستنية $target (مباشرة أو عبر سلسلة)؟
+     * بحث بالعرض على جدول الارتباطات — استعلام واحد لكل مستوى.
+     */
+    private function reaches(int $from, int $target): bool
+    {
+        $frontier = [$from];
+        $seen = [];
+
+        while ($frontier !== []) {
+            if (in_array($target, $frontier, true)) {
+                return true;
+            }
+
+            $seen = array_merge($seen, $frontier);
+            $frontier = DB::table('task_dependencies')
+                ->whereIn('task_id', $frontier)
+                ->pluck('depends_on_id')
+                ->map(fn ($id) => (int) $id)
+                ->diff($seen)
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        return false;
     }
 
     // ========================================================

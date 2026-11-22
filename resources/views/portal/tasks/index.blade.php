@@ -4,10 +4,15 @@
 @section('content')
 @include('tasks.partials.styles')
 @php
-    $tabs = ['assigned' => 'fa-user-check', 'created' => 'fa-pen', 'watching' => 'fa-eye'];
-    if ($hasTeam) {
-        $tabs = ['assigned' => 'fa-user-check', 'team' => 'fa-users', 'created' => 'fa-pen', 'watching' => 'fa-eye'];
+    $tabs = ['assigned' => 'fa-user-check'];
+    // تبويب المراجعة بيظهر لما يكون فيه مهام مستنية مراجعتي (أو انا فاتحه)
+    if ($reviewCount > 0 || $tab === 'review') {
+        $tabs['review'] = 'fa-clipboard-check';
     }
+    if ($hasTeam) {
+        $tabs['team'] = 'fa-users';
+    }
+    $tabs += ['created' => 'fa-pen', 'watching' => 'fa-eye'];
     $statusFilter = $filters['status'] ?? 'open';
     $cards = [
         ['open',        'fa-list-check',           'primary', 'open'],
@@ -43,6 +48,7 @@
                 <li class="nav-item">
                     <a class="nav-link text-nowrap {{ $tab === $key ? 'active' : '' }}" href="{{ route('portal.tasks.index', ['tab' => $key]) }}">
                         <i class="fa-solid {{ $icon }} me-1"></i>{{ __('task.tabs.' . $key) }}
+                        @if ($key === 'review' && $reviewCount > 0)<span class="badge bg-warning ms-1">{{ $reviewCount }}</span>@endif
                     </a>
                 </li>
             @endforeach

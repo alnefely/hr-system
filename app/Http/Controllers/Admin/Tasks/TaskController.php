@@ -40,10 +40,17 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $filters = TaskFilters::fromRequest($request);
+        // "بانتظار مراجعتي": المهام اللي المشرف ده هو مراجعها المسجّل
+        $mineToReview = $request->query('review') === 'mine';
+
+        if ($mineToReview) {
+            $filters['review'] = 'mine';
+        }
 
         if ($request->ajax()) {
             // select صريح: yajra بيعمل join للترتيب بأعمدة العلاقات
             $query = $this->filters->apply(Task::select('tasks.*'), $filters)
+                ->when($mineToReview, fn ($q) => $q->awaitingReviewBy(admin()))
                 ->with(['project:id,name,code', 'assignees:id,name,avatar', 'labels:id,name,color']);
 
             if (! $request->has('order')) {
@@ -71,6 +78,7 @@ class TaskController extends Controller
             'projects'   => Project::orderBy('name')->get(['id', 'name', 'code']),
             'employees'  => Employee::active()->orderBy('name')->get(['id', 'name', 'employee_code']),
             'trashCount' => admin_can('task_trash') ? Task::onlyTrashed()->count() : 0,
+            'reviewCount' => Task::awaitingReviewBy(admin())->count(),
         ]);
     }
 

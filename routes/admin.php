@@ -639,6 +639,8 @@ Route::put('/tasks/{task}/assignees', [TaskController::class, 'assignees'])->nam
 Route::post('/tasks/{task}/comments', [TaskCollaborationController::class, 'storeComment'])->whereNumber('task')->name('tasks.comments.store')->middleware('AdminPermission:task_show');
 Route::put('/tasks/{task}/comments/{comment}', [TaskCollaborationController::class, 'updateComment'])->whereNumber(['task', 'comment'])->name('tasks.comments.update')->middleware('AdminPermission:task_show');
 Route::delete('/tasks/{task}/comments/{comment}', [TaskCollaborationController::class, 'destroyComment'])->whereNumber(['task', 'comment'])->name('tasks.comments.destroy')->middleware('AdminPermission:task_show');
+Route::post('/tasks/{task}/dependencies', [TaskCollaborationController::class, 'storeDependency'])->whereNumber('task')->name('tasks.dependencies.store')->middleware('AdminPermission:task_update');
+Route::delete('/tasks/{task}/dependencies/{dependency}', [TaskCollaborationController::class, 'destroyDependency'])->whereNumber(['task', 'dependency'])->name('tasks.dependencies.destroy')->middleware('AdminPermission:task_update');
 Route::post('/tasks/{task}/attachments', [TaskCollaborationController::class, 'storeAttachments'])->whereNumber('task')->name('tasks.attachments.store')->middleware('AdminPermission:task_show');
 Route::get('/tasks/{task}/attachments/{attachment}', [TaskCollaborationController::class, 'downloadAttachment'])->whereNumber(['task', 'attachment'])->name('tasks.attachments.download')->middleware('AdminPermission:task_show');
 Route::delete('/tasks/{task}/attachments/{attachment}', [TaskCollaborationController::class, 'destroyAttachment'])->whereNumber(['task', 'attachment'])->name('tasks.attachments.destroy')->middleware('AdminPermission:task_show');

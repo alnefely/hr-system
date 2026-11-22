@@ -9,6 +9,7 @@ use App\Models\Task;
 use App\Models\TaskAttachment;
 use App\Models\TaskComment;
 use App\Services\Tasks\TaskCollaborationService;
+use App\Services\Tasks\TaskService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -72,6 +73,21 @@ trait HandlesTaskCollaboration
         $attachment = TaskAttachment::where('task_id', $task->id)->findOrFail($attachment);
 
         return $this->collaborate(fn () => $service->deleteAttachment($task, $attachment, $this->actor()), 'task.messages.file_deleted', '#attachments');
+    }
+
+    public function storeDependency(Request $request, int $task, TaskService $tasks): RedirectResponse
+    {
+        $task = $this->resolveTask($task);
+        $dependsOn = (int) $request->validate(['depends_on_id' => ['required', 'integer']])['depends_on_id'];
+
+        return $this->collaborate(fn () => $tasks->addDependency($task, $dependsOn, $this->actor()), 'task.messages.dependency_added', '#dependencies');
+    }
+
+    public function destroyDependency(int $task, int $dependency, TaskService $tasks): RedirectResponse
+    {
+        $task = $this->resolveTask($task);
+
+        return $this->collaborate(fn () => $tasks->removeDependency($task, $dependency, $this->actor()), 'task.messages.dependency_removed', '#dependencies');
     }
 
     /**

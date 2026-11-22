@@ -87,6 +87,7 @@ return [
         'created'  => 'أنشأتها',
         'team'     => 'مهام فريقي',
         'watching' => 'بتابعها',
+        'review'   => 'للمراجعة',
     ],
 
     'stats' => [
@@ -137,6 +138,11 @@ return [
         'commented'         => 'علّق على المهمة',
         'attachment_added'  => 'رفع ملفات: :names',
         'attachment_removed'=> 'حذف ملف: :names',
+        'review_submitted'  => 'سلّم المهمة للمراجعة',
+        'review_approved'   => 'اعتمد المهمة',
+        'review_returned'   => 'رجّع المهمة للتنفيذ',
+        'dependency_added'  => 'ربط المهمة بـ: :title',
+        'dependency_removed'=> 'شال ربط: :title',
     ],
 
     'messages' => [
@@ -156,6 +162,8 @@ return [
         'comment_deleted'   => 'تم حذف التعليق',
         'files_uploaded'    => 'تم رفع الملفات',
         'file_deleted'      => 'تم حذف الملف',
+        'dependency_added'  => 'تم ربط المهمة',
+        'dependency_removed'=> 'تم إلغاء الربط',
     ],
 
     'errors' => [
@@ -169,6 +177,10 @@ return [
         'invalid_assignee'   => 'فيه موظف مختار مينفعش يتكلّف بالمهمة دي (من فرع تاني ومش عضو في المشروع)',
         'empty_comment'      => 'اكتب تعليق أو ارفع ملف',
         'upload_failed'      => 'فشل رفع الملف — حاول تاني',
+        'no_reviewer'            => 'مفيش حد يراجع المهمة دي — تقدر تقفلها مباشرة',
+        'return_reason_required' => 'اكتب سبب الإرجاع عشان الموظف يعرف المطلوب',
+        'invalid_dependency'     => 'المهمة دي مينفعش تترابط (لازم تكون في نفس الفرع أو المشروع)',
+        'dependency_cycle'       => 'الربط ده هيعمل حلقة — المهمة التانية مستنية المهمة دي أصلاً',
     ],
 
     'hints' => [
@@ -227,7 +239,7 @@ return [
     'review_status_enums' => [
         'pending'  => 'بانتظار المراجعة',
         'approved' => 'معتمدة',
-        'rejected' => 'مرفوضة',
+        'rejected' => 'رجعت للتعديل',
     ],
 
     'frequency_enums' => [
@@ -255,6 +267,7 @@ return [
         'declined'         => ':actor اعتذر عن المهمة',
         'commented'        => ':actor علّق على مهمة',
         'mentioned'        => ':actor أشار إليك في تعليق',
+        'unblocked'        => 'مهمة كنت مستنيها خلصت — تقدر تبدأ',
     ],
 
     'comments' => [
@@ -279,6 +292,32 @@ return [
         'empty'    => 'مفيش مرفقات',
         'download' => 'تنزيل',
         'hint'     => 'حتى :count ملفات، الملف لحد :size ميجا (صور، PDF، Word، Excel، PowerPoint، نصوص، ZIP).',
+    ],
+
+
+    'review' => [
+        'title'          => 'المراجعات',
+        'submitted_by'   => 'سلّمها :name',
+        'decided_by'     => 'قرار :name',
+        'awaiting'       => 'بانتظار مراجعة :name',
+        'note'           => 'ملاحظة التسليم',
+        'decision_note'  => 'ملاحظة القرار',
+        'return_reason'  => 'سبب الإرجاع',
+        'optional_note'  => 'ملاحظة (اختياري)',
+        'confirm'        => 'تأكيد',
+        'awaiting_me'    => 'بانتظار مراجعتي',
+        'empty'          => 'المهمة ماتسلّمتش للمراجعة قبل كده',
+    ],
+
+    'dependencies' => [
+        'title'       => 'ارتباط المهام',
+        'waits_on'    => 'مستنية المهام دي تخلص',
+        'blocks'      => 'مهام مستنية المهمة دي',
+        'add'         => 'ربط بمهمة',
+        'choose'      => 'اختار مهمة لازم تخلص الأول',
+        'none'        => 'مش مرتبطة بأي مهمة',
+        'remove'      => 'إلغاء الربط',
+        'hint'        => 'المهمة مش هتبدأ إلا لما كل المهام اللي فوق تخلص.',
     ],
 
 ];

@@ -93,6 +93,8 @@ Route::prefix('portal')->name('portal.')->middleware('throttle:WebRateLimiter')-
         Route::post('/tasks/{task}/comments', [TaskCollaborationController::class, 'storeComment'])->whereNumber('task')->name('tasks.comments.store');
         Route::put('/tasks/{task}/comments/{comment}', [TaskCollaborationController::class, 'updateComment'])->whereNumber(['task', 'comment'])->name('tasks.comments.update');
         Route::delete('/tasks/{task}/comments/{comment}', [TaskCollaborationController::class, 'destroyComment'])->whereNumber(['task', 'comment'])->name('tasks.comments.destroy');
+        Route::post('/tasks/{task}/dependencies', [TaskCollaborationController::class, 'storeDependency'])->whereNumber('task')->name('tasks.dependencies.store');
+        Route::delete('/tasks/{task}/dependencies/{dependency}', [TaskCollaborationController::class, 'destroyDependency'])->whereNumber(['task', 'dependency'])->name('tasks.dependencies.destroy');
         Route::post('/tasks/{task}/attachments', [TaskCollaborationController::class, 'storeAttachments'])->whereNumber('task')->name('tasks.attachments.store');
         Route::get('/tasks/{task}/attachments/{attachment}', [TaskCollaborationController::class, 'downloadAttachment'])->whereNumber(['task', 'attachment'])->name('tasks.attachments.download');
         Route::delete('/tasks/{task}/attachments/{attachment}', [TaskCollaborationController::class, 'destroyAttachment'])->whereNumber(['task', 'attachment'])->name('tasks.attachments.destroy');

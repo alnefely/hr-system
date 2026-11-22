@@ -40,6 +40,10 @@ class TaskViewData
             'subtasks.assignees:id,name,avatar',
             'labels:id,name,color',
             'dependencies:id,code,title,status',
+            'dependents:id,code,title,status',
+            'reviews' => fn ($q) => $q->latest('id')->limit(10),
+            'reviews.submitter',
+            'reviews.reviewer',
             'progressUpdates' => fn ($q) => $q->limit(self::PROGRESS_LIMIT),
             'progressUpdates.author',
             'activities' => fn ($q) => $q->limit(self::TIMELINE_LIMIT),
@@ -65,6 +69,7 @@ class TaskViewData
             'health'       => $task->progressHealth(),
             'blocked'      => $task->isOpen() && $task->dependencies->contains(fn ($d) => $d->status !== TaskStatus::Completed->value),
             'actor'        => $actor,
+            'dependencyCandidates' => $abilities['update'] && $task->isOpen() ? $this->dependencyCandidates($task) : collect(),
             'mentionable'  => Employee::withoutGlobalScopes()
                 ->whereIn('id', app(TaskCollaborationService::class)->mentionableIds($task))
                 ->orderBy('name')->get(['id', 'name']),
@@ -113,6 +118,13 @@ class TaskViewData
 
             $buttons[] = [
                 'status' => $to->value,
+                // ملاحظة مع التغيير: إجبارية للإرجاع، اختيارية للتسليم والاعتماد والإلغاء
+                'note'   => match (true) {
+                    $button[0] === 'return' => 'required',
+                    in_array($button[0], ['send_to_review', 'cancel'], true),
+                    $button[0] === 'complete' && $from === TaskStatus::InReview => 'optional',
+                    default => null,
+                },
                 'action' => $button[0],
                 'label'  => __('task.actions.' . $button[0]),
                 'class'  => $button[1],
@@ -121,6 +133,25 @@ class TaskViewData
         }
 
         return $buttons;
+    }
+
+    /**
+     * المهام اللي ينفع المهمة تستناها: مفتوحة، في نفس المشروع (أو نفس
+     * الفرع لو مش في مشروع)، ومش مربوطة أصلاً.
+     */
+    private function dependencyCandidates(Task $task)
+    {
+        return Task::withoutGlobalScopes()
+            ->whereNull('deleted_at')
+            ->whereKeyNot($task->id)
+            ->whereIn('status', TaskStatus::openValues())
+            ->when($task->project_id,
+                fn ($q) => $q->where('project_id', $task->project_id),
+                fn ($q) => $q->where('branch_id', $task->branch_id)->whereNull('project_id'))
+            ->whereNotIn('id', $task->dependencies->pluck('id'))
+            ->latest('id')
+            ->limit(200)
+            ->get(['id', 'code', 'title']);
     }
 
     /**

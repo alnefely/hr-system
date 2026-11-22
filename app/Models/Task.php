@@ -277,6 +277,17 @@ class Task extends Model
             ->where('status', TaskAssigneeStatus::Active->value));
     }
 
+    /** مهام مستنية مراجعة الشخص ده بالذات (المراجع المسجّل وقت التسليم). */
+    public function scopeAwaitingReviewBy(Builder $query, Model $reviewer): Builder
+    {
+        return $query->where($this->qualifyColumn('status'), TaskStatus::InReview->value)
+            ->whereIn($this->qualifyColumn('id'), fn ($sub) => $sub->select('task_id')
+                ->from('task_reviews')
+                ->where('status', TaskReviewStatus::Pending->value)
+                ->where('reviewer_type', $reviewer::class)
+                ->where('reviewer_id', $reviewer->getKey()));
+    }
+
     /**
      * كل المهام اللي الموظف يحق له يشوفها في البوابة:
      * مكلّف بيها، أو هو اللي عملها، أو بيتابعها، أو مكلّف بيها حد من

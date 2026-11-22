@@ -106,6 +106,13 @@
     <div class="card-header d-flex justify-content-between align-items-center border-bottom flex-wrap gap-2">
         <h5 class="card-title mb-0"><i class="fa-solid fa-list-check text-primary me-2"></i>{{ __('task.title') }}</h5>
         <div class="d-flex gap-2 flex-wrap">
+            @if ($reviewCount > 0 || ($filters['review'] ?? null) === 'mine')
+                <a href="{{ ($filters['review'] ?? null) === 'mine' ? route('admin.tasks.index') : route('admin.tasks.index', ['review' => 'mine']) }}"
+                   class="btn {{ ($filters['review'] ?? null) === 'mine' ? 'btn-warning' : 'btn-label-warning' }}">
+                    <i class="fa-solid fa-clipboard-check me-1"></i>{{ __('task.review.awaiting_me') }}
+                    @if ($reviewCount > 0)<span class="badge bg-warning text-dark ms-1">{{ $reviewCount }}</span>@endif
+                </a>
+            @endif
             @if (admin_can('task_trash'))
                 <a href="{{ route('admin.tasks.trash') }}" class="btn btn-label-danger">
                     <i class="fa-solid fa-trash me-1"></i>{{ __('task.trash') }}

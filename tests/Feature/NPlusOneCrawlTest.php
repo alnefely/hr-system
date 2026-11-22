@@ -169,6 +169,8 @@ class NPlusOneCrawlTest extends TestCase
             'members' => array_fill_keys($colleagues, 'member'), 'template_id' => $template->id,
         ], $employee);
 
+        $previous = null;
+
         foreach ([1, 2, 3] as $i) {
             $task = $service->create([
                 'title' => "Crawl task {$i}", 'branch_id' => $employee->branch_id, 'project_id' => $i === 1 ? $project->id : null,
@@ -188,6 +190,12 @@ class NPlusOneCrawlTest extends TestCase
             $collab->addComment($task, "reply {$i}", $employee, $comment->id);
             $collab->addComment($task, "second {$i}", $employee);
             $collab->addAttachments($task, [\Illuminate\Http\UploadedFile::fake()->image("p{$i}.png")], $employee);
+
+            // ارتباط بالمهمة اللي قبلها (نفس الفرع، من غير مشروع)
+            if ($previous && ! $task->project_id && ! $previous->project_id) {
+                $service->addDependency($task, $previous->id, $employee);
+            }
+            $previous = $task;
         }
     }
 

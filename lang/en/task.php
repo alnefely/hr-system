@@ -87,6 +87,7 @@ return [
         'created'  => 'Created by me',
         'team'     => 'My team',
         'watching' => 'Watching',
+        'review'   => 'To review',
     ],
 
     'stats' => [
@@ -137,6 +138,11 @@ return [
         'commented'         => 'commented on the task',
         'attachment_added'  => 'uploaded files: :names',
         'attachment_removed'=> 'removed a file: :names',
+        'review_submitted'  => 'submitted the task for review',
+        'review_approved'   => 'approved the task',
+        'review_returned'   => 'returned the task to work',
+        'dependency_added'  => 'made it wait on: :title',
+        'dependency_removed'=> 'removed the link to: :title',
     ],
 
     'messages' => [
@@ -156,6 +162,8 @@ return [
         'comment_deleted'   => 'Comment deleted',
         'files_uploaded'    => 'Files uploaded',
         'file_deleted'      => 'File deleted',
+        'dependency_added'  => 'Task linked',
+        'dependency_removed'=> 'Link removed',
     ],
 
     'errors' => [
@@ -169,6 +177,10 @@ return [
         'invalid_assignee'   => 'A selected employee cannot be assigned to this task (another branch and not a project member)',
         'empty_comment'      => 'Write a comment or attach a file',
         'upload_failed'      => 'File upload failed — please try again',
+        'no_reviewer'            => 'Nobody can review this task — you can complete it directly',
+        'return_reason_required' => 'Write a reason so the employee knows what to fix',
+        'invalid_dependency'     => 'This task cannot be linked (it must be in the same branch or project)',
+        'dependency_cycle'       => 'This link would create a loop — the other task already waits on this one',
     ],
 
     'hints' => [
@@ -227,7 +239,7 @@ return [
     'review_status_enums' => [
         'pending'  => 'Awaiting review',
         'approved' => 'Approved',
-        'rejected' => 'Rejected',
+        'rejected' => 'Returned',
     ],
 
     'frequency_enums' => [
@@ -255,6 +267,7 @@ return [
         'declined'         => ':actor declined the task',
         'commented'        => ':actor commented on a task',
         'mentioned'        => ':actor mentioned you in a comment',
+        'unblocked'        => 'A task you were waiting on is done — you can start',
     ],
 
     'comments' => [
@@ -279,6 +292,32 @@ return [
         'empty'    => 'No attachments',
         'download' => 'Download',
         'hint'     => 'Up to :count files, :size MB each (images, PDF, Word, Excel, PowerPoint, text, ZIP).',
+    ],
+
+
+    'review' => [
+        'title'          => 'Reviews',
+        'submitted_by'   => 'Submitted by :name',
+        'decided_by'     => 'Decided by :name',
+        'awaiting'       => 'Awaiting review by :name',
+        'note'           => 'Submission note',
+        'decision_note'  => 'Decision note',
+        'return_reason'  => 'Reason for returning',
+        'optional_note'  => 'Note (optional)',
+        'confirm'        => 'Confirm',
+        'awaiting_me'    => 'Awaiting my review',
+        'empty'          => 'This task has not been submitted for review yet',
+    ],
+
+    'dependencies' => [
+        'title'       => 'Task dependencies',
+        'waits_on'    => 'Waits for these tasks to finish',
+        'blocks'      => 'Tasks waiting on this one',
+        'add'         => 'Link a task',
+        'choose'      => 'Pick a task that must finish first',
+        'none'        => 'Not linked to any task',
+        'remove'      => 'Remove link',
+        'hint'        => 'The task cannot start until all tasks above are done.',
     ],
 
 ];
