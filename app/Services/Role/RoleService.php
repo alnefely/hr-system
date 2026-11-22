@@ -383,6 +383,41 @@ class RoleService
                     'link_stats',
                 ],
             ],
+            'project' => [
+                'label' => 'project.title',
+                'items' => [
+                    'project_show',
+                    'project_create',
+                    'project_update',
+                    'project_delete',
+                    'project_trash',
+                    'project_restore',
+                    'project_force_delete',
+                    // قوالب المشاريع الجاهزة
+                    'project_template_manage',
+                ],
+            ],
+            'task' => [
+                'label' => 'task.title',
+                'items' => [
+                    'task_show',
+                    'task_create',
+                    'task_update',
+                    'task_delete',
+                    'task_trash',
+                    'task_restore',
+                    'task_force_delete',
+                    // تكليف وإلغاء تكليف الموظفين
+                    'task_assign',
+                    // اعتماد أو رفض المهام المسلّمة (حتى لو مش هو المراجع)
+                    'task_review',
+                    // لوحة المهام المفتوحة المباشرة (ريل تايم)
+                    'task_board',
+                    'task_label_manage',
+                    'task_recurrence_manage',
+                    'task_report',
+                ],
+            ],
         ];
     }
 

@@ -28,6 +28,8 @@ return [
         'subscription_due_soon'   => 'اشتراك يقترب من التجديد',
         'petty_cash_low'          => 'رصيد عهدة منخفض',
         'invoice_overdue'         => 'فاتورة متأخرة السداد',
+        'task_review_requested'   => 'مهمة محتاجة مراجعة',
+        'task_activity'           => 'نشاط على مهمة',
     ],
 
     'messages' => [

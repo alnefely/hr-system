@@ -60,6 +60,13 @@ return [
         'penalty_reject' => 'رفض الجزاء',
         'reward_approve' => 'اعتماد المكافأة',
         'reward_reject' => 'رفض المكافأة',
+        'project_template_manage' => 'إدارة قوالب المشاريع',
+        'task_assign'             => 'تكليف الموظفين بالمهام',
+        'task_review'             => 'مراجعة واعتماد المهام',
+        'task_board'              => 'لوحة المهام المباشرة',
+        'task_label_manage'       => 'إدارة تصنيفات المهام',
+        'task_recurrence_manage'  => 'إدارة المهام المتكررة',
+        'task_report'             => 'تقارير المهام والأداء',
 ],
 
     // شرح الحقول (أيقونة ؟ جنب العنوان)

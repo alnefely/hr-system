@@ -357,6 +357,8 @@
                     .bind('notification.created', function (data) {
                         setCount(data.unread_count);
                         if (bell.querySelector('.dropdown-menu.show')) load();
+                        // الصفحات المفتوحة (تفاصيل مهمة مثلاً) بتسمع وتعرض تنبيه تحديث
+                        document.dispatchEvent(new CustomEvent('admin:notification', { detail: data.notification }));
                     });
           } catch (e) {
               // فشل الاتصال بـ Pusher مايكسرش الصفحة — الجرس يفضل شغال بالتحميل اليدوي

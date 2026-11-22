@@ -143,6 +143,47 @@
             </li>
         @endif
 
+        @if (admin_can('project_show'))
+            <li class="menu-item {{ request()->is('admin/projects*') || request()->is('admin/project-templates*') ? 'active' : '' }}">
+                <a href="{{ route('admin.projects.index') }}" class="menu-link">
+                    <i class="fa-solid fa-diagram-project"></i>
+                    <div>{{ __('project.title') }}</div>
+                </a>
+            </li>
+        @endif
+
+        @if (admin_can('task_show'))
+            <li class="menu-item {{ request()->is('admin/tasks*') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="fa-solid fa-list-check"></i>
+                    <div>{{ __('task.title') }}</div>
+                </a>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->is('admin/tasks') || (request()->is('admin/tasks/*') && ! request()->is('admin/tasks/board*') && ! request()->is('admin/tasks/calendar*') && ! request()->is('admin/tasks/reports*') && ! request()->is('admin/tasks/recurrences*')) ? 'active' : '' }}">
+                        <a href="{{ route('admin.tasks.index') }}" class="menu-link"><div>{{ __('task.views.list') }}</div></a>
+                    </li>
+                    @if (admin_can('task_board'))
+                        <li class="menu-item {{ request()->is('admin/tasks/board*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.tasks.board') }}" class="menu-link"><div>{{ __('task.views.board_title') }}</div></a>
+                        </li>
+                    @endif
+                    <li class="menu-item {{ request()->is('admin/tasks/calendar*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.tasks.calendar') }}" class="menu-link"><div>{{ __('task.views.calendar_title') }}</div></a>
+                    </li>
+                    @if (admin_can('task_recurrence_manage'))
+                        <li class="menu-item {{ request()->is('admin/tasks/recurrences*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.tasks.recurrences.index') }}" class="menu-link"><div>{{ __('task.recurrence.title') }}</div></a>
+                        </li>
+                    @endif
+                    @if (admin_can('task_report'))
+                        <li class="menu-item {{ request()->is('admin/tasks/reports*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.tasks.reports') }}" class="menu-link"><div>{{ __('task.reports.title') }}</div></a>
+                        </li>
+                    @endif
+                </ul>
+            </li>
+        @endif
+
         @if (admin_can('payroll_show'))
             <li class="menu-item {{ request()->is('admin/payrolls*') ? 'active' : '' }}">
                 <a href="{{ route('admin.payrolls.index') }}" class="menu-link">

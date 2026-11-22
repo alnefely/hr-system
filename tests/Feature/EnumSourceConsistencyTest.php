@@ -42,6 +42,16 @@ class EnumSourceConsistencyTest extends TestCase
             'permission status' => ['employee_permissions', 'status', 'permission.status_enums'],
             'sale status'       => ['sales', 'payment_status', 'sale.statuses'],
             'subscription'      => ['vendor_subscriptions', 'status', 'vendor_subscription.statuses'],
+            'project status'    => ['projects', 'status', 'project.status_enums'],
+            'project member'    => ['project_members', 'role', 'project.member_role_enums'],
+            'task status'       => ['tasks', 'status', 'task.status_enums'],
+            'task priority'     => ['tasks', 'priority', 'task.priority_enums'],
+            'task progress src' => ['tasks', 'progress_source', 'task.progress_source_enums'],
+            'task progress int' => ['tasks', 'progress_update_interval', 'task.progress_interval_enums'],
+            'task assignee'     => ['task_assignees', 'status', 'task.assignee_status_enums'],
+            'task review'       => ['task_reviews', 'status', 'task.review_status_enums'],
+            'task frequency'    => ['task_recurrences', 'frequency', 'task.frequency_enums'],
+            'task reminder'     => ['task_reminders', 'type', 'task.reminder_type_enums'],
         ];
     }
 

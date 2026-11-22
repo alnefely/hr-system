@@ -56,7 +56,19 @@ class HomeController extends PortalController
             ->orderBy('expiry_date')
             ->get(['id', 'title', 'document_type', 'expiry_date']);
 
+        // مهامي: أقرب المهام في التسليم + عدادات (استعلامين)
+        $myTasks = \App\Models\Task::query()->assignedTo($employee->id)->open()
+            ->orderByRaw('CASE WHEN due_at IS NULL THEN 1 ELSE 0 END')->orderBy('due_at')
+            ->limit(5)
+            ->get(['id', 'code', 'title', 'status', 'priority', 'due_at', 'progress', 'starts_at', 'created_at']);
+        $taskCounts = \App\Models\Task::query()->assignedTo($employee->id)->toBase()
+            ->selectRaw('SUM(CASE WHEN status IN (?, ?, ?) THEN 1 ELSE 0 END) as open', \App\Enums\TaskStatus::openValues())
+            ->selectRaw('SUM(CASE WHEN status IN (?, ?, ?) AND due_at IS NOT NULL AND due_at < ? THEN 1 ELSE 0 END) as overdue', [...\App\Enums\TaskStatus::openValues(), now()])
+            ->first();
+
         return view('portal.home', [
+            'myTasks'          => $myTasks,
+            'taskCounts'       => ['open' => (int) ($taskCounts->open ?? 0), 'overdue' => (int) ($taskCounts->overdue ?? 0)],
             'expiringDocuments' => $expiringDocuments,
             'employee'         => $employee,
             'balance'          => $balance,

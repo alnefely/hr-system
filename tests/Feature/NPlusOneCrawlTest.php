@@ -38,11 +38,14 @@ class NPlusOneCrawlTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        \Illuminate\Support\Facades\Storage::fake('local');
         $this->seed(ComprehensiveDummySeeder::class);
 
         // بيانات مش في الـ seeder: أكتر من سجل عشان N+1 يبان
         \App\Models\Link::create(['short_code' => 'Crw1111', 'original_url' => 'https://example.com/a', 'is_active' => true]);
         \App\Models\Link::create(['short_code' => 'Crw2222', 'original_url' => 'https://example.com/b', 'is_active' => true]);
+
+        $this->seedTasks(Employee::withoutGlobalScopes()->orderBy('id')->first());
 
         $advanceId = DB::table('employee_advances')->min('id');
         foreach ([100, 50] as $amount) {
@@ -129,6 +132,16 @@ class NPlusOneCrawlTest extends TestCase
             ]);
         }
 
+        $this->seedTasks($employee);
+
+        // الفحص بيفتح أول مهمة في الجدول — الموظف بيتابع كل المهام عشان يشوفها
+        foreach (\App\Models\Task::withoutGlobalScopes()->pluck('id') as $taskId) {
+            \App\Models\TaskWatcher::firstOrCreate(['task_id' => $taskId, 'watcher_type' => Employee::class, 'watcher_id' => $employee->id]);
+        }
+        foreach (\App\Models\Project::withoutGlobalScopes()->get() as $p) {
+            $p->members()->syncWithoutDetaching([$employee->id => ['role' => $p->manager_id === $employee->id ? 'manager' : 'viewer']]);
+        }
+
         // قسيمتين مصروفين في مسيرين مختلفين (عشان علاقة payroll)
         foreach ([$payroll, \App\Models\Payroll::create([
             'title' => 'Crawl 2', 'year' => 2025, 'month' => 2, 'branch_id' => $employee->branch_id, 'status' => 'paid',
@@ -137,6 +150,66 @@ class NPlusOneCrawlTest extends TestCase
                 'payroll_id' => $p->id, 'employee_id' => $employee->id, 'basic_salary' => 5000,
                 'allowances' => 0, 'deductions' => 0, 'status' => 'paid', 'paid_at' => now(),
             ]);
+        }
+    }
+
+    /**
+     * مهام بكل علاقاتها (مكلّفين، خطوات، فرعية، تصنيفات، تحديثات نسبة)
+     * مكلّف بيها الموظف ده — عشان N+1 في قوائم وتفاصيل المهام يبان.
+     */
+    private function seedTasks(Employee $employee): void
+    {
+        $service = app(\App\Services\Tasks\TaskService::class);
+        $colleagues = Employee::withoutGlobalScopes()->where('branch_id', $employee->branch_id)
+            ->whereKeyNot($employee->id)->limit(2)->pluck('id')->all();
+        $label = \App\Models\TaskLabel::create(['name' => 'Crawl', 'color' => '#7367f0']);
+        $template = \App\Models\ProjectTemplate::firstOrCreate(['name' => 'Crawl template'], ['is_active' => true, 'structure' => [['title' => 'T1', 'checklist' => ['a']], ['title' => 'T2']]]);
+        $project = app(\App\Services\Projects\ProjectService::class)->create([
+            'branch_id' => $employee->branch_id, 'name' => 'Crawl project ' . $employee->id, 'manager_id' => $employee->id,
+            'members' => array_fill_keys($colleagues, 'member'), 'template_id' => $template->id,
+        ], $employee);
+
+        $previous = null;
+
+        // قواعد تكرار (شاشة المهام المتكررة)
+        foreach (['weekly', 'monthly'] as $frequency) {
+            app(\App\Services\Tasks\TaskRecurrenceService::class)->save([
+                'title' => "Crawl {$frequency}", 'priority' => 'low', 'branch_id' => $employee->branch_id,
+                'assignee_ids' => [$employee->id, ...$colleagues], 'frequency' => $frequency, 'interval' => 1,
+                'weekdays' => [0, 3], 'month_day' => 10, 'run_time' => '08:00', 'duration_days' => 1, 'starts_on' => today()->toDateString(),
+            ], $employee);
+        }
+
+        foreach ([1, 2, 3] as $i) {
+            $task = $service->create([
+                'title' => "Crawl task {$i}", 'branch_id' => $employee->branch_id, 'project_id' => $i === 1 ? $project->id : null,
+                'assignee_ids' => [$employee->id, ...$colleagues], 'checklist' => ['a', 'b'], 'label_ids' => [$label->id],
+                'due_at' => now()->addDays($i - 2)->toDateTimeString(), 'starts_at' => now()->subDays(3)->toDateTimeString(),
+            ], $employee);
+
+            $service->create(['title' => "Crawl sub {$i}", 'parent_id' => $task->id, 'assignee_ids' => [$employee->id]], $employee);
+            $service->updateProgress($task, 20 * $i, $employee, 'note');
+            $service->changeStatus($task->fresh(), \App\Enums\TaskStatus::InReview, $employee);
+            \App\Models\TaskWatcher::create(['task_id' => $task->id, 'watcher_type' => Employee::class, 'watcher_id' => $employee->id]);
+
+            // تعليقات بردود ومرفقات + إشعارات — عشان N+1 في النقاش يبان
+            $collab = app(\App\Services\Tasks\TaskCollaborationService::class);
+            $comment = $collab->addComment($task, "comment {$i}", $employee, null, $colleagues,
+                [\Illuminate\Http\UploadedFile::fake()->create("c{$i}.pdf", 5, 'application/pdf')]);
+            $collab->addComment($task, "reply {$i}", $employee, $comment->id);
+            $collab->addComment($task, "second {$i}", $employee);
+            $collab->addAttachments($task, [\Illuminate\Http\UploadedFile::fake()->image("p{$i}.png")], $employee);
+
+            // ارتباط بالمهمة اللي قبلها (نفس الفرع، من غير مشروع)
+            if ($previous && ! $task->project_id && ! $previous->project_id) {
+                $service->addDependency($task, $previous->id, $employee);
+            }
+            $previous = $task;
+
+            // وقت متسجّل (يدوي + عدّاد) — سجل الوقت في المهمة وصفحة سجل وقتي
+            $time = app(\App\Services\Tasks\TaskTimeService::class);
+            $time->addManual($task, $employee, 30 * $i, today(), "work {$i}");
+            $time->start($task, $employee);
         }
     }
 
@@ -228,6 +301,7 @@ class NPlusOneCrawlTest extends TestCase
                 'customer_source' => 'customer_sources',
                 'sales_channel'   => 'sales_channels',
                 'vendor_subscription', 'subscription' => 'vendor_subscriptions',
+                'recurrence'      => 'task_recurrences',
                 'group'           => null,
                 default           => Str::plural(Str::snake($param)),
             };

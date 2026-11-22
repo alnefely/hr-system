@@ -23,6 +23,8 @@ enum NotificationType: string
     case SubscriptionDueSoon   = 'subscription_due_soon';
     case PettyCashLow          = 'petty_cash_low';
     case InvoiceOverdue        = 'invoice_overdue';
+    case TaskReviewRequested   = 'task_review_requested';
+    case TaskActivity          = 'task_activity';
 
     public function label(): string
     {
@@ -49,6 +51,8 @@ enum NotificationType: string
             self::SubscriptionDueSoon                    => 'fa-solid fa-repeat',
             self::PettyCashLow                           => 'fa-solid fa-wallet',
             self::InvoiceOverdue                         => 'fa-solid fa-file-invoice-dollar',
+            self::TaskReviewRequested                    => 'fa-solid fa-clipboard-check',
+            self::TaskActivity                           => 'fa-solid fa-list-check',
         };
     }
 
@@ -56,7 +60,8 @@ enum NotificationType: string
     {
         return match ($this) {
             self::PettyCashLow, self::InvoiceOverdue => 'danger',
-            self::SubscriptionDueSoon                => 'warning',
+            self::SubscriptionDueSoon,
+            self::TaskReviewRequested                => 'warning',
             self::LeaveDecided, self::AdvanceDecided => 'success',
             default                                  => 'info',
         };
@@ -73,6 +78,7 @@ enum NotificationType: string
             self::SubscriptionDueSoon                    => 'vendor_subscription_show',
             self::PettyCashLow                           => 'expense_show',
             self::InvoiceOverdue                         => 'sale_show',
+            self::TaskReviewRequested, self::TaskActivity => 'task_show',
         };
     }
 }

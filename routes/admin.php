@@ -10,6 +10,10 @@ use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\LinkStatsController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\Projects\ProjectController;
+use App\Http\Controllers\Admin\Projects\ProjectTemplateController;
+use App\Http\Controllers\Admin\Tasks\TaskCollaborationController;
+use App\Http\Controllers\Admin\Tasks\TaskController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthAdminController::class,'login'])->name('login');
@@ -616,3 +620,96 @@ Route::resource('/links', LinkController::class)
     ->middlewareFor('edit', 'AdminPermission:link_update')
     ->middlewareFor('update', 'AdminPermission:link_update')
     ->middlewareFor('destroy', 'AdminPermission:link_delete');
+
+/*
+|--------------------------------------------------------------------------
+| المهام
+|--------------------------------------------------------------------------
+| المسارات الثابتة (trash) قبل الـ resource عشان {task} مايبلعش الكلمة.
+| العمليات من شاشة التفاصيل ليها صلاحية مبدئية هنا، والقاعدة الكاملة
+| (مين يعتمد، مين يتكلّف) في TaskService.
+*/
+Route::get('/tasks/trash', [TaskController::class, 'trash'])->name('tasks.trash')->middleware('AdminPermission:task_trash');
+Route::post('/tasks/{id}/restore', [TaskController::class, 'restore'])->name('tasks.restore')->middleware('AdminPermission:task_restore');
+Route::delete('/tasks/{id}/force-delete', [TaskController::class, 'forceDelete'])->name('tasks.forceDelete')->middleware('AdminPermission:task_force_delete');
+
+Route::get('/tasks/reports', [\App\Http\Controllers\Admin\Tasks\TaskReportController::class, 'index'])->name('tasks.reports')->middleware('AdminPermission:task_report');
+Route::get('/tasks/reports/export', [\App\Http\Controllers\Admin\Tasks\TaskReportController::class, 'export'])->name('tasks.reports.export')->middleware('AdminPermission:task_report');
+Route::post('/tasks/recurrences/{recurrence}/toggle', [\App\Http\Controllers\Admin\Tasks\TaskRecurrenceController::class, 'toggle'])->name('tasks.recurrences.toggle')->middleware('AdminPermission:task_recurrence_manage');
+Route::resource('/tasks/recurrences', \App\Http\Controllers\Admin\Tasks\TaskRecurrenceController::class)
+    ->except(['show'])
+    ->parameters(['recurrences' => 'recurrence'])
+    ->names([
+        'index' => 'tasks.recurrences.index', 'create' => 'tasks.recurrences.create', 'store' => 'tasks.recurrences.store',
+        'edit' => 'tasks.recurrences.edit', 'update' => 'tasks.recurrences.update', 'destroy' => 'tasks.recurrences.destroy',
+    ])->middleware('AdminPermission:task_recurrence_manage');
+Route::get('/tasks/board', [TaskController::class, 'board'])->name('tasks.board')->middleware('AdminPermission:task_board');
+Route::get('/tasks/board/cards/{task}', [TaskController::class, 'card'])->whereNumber('task')->name('tasks.board.card')->middleware('AdminPermission:task_board');
+Route::post('/tasks/{task}/move', [TaskController::class, 'move'])->name('tasks.move')->middleware('AdminPermission:task_board');
+Route::get('/tasks/calendar', [TaskController::class, 'calendar'])->name('tasks.calendar')->middleware('AdminPermission:task_show');
+Route::post('/tasks/{task}/status', [TaskController::class, 'status'])->name('tasks.status')->middleware('AdminPermission:task_show');
+Route::post('/tasks/{task}/progress', [TaskController::class, 'progress'])->name('tasks.progress')->middleware('AdminPermission:task_update');
+Route::put('/tasks/{task}/assignees', [TaskController::class, 'assignees'])->name('tasks.assignees')->middleware('AdminPermission:task_assign');
+Route::post('/tasks/{task}/comments', [TaskCollaborationController::class, 'storeComment'])->whereNumber('task')->name('tasks.comments.store')->middleware('AdminPermission:task_show');
+Route::put('/tasks/{task}/comments/{comment}', [TaskCollaborationController::class, 'updateComment'])->whereNumber(['task', 'comment'])->name('tasks.comments.update')->middleware('AdminPermission:task_show');
+Route::delete('/tasks/{task}/comments/{comment}', [TaskCollaborationController::class, 'destroyComment'])->whereNumber(['task', 'comment'])->name('tasks.comments.destroy')->middleware('AdminPermission:task_show');
+Route::post('/tasks/{task}/dependencies', [TaskCollaborationController::class, 'storeDependency'])->whereNumber('task')->name('tasks.dependencies.store')->middleware('AdminPermission:task_update');
+Route::delete('/tasks/{task}/dependencies/{dependency}', [TaskCollaborationController::class, 'destroyDependency'])->whereNumber(['task', 'dependency'])->name('tasks.dependencies.destroy')->middleware('AdminPermission:task_update');
+Route::post('/tasks/{task}/time', [TaskCollaborationController::class, 'storeTime'])->whereNumber('task')->name('tasks.time.store')->middleware('AdminPermission:task_update');
+Route::delete('/tasks/{task}/time/{entry}', [TaskCollaborationController::class, 'destroyTime'])->whereNumber(['task', 'entry'])->name('tasks.time.destroy')->middleware('AdminPermission:task_update');
+Route::post('/tasks/{task}/attachments', [TaskCollaborationController::class, 'storeAttachments'])->whereNumber('task')->name('tasks.attachments.store')->middleware('AdminPermission:task_show');
+Route::get('/tasks/{task}/attachments/{attachment}', [TaskCollaborationController::class, 'downloadAttachment'])->whereNumber(['task', 'attachment'])->name('tasks.attachments.download')->middleware('AdminPermission:task_show');
+Route::delete('/tasks/{task}/attachments/{attachment}', [TaskCollaborationController::class, 'destroyAttachment'])->whereNumber(['task', 'attachment'])->name('tasks.attachments.destroy')->middleware('AdminPermission:task_show');
+Route::post('/tasks/{task}/checklist', [TaskController::class, 'storeChecklist'])->name('tasks.checklist.store')->middleware('AdminPermission:task_update');
+Route::patch('/tasks/{task}/checklist/{item}', [TaskController::class, 'toggleChecklist'])->name('tasks.checklist.toggle')->middleware('AdminPermission:task_update');
+Route::delete('/tasks/{task}/checklist/{item}', [TaskController::class, 'destroyChecklist'])->name('tasks.checklist.destroy')->middleware('AdminPermission:task_update');
+
+Route::resource('/tasks', TaskController::class)
+    ->names([
+        'index'   => 'tasks.index',
+        'create'  => 'tasks.create',
+        'store'   => 'tasks.store',
+        'show'    => 'tasks.show',
+        'edit'    => 'tasks.edit',
+        'update'  => 'tasks.update',
+        'destroy' => 'tasks.destroy',
+    ])->middlewareFor('index', 'AdminPermission:task_show')
+    ->middlewareFor('show', 'AdminPermission:task_show')
+    ->middlewareFor(['create', 'store'], 'AdminPermission:task_create')
+    ->middlewareFor(['edit', 'update'], 'AdminPermission:task_update')
+    ->middlewareFor('destroy', 'AdminPermission:task_delete');
+
+/*
+|--------------------------------------------------------------------------
+| المشاريع وقوالبها
+|--------------------------------------------------------------------------
+*/
+Route::get('/projects/trash', [ProjectController::class, 'trash'])->name('projects.trash')->middleware('AdminPermission:project_trash');
+Route::post('/projects/{id}/restore', [ProjectController::class, 'restore'])->name('projects.restore')->middleware('AdminPermission:project_restore');
+Route::delete('/projects/{id}/force-delete', [ProjectController::class, 'forceDelete'])->name('projects.forceDelete')->middleware('AdminPermission:project_force_delete');
+Route::post('/projects/{project}/save-template', [ProjectController::class, 'saveTemplate'])->name('projects.save-template')->middleware('AdminPermission:project_template_manage');
+
+Route::resource('/projects', ProjectController::class)
+    ->names([
+        'index'   => 'projects.index',
+        'create'  => 'projects.create',
+        'store'   => 'projects.store',
+        'show'    => 'projects.show',
+        'edit'    => 'projects.edit',
+        'update'  => 'projects.update',
+        'destroy' => 'projects.destroy',
+    ])->middlewareFor(['index', 'show'], 'AdminPermission:project_show')
+    ->middlewareFor(['create', 'store'], 'AdminPermission:project_create')
+    ->middlewareFor(['edit', 'update'], 'AdminPermission:project_update')
+    ->middlewareFor('destroy', 'AdminPermission:project_delete');
+
+Route::resource('/project-templates', ProjectTemplateController::class)
+    ->except(['show'])
+    ->names([
+        'index'   => 'project-templates.index',
+        'create'  => 'project-templates.create',
+        'store'   => 'project-templates.store',
+        'edit'    => 'project-templates.edit',
+        'update'  => 'project-templates.update',
+        'destroy' => 'project-templates.destroy',
+    ])->middleware('AdminPermission:project_template_manage');
