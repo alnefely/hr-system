@@ -153,11 +153,24 @@
         @endif
 
         @if (admin_can('task_show'))
-            <li class="menu-item {{ request()->is('admin/tasks*') ? 'active' : '' }}">
-                <a href="{{ route('admin.tasks.index') }}" class="menu-link">
+            <li class="menu-item {{ request()->is('admin/tasks*') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="fa-solid fa-list-check"></i>
                     <div>{{ __('task.title') }}</div>
                 </a>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->is('admin/tasks') || (request()->is('admin/tasks/*') && ! request()->is('admin/tasks/board*') && ! request()->is('admin/tasks/calendar*')) ? 'active' : '' }}">
+                        <a href="{{ route('admin.tasks.index') }}" class="menu-link"><div>{{ __('task.views.list') }}</div></a>
+                    </li>
+                    @if (admin_can('task_board'))
+                        <li class="menu-item {{ request()->is('admin/tasks/board*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.tasks.board') }}" class="menu-link"><div>{{ __('task.views.board_title') }}</div></a>
+                        </li>
+                    @endif
+                    <li class="menu-item {{ request()->is('admin/tasks/calendar*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.tasks.calendar') }}" class="menu-link"><div>{{ __('task.views.calendar_title') }}</div></a>
+                    </li>
+                </ul>
             </li>
         @endif
 

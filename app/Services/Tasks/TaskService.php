@@ -641,6 +641,7 @@ class TaskService
             $task->delete();
             $this->refreshParents($task);
         });
+        TaskUpdated::dispatch($task, $actor);
     }
 
     public function restore(int $id, Model $actor): Task
@@ -652,6 +653,8 @@ class TaskService
             $this->record($task, $actor, 'restored');
             $this->refreshParents($task);
         });
+
+        TaskUpdated::dispatch($task, $actor);
 
         return $task;
     }

@@ -16,6 +16,7 @@ use App\Models\Task;
 use App\Models\TaskChecklistItem;
 use App\Models\TaskLabel;
 use App\Services\Tasks\TaskAccess;
+use App\Services\Tasks\TaskBoardService;
 use App\Services\Tasks\TaskFilters;
 use App\Services\Tasks\TaskService;
 use App\Services\Tasks\TaskViewData;
@@ -72,6 +73,70 @@ class TaskController extends PortalController
             'stats'    => $this->stats($me),
             'projects' => Project::withoutGlobalScopes()->forEmployee($me->id)->orderBy('name')->get(['id', 'name']),
         ]);
+    }
+
+    /** لوحة كانبان لمهامي (نفس تبويبات القائمة). */
+    public function board(Request $request, TaskBoardService $boards)
+    {
+        [$tab, $hasTeam, $filters] = $this->boardContext($request);
+
+        return view('portal.tasks.board', [
+            'board'    => $boards->board($this->filters->apply($this->tabQuery($tab, $this->employee()), $filters)),
+            'tab'      => $tab,
+            'hasTeam'  => $hasTeam,
+            'filters'  => $filters,
+        ]);
+    }
+
+    public function calendar(Request $request, TaskBoardService $boards)
+    {
+        [$tab, $hasTeam, $filters] = $this->boardContext($request);
+        $filters['parent'] = 'all';
+
+        return view('portal.tasks.calendar', $boards->calendar(
+            $this->filters->apply($this->tabQuery($tab, $this->employee()), $filters),
+            TaskBoardService::month($request->query('month')),
+        ) + ['tab' => $tab, 'hasTeam' => $hasTeam, 'filters' => $filters]);
+    }
+
+    public function move(Request $request, int $task, TaskBoardService $boards)
+    {
+        $task = $this->visibleTask($task);
+        $data = $request->validate([
+            'status'  => ['required', TaskStatus::rule()],
+            'order'   => ['array', 'max:200'],
+            'order.*' => ['integer'],
+            'note'    => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        try {
+            $boards->move($task, TaskStatus::from($data['status']), $this->employee(), $data['order'] ?? [],
+                Task::visibleToEmployee($this->employee()), $data['note'] ?? null);
+        } catch (InvalidStateException $e) {
+            return response()->json([
+                'ok'         => false,
+                'message'    => $e->getMessage(),
+                'needs_note' => $e->getMessage() === __('task.errors.return_reason_required'),
+            ], 422);
+        }
+
+        return response()->json(['ok' => true, 'message' => __('task.messages.status_changed')]);
+    }
+
+    /** @return array{0: string, 1: bool, 2: array} التبويب، هل له فريق، والفلاتر (من غير الحالة) */
+    private function boardContext(Request $request): array
+    {
+        $hasTeam = $this->employee()->subordinates()->exists();
+        $tab = in_array($request->query('tab'), ['assigned', 'created', 'team'], true) ? $request->query('tab') : 'assigned';
+
+        if ($tab === 'team' && ! $hasTeam) {
+            $tab = 'assigned';
+        }
+
+        $filters = TaskFilters::fromRequest($request);
+        unset($filters['status'], $filters['employee_id']);
+
+        return [$tab, $hasTeam, $filters];
     }
 
     /** مصدر كل تبويب — استعلامات فرعية على جداول وسيطة مفهرسة. */

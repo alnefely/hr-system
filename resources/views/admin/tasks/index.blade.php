@@ -106,6 +106,7 @@
     <div class="card-header d-flex justify-content-between align-items-center border-bottom flex-wrap gap-2">
         <h5 class="card-title mb-0"><i class="fa-solid fa-list-check text-primary me-2"></i>{{ __('task.title') }}</h5>
         <div class="d-flex gap-2 flex-wrap">
+            @include('tasks.partials.view-switcher', ['routes' => 'admin.tasks', 'current' => 'index', 'query' => array_diff_key($filters, ['status' => 1, 'review' => 1]), 'canBoard' => admin_can('task_board')])
             @if ($reviewCount > 0 || ($filters['review'] ?? null) === 'mine')
                 <a href="{{ ($filters['review'] ?? null) === 'mine' ? route('admin.tasks.index') : route('admin.tasks.index', ['review' => 'mine']) }}"
                    class="btn {{ ($filters['review'] ?? null) === 'mine' ? 'btn-warning' : 'btn-label-warning' }}">

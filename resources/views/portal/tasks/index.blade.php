@@ -43,7 +43,7 @@
 
 <div class="card mb-4">
     <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2 border-bottom">
-        <ul class="nav nav-pills flex-nowrap overflow-auto gap-1" role="tablist">
+        <ul class="nav nav-pills flex-wrap gap-1" role="tablist">
             @foreach ($tabs as $key => $icon)
                 <li class="nav-item">
                     <a class="nav-link text-nowrap {{ $tab === $key ? 'active' : '' }}" href="{{ route('portal.tasks.index', ['tab' => $key]) }}">
@@ -53,7 +53,10 @@
                 </li>
             @endforeach
         </ul>
-        <a href="{{ route('portal.tasks.create') }}" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i>{{ __('task.actions.add_new') }}</a>
+        <div class="d-flex gap-2">
+            @include('tasks.partials.view-switcher', ['routes' => 'portal.tasks', 'current' => 'index', 'query' => in_array($tab, ['assigned', 'created', 'team'], true) ? ['tab' => $tab] : []])
+            <a href="{{ route('portal.tasks.create') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i><span class="d-none d-sm-inline ms-1">{{ __('task.actions.add_new') }}</span></a>
+        </div>
     </div>
     <div class="card-body pt-3">
         <form action="{{ route('portal.tasks.index') }}" method="GET" class="row g-2 align-items-end">

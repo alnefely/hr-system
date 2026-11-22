@@ -320,4 +320,22 @@ return [
         'hint'        => 'The task cannot start until all tasks above are done.',
     ],
 
+
+    'views' => [
+        'title'              => 'View',
+        'list'               => 'List',
+        'board'              => 'Board',
+        'calendar'           => 'Calendar',
+        'board_title'        => 'Live Tasks Board',
+        'calendar_title'     => 'Tasks Calendar',
+        'live'               => 'Live',
+        'live_hint'          => 'The board updates by itself with every task change',
+        'drag_hint'          => 'Drag a card to another column to change its status',
+        'completed_hint'     => 'Completed in the last :days days',
+        'prev_month'         => 'Previous month',
+        'next_month'         => 'Next month',
+        'today'              => 'Today',
+        'no_due_this_month'  => 'No tasks due this month',
+    ],
+
 ];

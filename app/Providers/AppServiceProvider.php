@@ -64,6 +64,11 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\Event::listen($event, [\App\Services\Tasks\TaskNotifier::class, $method]);
         }
 
+        // لوحة المهام المباشرة
+        foreach (\App\Services\Tasks\TaskBoardBroadcaster::events() as $event) {
+            \Illuminate\Support\Facades\Event::listen($event, [\App\Services\Tasks\TaskBoardBroadcaster::class, 'handle']);
+        }
+
         // الأوامر المجدولة والطابور مالهمش طلب متصفح، فلارافيل كان
         // بياخد الدومين من APP_URL. بقى بياخد آخر دومين اتفتح منه النظام.
         if ($this->app->runningInConsole()) {
@@ -100,6 +105,18 @@ class AppServiceProvider extends ServiceProvider
         // المحدد بترمي AccessDeniedHttpException من غير ما توصل للمنطق.
         Broadcast::channel('admin.{adminId}', function ($admin, $adminId) {
             return $admin !== null && (int) $admin->id === (int) $adminId;
+        }, ['guards' => ['admin']]);
+
+        // لوحة المهام المباشرة: قناة فرع (مشرف الفرع ده أو مشرف الكل) أو all
+        // (مشرف بيشوف كل الفروع بس). لازم صلاحية task_board.
+        Broadcast::channel('tasks-board.{scope}', function ($admin, $scope) {
+            if ($admin === null || ! admin_can('task_board')) {
+                return false;
+            }
+
+            $branchId = \App\Support\BranchScopeResolver::branchId();
+
+            return $scope === 'all' ? $branchId === null : ($branchId === null || (int) $scope === $branchId);
         }, ['guards' => ['admin']]);
 
         // قناة الموظف في البوابة — كل موظف قناته بس

@@ -633,6 +633,10 @@ Route::get('/tasks/trash', [TaskController::class, 'trash'])->name('tasks.trash'
 Route::post('/tasks/{id}/restore', [TaskController::class, 'restore'])->name('tasks.restore')->middleware('AdminPermission:task_restore');
 Route::delete('/tasks/{id}/force-delete', [TaskController::class, 'forceDelete'])->name('tasks.forceDelete')->middleware('AdminPermission:task_force_delete');
 
+Route::get('/tasks/board', [TaskController::class, 'board'])->name('tasks.board')->middleware('AdminPermission:task_board');
+Route::get('/tasks/board/cards/{task}', [TaskController::class, 'card'])->whereNumber('task')->name('tasks.board.card')->middleware('AdminPermission:task_board');
+Route::post('/tasks/{task}/move', [TaskController::class, 'move'])->name('tasks.move')->middleware('AdminPermission:task_board');
+Route::get('/tasks/calendar', [TaskController::class, 'calendar'])->name('tasks.calendar')->middleware('AdminPermission:task_show');
 Route::post('/tasks/{task}/status', [TaskController::class, 'status'])->name('tasks.status')->middleware('AdminPermission:task_show');
 Route::post('/tasks/{task}/progress', [TaskController::class, 'progress'])->name('tasks.progress')->middleware('AdminPermission:task_update');
 Route::put('/tasks/{task}/assignees', [TaskController::class, 'assignees'])->name('tasks.assignees')->middleware('AdminPermission:task_assign');

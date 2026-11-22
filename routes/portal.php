@@ -80,6 +80,9 @@ Route::prefix('portal')->name('portal.')->middleware('throttle:WebRateLimiter')-
 
         // مهامي — الصلاحية بدور الموظف في المهمة (TaskAccess) مش بصلاحيات أدوار
         Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+        Route::get('/tasks/board', [TaskController::class, 'board'])->name('tasks.board');
+        Route::get('/tasks/calendar', [TaskController::class, 'calendar'])->name('tasks.calendar');
+        Route::post('/tasks/{task}/move', [TaskController::class, 'move'])->whereNumber('task')->name('tasks.move');
         Route::get('/tasks/create', [TaskController::class, 'create'])->name('tasks.create');
         Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
         Route::get('/tasks/{task}', [TaskController::class, 'show'])->whereNumber('task')->name('tasks.show');

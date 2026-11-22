@@ -16,6 +16,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskChecklistItem;
 use App\Models\TaskLabel;
+use App\Services\Tasks\TaskBoardService;
 use App\Services\Tasks\TaskFilters;
 use App\Services\Tasks\TaskService;
 use App\Services\Tasks\TaskViewData;
@@ -107,6 +108,88 @@ class TaskController extends Controller
             'in_review'   => (int) ($row->in_review ?? 0),
             'overdue'     => (int) ($row->overdue ?? 0),
         ];
+    }
+
+    // ========================================================
+    //  لوحة كانبان المباشرة والتقويم
+    // ========================================================
+
+    /** لوحة المهام المفتوحة — بتتحدّث لحظياً عبر Pusher (قناة الفرع أو all). */
+    public function board(Request $request, TaskBoardService $boards)
+    {
+        $filters = TaskFilters::fromRequest($request);
+        unset($filters['status']);
+
+        return view('admin.tasks.board', [
+            'board'     => $boards->board($this->filters->apply(Task::select('tasks.*'), $filters)),
+            'filters'   => $filters,
+            'projects'  => Project::orderBy('name')->get(['id', 'name']),
+            'employees' => Employee::active()->orderBy('name')->get(['id', 'name']),
+            'channel'   => 'tasks-board.' . (BranchScopeResolver::branchId() ?? 'all'),
+        ]);
+    }
+
+    /**
+     * كارت مهمة واحدة للوحة (بعد إشعار لحظي) — بنفس فلاتر الشاشة.
+     * 204 = المهمة مابقتش تطابق الفلاتر أو اتحذفت ← الكارت يتشال.
+     */
+    public function card(Request $request, int $task)
+    {
+        $filters = TaskFilters::fromRequest($request);
+        unset($filters['status']);
+
+        $model = $this->filters->apply(Task::select('tasks.*'), $filters)
+            ->whereKey($task)
+            ->whereIn('tasks.status', array_map(fn ($c) => $c->value, TaskBoardService::columns()))
+            ->with(TaskBoardService::CARD_RELATIONS)
+            ->first();
+
+        if (! $model) {
+            return response()->noContent();
+        }
+
+        return response()->json([
+            'status' => $model->status,
+            'html'   => view('tasks.partials.board-card', ['task' => $model, 'routes' => 'admin.tasks'])->render(),
+        ]);
+    }
+
+    public function move(Request $request, Task $task, TaskBoardService $boards)
+    {
+        $data = $request->validate([
+            'status'  => ['required', TaskStatus::rule()],
+            'order'   => ['array', 'max:200'],
+            'order.*' => ['integer'],
+            'note'    => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        try {
+            $boards->move($task, TaskStatus::from($data['status']), admin(), $data['order'] ?? [], Task::query(), $data['note'] ?? null);
+        } catch (InvalidStateException $e) {
+            return response()->json([
+                'ok'         => false,
+                'message'    => $e->getMessage(),
+                'needs_note' => $e->getMessage() === __('task.errors.return_reason_required'),
+            ], 422);
+        }
+
+        return response()->json(['ok' => true, 'message' => __('task.messages.status_changed')]);
+    }
+
+    public function calendar(Request $request, TaskBoardService $boards)
+    {
+        $filters = TaskFilters::fromRequest($request);
+        unset($filters['status']);
+        $filters['parent'] = 'all';
+
+        return view('admin.tasks.calendar', $boards->calendar(
+            $this->filters->apply(Task::select('tasks.*'), $filters),
+            TaskBoardService::month($request->query('month')),
+        ) + [
+            'filters'   => $filters,
+            'projects'  => Project::orderBy('name')->get(['id', 'name']),
+            'employees' => Employee::active()->orderBy('name')->get(['id', 'name']),
+        ]);
     }
 
     public function create(Request $request)
