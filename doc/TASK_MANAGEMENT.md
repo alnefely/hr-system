@@ -108,3 +108,18 @@ php artisan migrate
 ```
 php artisan test --filter="Task|Project"
 ```
+
+---
+
+## 6. بيانات تجربة (محلي بس)
+
+```
+php artisan tasks:demo           # إنشاء
+php artisan tasks:demo --fresh   # مسح القديم وإنشاء من جديد
+php artisan tasks:demo --clean   # مسح بيانات التجربة بس
+```
+
+بيعمل 4 موظفين تجربة بدخول البوابة (كلمة المرور `password`، الهواتف `01099900001` لـ `01099900004`)
+ومهام في كل الحالات والسيناريوهات ومشروعين وقالب ومتكررة وإشعارات.
+تفاصيل كل حساب وهتلاقي فيه إيه: أول ملف `app/Console/Commands/TaskDemoCommand.php`.
+الأمر بيرفض يشتغل لو `APP_ENV` مش `local`.
