@@ -69,9 +69,9 @@ class TaskService
             ? Project::withoutGlobalScopes()->findOrFail($data['project_id'])
             : null;
 
-        // الموظف يضيف مهام في مشروع هو عضو فيه أو مديره بس
+        // الموظف يضيف مهام في مشروع هو مديره أو عضو فيه (مش مشاهد)
         if ($project && $actor instanceof \App\Models\Employee && ! $parent
-            && ! Project::withoutGlobalScopes()->whereKey($project->id)->forEmployee($actor->id)->exists()) {
+            && ! app(\App\Services\Projects\ProjectAccess::class)->canAddTasks($project, $actor)) {
             throw new InvalidStateException(__('task.errors.forbidden'));
         }
 

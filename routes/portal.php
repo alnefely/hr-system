@@ -10,6 +10,7 @@ use App\Http\Controllers\Portal\HomeController;
 use App\Http\Controllers\Portal\LeaveController;
 use App\Http\Controllers\Portal\PayslipController;
 use App\Http\Controllers\Portal\PermissionController;
+use App\Http\Controllers\Portal\ProjectController;
 use App\Http\Controllers\Portal\ProfileController;
 use App\Http\Controllers\Portal\RewardController;
 use App\Http\Controllers\Portal\TaskController;
@@ -58,6 +59,12 @@ Route::prefix('portal')->name('portal.')->middleware('throttle:WebRateLimiter')-
         Route::get('/rewards', [RewardController::class, 'index'])->name('rewards.index');
         Route::get('/penalties', [PenaltyController::class, 'index'])->name('penalties.index');
         Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+
+        // مشاريعي — مدير المشروع بيعدّله من هنا
+        Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
+        Route::get('/projects/{project}', [ProjectController::class, 'show'])->whereNumber('project')->name('projects.show');
+        Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->whereNumber('project')->name('projects.edit');
+        Route::put('/projects/{project}', [ProjectController::class, 'update'])->whereNumber('project')->name('projects.update');
 
         // مهامي — الصلاحية بدور الموظف في المهمة (TaskAccess) مش بصلاحيات أدوار
         Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');

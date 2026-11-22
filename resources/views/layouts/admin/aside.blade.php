@@ -143,6 +143,15 @@
             </li>
         @endif
 
+        @if (admin_can('project_show'))
+            <li class="menu-item {{ request()->is('admin/projects*') || request()->is('admin/project-templates*') ? 'active' : '' }}">
+                <a href="{{ route('admin.projects.index') }}" class="menu-link">
+                    <i class="fa-solid fa-diagram-project"></i>
+                    <div>{{ __('project.title') }}</div>
+                </a>
+            </li>
+        @endif
+
         @if (admin_can('task_show'))
             <li class="menu-item {{ request()->is('admin/tasks*') ? 'active' : '' }}">
                 <a href="{{ route('admin.tasks.index') }}" class="menu-link">

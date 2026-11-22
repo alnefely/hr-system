@@ -7,6 +7,7 @@ return [
     'nav' => [
         'home'            => 'الرئيسية',
         'tasks'           => 'مهامي',
+        'projects'        => 'مشاريعي',
         'permissions'     => 'استئذاناتي',
         'leaves'          => 'إجازاتي',
         'advances'        => 'سلفي',

@@ -43,6 +43,7 @@
     $mainMenu = [
         ['portal.home',              'fa-house',               'home',        'portal.home'],
         ['portal.tasks.index',       'fa-list-check',          'tasks',       'portal.tasks.*'],
+        ['portal.projects.index',    'fa-diagram-project',     'projects',    'portal.projects.*'],
         ['portal.permissions.index', 'fa-clock',               'permissions', 'portal.permissions.*'],
         ['portal.leaves.index',      'fa-calendar-check',      'leaves',      'portal.leaves.*'],
         ['portal.advances.index',    'fa-hand-holding-dollar', 'advances',    'portal.advances.*'],

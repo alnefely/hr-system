@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\LinkStatsController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\Projects\ProjectController;
+use App\Http\Controllers\Admin\Projects\ProjectTemplateController;
 use App\Http\Controllers\Admin\Tasks\TaskController;
 use Illuminate\Support\Facades\Route;
 
@@ -651,3 +653,38 @@ Route::resource('/tasks', TaskController::class)
     ->middlewareFor(['create', 'store'], 'AdminPermission:task_create')
     ->middlewareFor(['edit', 'update'], 'AdminPermission:task_update')
     ->middlewareFor('destroy', 'AdminPermission:task_delete');
+
+/*
+|--------------------------------------------------------------------------
+| المشاريع وقوالبها
+|--------------------------------------------------------------------------
+*/
+Route::get('/projects/trash', [ProjectController::class, 'trash'])->name('projects.trash')->middleware('AdminPermission:project_trash');
+Route::post('/projects/{id}/restore', [ProjectController::class, 'restore'])->name('projects.restore')->middleware('AdminPermission:project_restore');
+Route::delete('/projects/{id}/force-delete', [ProjectController::class, 'forceDelete'])->name('projects.forceDelete')->middleware('AdminPermission:project_force_delete');
+Route::post('/projects/{project}/save-template', [ProjectController::class, 'saveTemplate'])->name('projects.save-template')->middleware('AdminPermission:project_template_manage');
+
+Route::resource('/projects', ProjectController::class)
+    ->names([
+        'index'   => 'projects.index',
+        'create'  => 'projects.create',
+        'store'   => 'projects.store',
+        'show'    => 'projects.show',
+        'edit'    => 'projects.edit',
+        'update'  => 'projects.update',
+        'destroy' => 'projects.destroy',
+    ])->middlewareFor(['index', 'show'], 'AdminPermission:project_show')
+    ->middlewareFor(['create', 'store'], 'AdminPermission:project_create')
+    ->middlewareFor(['edit', 'update'], 'AdminPermission:project_update')
+    ->middlewareFor('destroy', 'AdminPermission:project_delete');
+
+Route::resource('/project-templates', ProjectTemplateController::class)
+    ->except(['show'])
+    ->names([
+        'index'   => 'project-templates.index',
+        'create'  => 'project-templates.create',
+        'store'   => 'project-templates.store',
+        'edit'    => 'project-templates.edit',
+        'update'  => 'project-templates.update',
+        'destroy' => 'project-templates.destroy',
+    ])->middleware('AdminPermission:project_template_manage');

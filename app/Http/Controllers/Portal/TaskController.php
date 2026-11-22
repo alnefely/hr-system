@@ -238,7 +238,11 @@ class TaskController extends PortalController
         return [
             'task'       => $task,
             'parent'     => $parent,
-            'projects'   => Project::withoutGlobalScopes()->forEmployee($me->id)
+            // المشاريع اللي يقدر يضيف فيها مهام (مدير أو عضو — مش مشاهد)
+            'projects'   => Project::withoutGlobalScopes()->whereNull('deleted_at')
+                ->where(fn ($q) => $q->where('manager_id', $me->id)
+                    ->orWhereIn('id', fn ($s) => $s->select('project_id')->from('project_members')
+                        ->where('employee_id', $me->id)->where('role', '!=', 'viewer')))
                 ->whereIn('status', ['planning', 'active', 'on_hold'])->orderBy('name')->get(['id', 'name']),
             'branches'   => collect(),
             'employees'  => $task->exists ? collect() : $this->access

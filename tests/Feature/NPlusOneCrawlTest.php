@@ -137,6 +137,9 @@ class NPlusOneCrawlTest extends TestCase
         foreach (\App\Models\Task::withoutGlobalScopes()->pluck('id') as $taskId) {
             \App\Models\TaskWatcher::firstOrCreate(['task_id' => $taskId, 'watcher_type' => Employee::class, 'watcher_id' => $employee->id]);
         }
+        foreach (\App\Models\Project::withoutGlobalScopes()->get() as $p) {
+            $p->members()->syncWithoutDetaching([$employee->id => ['role' => $p->manager_id === $employee->id ? 'manager' : 'viewer']]);
+        }
 
         // قسيمتين مصروفين في مسيرين مختلفين (عشان علاقة payroll)
         foreach ([$payroll, \App\Models\Payroll::create([
@@ -159,7 +162,11 @@ class NPlusOneCrawlTest extends TestCase
         $colleagues = Employee::withoutGlobalScopes()->where('branch_id', $employee->branch_id)
             ->whereKeyNot($employee->id)->limit(2)->pluck('id')->all();
         $label = \App\Models\TaskLabel::create(['name' => 'Crawl', 'color' => '#7367f0']);
-        $project = \App\Models\Project::create(['branch_id' => $employee->branch_id, 'name' => 'Crawl project', 'manager_id' => $employee->id]);
+        $template = \App\Models\ProjectTemplate::firstOrCreate(['name' => 'Crawl template'], ['is_active' => true, 'structure' => [['title' => 'T1', 'checklist' => ['a']], ['title' => 'T2']]]);
+        $project = app(\App\Services\Projects\ProjectService::class)->create([
+            'branch_id' => $employee->branch_id, 'name' => 'Crawl project ' . $employee->id, 'manager_id' => $employee->id,
+            'members' => array_fill_keys($colleagues, 'member'), 'template_id' => $template->id,
+        ], $employee);
 
         foreach ([1, 2, 3] as $i) {
             $task = $service->create([
