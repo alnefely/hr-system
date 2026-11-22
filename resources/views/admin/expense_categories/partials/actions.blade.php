@@ -11,6 +11,6 @@
             . ' data-code="' . e($row->code ?? '') . '"'
             . ' data-description="' . e($row->description ?? '') . '"'
             . ' data-active="' . ($row->is_active ? 1 : 0) . '"'
-            . ' title="' . e(__('global.edit')) . '"><i class="fa-solid fa-pen-to-square"></i></button>'
+            . ' title="' . e(__('global.edit')) . '" aria-label="' . e(__('global.edit')) . '"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>'
         : '',
 ])

@@ -88,7 +88,7 @@
         <div class="d-flex gap-2">
             @if($lockedSubject && admin_can('activity_log_show_all'))
                 <a href="{{ route('admin.activity-logs.index') }}" class="btn btn-label-secondary waves-effect">
-                    <i class="fa-solid fa-arrow-right me-1"></i> {{ __('activity.actions.back_to_all') }}
+                    <i class="fa-solid fa-arrow-right icon-back me-1" aria-hidden="true"></i> {{ __('activity.actions.back_to_all') }}
                 </a>
             @endif
 

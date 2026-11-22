@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h4 class="card-title mb-0">{{ __('branch.title') }}</h4>
         <div class="d-flex gap-2">
             @if (admin_can('branch_trash'))

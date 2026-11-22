@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="card mb-4 shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center border-bottom">
+    <div class="card-header d-flex justify-content-between align-items-center border-bottom flex-wrap gap-2">
         <h5 class="card-title mb-0">
             <i class="fa-solid fa-tags text-primary me-2"></i> {{ __('expense_category.title') }}
         </h5>
@@ -18,7 +18,7 @@
             @endif
 
             <a href="{{ route('admin.expenses.index') }}" class="btn btn-label-secondary waves-effect">
-                <i class="fa-solid fa-arrow-right me-1"></i> {{ __('expense.title') }}
+                <i class="fa-solid fa-arrow-right icon-back me-1" aria-hidden="true"></i> {{ __('expense.title') }}
             </a>
             @if(admin_can('expense_category_create'))
                 <button type="button" class="btn btn-primary waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#createExpenseCategoryModal">

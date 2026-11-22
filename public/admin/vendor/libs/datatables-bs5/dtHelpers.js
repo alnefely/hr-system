@@ -33,13 +33,16 @@ function dtLang() {
 }
 
 function dtDom() {
-    return '<"row me-2"' +
-        '<"col-md-2"<"me-3"l>>' +
-        '<"col-md-10"<"dt-action-buttons text-xl-end text-lg-start text-md-end text-start d-flex align-items-center justify-content-end flex-md-row flex-column mb-3 mb-md-0"fB>>' +
-        '>t' +
-        '<"row mx-2"' +
-        '<"col-sm-12 col-md-6"i>' +
-        '<"col-sm-12 col-md-6"p>' +
+    // الصفوف بـ g-2 (من غير me-2/mx-2 اللي كانت بتفيض)، والأدوات بتنزل تحت بعض
+    // على الموبايل. الجدول نفسه ملفوف في .dt-scroll-x فبيعمل scroll جوّه الكارت.
+    return '<"row g-2 align-items-center mb-3"' +
+        '<"col-12 col-md-3"l>' +
+        '<"col-12 col-md-9"<"dt-action-buttons d-flex flex-wrap align-items-center justify-content-start justify-content-md-end gap-2"fB>>' +
+        '>' +
+        '<"dt-scroll-x"t>' +
+        '<"row g-2 align-items-center mt-2"' +
+        '<"col-12 col-md-6"i>' +
+        '<"col-12 col-md-6"p>' +
         '>';
 }
 
@@ -71,7 +74,7 @@ function dtButtons(title, href, exportable) {
     var exportBtn = exportable
         ? {
             extend: 'collection',
-            className: 'btn btn-label-info dropdown-toggle mx-3',
+            className: 'btn btn-label-info dropdown-toggle',
             text: `<i class='fa-solid fa-download me-1 ti-xs'></i> ${labels.export}`,
             buttons: [
                 {

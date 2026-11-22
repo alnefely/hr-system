@@ -21,7 +21,7 @@
         </div>
 
         <a href="{{ route('admin.links.index') }}" class="btn btn-label-secondary waves-effect">
-            <i class="fa-solid fa-arrow-right me-1"></i> {{ __('link.back') }}
+            <i class="fa-solid fa-arrow-right icon-back me-1" aria-hidden="true"></i> {{ __('link.back') }}
         </a>
     </div>
 </div>
@@ -78,7 +78,7 @@
                     <i class="fa-solid fa-filter me-1"></i> {{ __('global.search') }}
                 </button>
                 <a href="{{ route('admin.links.stats', $link->id) }}" class="btn btn-outline-secondary"
-                   data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}">
+                   data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}" aria-label="{{ __('global.reset_filter') }}">
                     <i class="fa-solid fa-rotate"></i>
                 </a>
             </div>

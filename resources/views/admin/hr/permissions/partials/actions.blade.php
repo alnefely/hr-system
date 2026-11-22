@@ -16,7 +16,7 @@
         @endif
 
         @if (admin_can('permission_reject'))
-            <button type="button" class="btn btn-sm btn-icon btn-label-danger reject-btn" data-id="{{ $row->id }}" title="{{ __('permission.actions.reject') }}">
+            <button type="button" class="btn btn-sm btn-icon btn-label-danger reject-btn" data-id="{{ $row->id }}" title="{{ __('permission.actions.reject') }}" aria-label="{{ __('permission.actions.reject') }}">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         @endif

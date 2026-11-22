@@ -11,6 +11,7 @@ return [
     'updated_at'           => 'Updated At',
     'save'                 => 'Save',
     'cancel'               => 'Cancel',
+    'cannot_approve_own_request' => 'You cannot approve your own request — another admin must approve it.',
     'close'                => 'Close',
     'search'               => 'Search...',
     'reset'                => 'Reset',
@@ -92,4 +93,13 @@ return [
         12 => 'December',
     ],
     'reset_filter' => 'Reset filters',
+    // Accessibility labels (icon-only buttons)
+    'toggle_theme' => 'Toggle theme (light / dark)',
+    'theme_light'  => 'Light',
+    'theme_dark'   => 'Dark',
+    'theme_system' => 'System',
+    'toggle_menu'  => 'Toggle menu',
+    'user_menu'    => 'User menu',
+    'system_guide' => 'System guide',
+    'system_guide_hint' => 'System usage guide',
 ];

@@ -1,6 +1,6 @@
 {{-- عمود الإجراءات في جدول المسيرات --}}
 <div class="d-inline-flex gap-1">
-    <a href="{{ route('admin.payrolls.show', $row->id) }}" class="btn btn-sm btn-icon btn-label-primary" title="{{ __('payroll.actions.details') }}">
+    <a href="{{ route('admin.payrolls.show', $row->id) }}" class="btn btn-sm btn-icon btn-label-primary" title="{{ __('payroll.actions.details') }}" aria-label="{{ __('payroll.actions.details') }}">
         <i class="fa-solid fa-eye"></i>
     </a>
 

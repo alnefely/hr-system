@@ -15,13 +15,13 @@
     {!! $before ?? '' !!}
 
     @if (($show ?? false) && admin_can("{$can}_show"))
-        <a href="{{ route("{$routes}.show", $row->id) }}" class="btn btn-sm btn-icon btn-label-info" data-bs-toggle="tooltip" title="{{ __('global.view') }}">
+        <a href="{{ route("{$routes}.show", $row->id) }}" class="btn btn-sm btn-icon btn-label-info" data-bs-toggle="tooltip" title="{{ __('global.view') }}" aria-label="{{ __('global.view') }}">
             <i class="fa-solid fa-eye"></i>
         </a>
     @endif
 
     @if (($edit ?? true) && admin_can("{$can}_update"))
-        <a href="{{ route("{$routes}.edit", $row->id) }}" class="btn btn-sm btn-icon btn-label-primary" data-bs-toggle="tooltip" title="{{ __('global.edit') }}">
+        <a href="{{ route("{$routes}.edit", $row->id) }}" class="btn btn-sm btn-icon btn-label-primary" data-bs-toggle="tooltip" title="{{ __('global.edit') }}" aria-label="{{ __('global.edit') }}">
             <i class="fa-solid fa-pen-to-square"></i>
         </a>
     @endif

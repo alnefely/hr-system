@@ -114,7 +114,7 @@
     {{-- آخر قسائم الراتب --}}
     <div class="col-lg-6">
         <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h6 class="mb-0 fw-bold"><i class="fa-solid fa-file-invoice-dollar me-2 text-success"></i>{{ __('portal.home.latest_payslips') }}</h6>
                 <a href="{{ route('portal.payslips.index') }}" class="small">{{ __('portal.home.view_all') }}</a>
             </div>

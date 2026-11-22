@@ -13,7 +13,7 @@
         data-waived="{{ $row->waived_amount }}"
         data-remaining="{{ $row->remaining_amount }}"
         data-currency="{{ $currency }}"
-        title="سجل الدفعات وسداد دفعة">
+        title="سجل الدفعات وسداد دفعة" aria-label="سجل الدفعات وسداد دفعة">
         <i class="fa-solid fa-receipt"></i>
     </button>
 
@@ -24,7 +24,7 @@
             data-employee="{{ $row->employee?->name }}"
             data-remaining="{{ $row->remaining_amount }}"
             data-currency="{{ $currency }}"
-            title="إسقاط / إعفاء سلفة للموظف">
+            title="إسقاط / إعفاء سلفة للموظف" aria-label="إسقاط / إعفاء سلفة للموظف">
             <i class="fa-solid fa-hand-holding-heart"></i>
         </button>
     @endif

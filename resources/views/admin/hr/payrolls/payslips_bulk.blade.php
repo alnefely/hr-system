@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ vuexy_setting('lang') }}" dir="{{ vuexy_setting('dir') }}" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ __('payroll.payslip.bulk_title') }} - {{ $payroll->title }}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {{-- نفس ملفات لوحة الإدارة المحلية (Bootstrap مدمج في core.css) بدل الـ CDN --}}
+    <link rel="stylesheet" href="/admin/vendor/fonts/fontawesome.css">
+    <link rel="stylesheet" href="/admin/vendor/css/core.css">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

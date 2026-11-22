@@ -48,7 +48,7 @@
         <form id="dashboardFilters" class="row g-2 align-items-end">
             {{-- الأعمدة بتتوزّع على 12 في الحالتين: بحقول الفترة
                  المخصصة (3+4+4+1) ومن غيرها (5+6+1) — الـ JS بيبدّلها --}}
-            <div class="col-md-{{ $filter['preset'] === 'custom' ? '3' : '5' }}" id="presetCol">
+            <div class="col-12 col-sm-6 col-lg-{{ $filter['preset'] === 'custom' ? '3' : '5' }}" id="presetCol">
                 <label class="form-label small mb-1">
                     {{ __('dashboard.filters.period') }} <x-inputs.tip :text="__('dashboard.hints.period')" />
                 </label>
@@ -59,17 +59,17 @@
                 </select>
             </div>
 
-            <div class="col-md-4 {{ $filter['preset'] === 'custom' ? '' : 'd-none' }}" id="customRange">
+            <div class="col-12 col-sm-6 col-lg-4 {{ $filter['preset'] === 'custom' ? '' : 'd-none' }}" id="customRange">
                 <label class="form-label small mb-1">
                     {{ __('dashboard.filters.range_label') }} <x-inputs.tip :text="__('dashboard.hints.range')" />
                 </label>
                 <div class="input-group">
-                    <input type="date" name="date_from" class="form-control px-2" style="height: 38px;" value="{{ $filter['date_from'] }}">
-                    <input type="date" name="date_to" class="form-control px-2" style="height: 38px;" value="{{ $filter['date_to'] }}">
+                    <input type="date" name="date_from" class="h-38 form-control px-2" value="{{ $filter['date_from'] }}">
+                    <input type="date" name="date_to" class="h-38 form-control px-2" value="{{ $filter['date_to'] }}">
                 </div>
             </div>
 
-            <div class="col-md-{{ $filter['preset'] === 'custom' ? '4' : '6' }}" id="branchCol">
+            <div class="col-9 col-sm-{{ $filter['preset'] === 'custom' ? '10' : '4' }} col-lg-{{ $filter['preset'] === 'custom' ? '4' : '6' }}" id="branchCol">
                 <label class="form-label small mb-1">
                     {{ __('dashboard.filters.branch') }} <x-inputs.tip :text="__('dashboard.hints.branch')" />
                 </label>
@@ -81,10 +81,10 @@
                 </select>
             </div>
 
-            <div class="col-md-1 d-grid">
-                <button type="button" id="resetDashboardFilters" class="btn btn-label-secondary" style="height: 38px;"
-                        data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}">
-                    <i class="fa-solid fa-rotate-left"></i>
+            <div class="col-3 col-sm-2 col-lg-1 d-grid">
+                <button type="button" id="resetDashboardFilters" class="btn btn-label-secondary h-38"
+                        data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}" aria-label="{{ __('global.reset_filter') }}">
+                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
                 </button>
             </div>
         </form>
@@ -202,29 +202,43 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    // الألوان من متغيرات الثيم عشان الرسوم تتماشى مع الوضع الليلي والنهاري
-    var styles      = getComputedStyle(document.documentElement);
-    var isDark      = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-
-    // النص الثانوي: تسميات المحاور والأسطورة
-    var textMuted   = (styles.getPropertyValue('--bs-secondary-color') || '').trim()
-        || (isDark ? '#a1a5b7' : '#8592a3');
-
-    // النص الأساسي: الأرقام والأسماء اللي المستخدم بيقراها فعلاً.
-    // كانت بلون النص الثانوي الباهت فكانت صعبة القراءة.
-    var textStrong  = (styles.getPropertyValue('--bs-body-color') || '').trim()
-        || (isDark ? '#e7e6f1' : '#5d596c');
-
-    var borderColor = (styles.getPropertyValue('--bs-border-color') || '').trim()
-        || (isDark ? '#44485e' : '#e6e6e8');
+    // الألوان من متغيرات الثيم عشان الرسوم تتماشى مع الوضع الليلي والنهاري.
+    // بتتحسب في readThemeColors() وبتتعاد لما الوضع يتغيّر (MutationObserver تحت).
+    var isDark;
+    var textMuted;
+    var textStrong;
+    var borderColor;
+    var surfaceColor;
 
     // لون النص فوق الشرايح الملوّنة — أبيض في الوضعين لأن ألوان
     // اللوحة كلها داكنة بما يكفي.
     var textOnFill  = '#ffffff';
 
-    // خلفية البطاقة: بتتستخدم كحد فاصل بين الشرايح المتقاربة.
-    // --bs-card-bg معرّف جوه .card بس، فبنحدده صراحةً.
-    var surfaceColor = isDark ? '#2f3349' : '#ffffff';
+    function readThemeColors() {
+        var styles = getComputedStyle(document.documentElement);
+        isDark     = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+        // النص الثانوي: تسميات المحاور والأسطورة
+        textMuted   = (styles.getPropertyValue('--bs-secondary-color') || '').trim()
+            || (isDark ? '#a1a5b7' : '#8592a3');
+
+        // النص الأساسي: الأرقام والأسماء اللي المستخدم بيقراها فعلاً.
+        textStrong  = (styles.getPropertyValue('--bs-body-color') || '').trim()
+            || (isDark ? '#e7e6f1' : '#5d596c');
+
+        borderColor = (styles.getPropertyValue('--bs-border-color') || '').trim()
+            || (isDark ? '#44485e' : '#e6e6e8');
+
+        // خلفية البطاقة: بتتستخدم كحد فاصل بين الشرايح المتقاربة.
+        // --bs-card-bg معرّف جوه .card بس، فبنحدده صراحةً.
+        surfaceColor = isDark ? '#2f3349' : '#ffffff';
+
+        if (typeof baseOptions !== 'undefined') {
+            baseOptions.grid   = { borderColor: borderColor, strokeDashArray: 4 };
+            baseOptions.legend = { labels: { colors: textStrong } };
+        }
+    }
+    readThemeColors();
 
     var isRtl   = document.documentElement.getAttribute('dir') === 'rtl';
     var PALETTE = ['#7367f0', '#28c76f', '#ff9f43', '#ea5455', '#00cfe8', '#a8aaae'];
@@ -1022,13 +1036,15 @@ document.addEventListener('DOMContentLoaded', function () {
         // مجموع الأعمدة يفضل 12 في الحالتين عشان الشريط
         // مايلفّش لسطر تاني
         if (presetCol) {
-            presetCol.classList.toggle('col-md-3', custom);
-            presetCol.classList.toggle('col-md-5', !custom);
+            presetCol.classList.toggle('col-lg-3', custom);
+            presetCol.classList.toggle('col-lg-5', !custom);
         }
 
         if (branchCol) {
-            branchCol.classList.toggle('col-md-4', custom);
-            branchCol.classList.toggle('col-md-6', !custom);
+            branchCol.classList.toggle('col-sm-10', custom);
+            branchCol.classList.toggle('col-sm-4', !custom);
+            branchCol.classList.toggle('col-lg-4', custom);
+            branchCol.classList.toggle('col-lg-6', !custom);
         }
     }
 
@@ -1189,6 +1205,28 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     Object.keys(chartsByName).forEach(markActiveType);
+
+    // ====================================================
+    //  تبديل الوضع الليلي/النهاري من غير تحديث الصفحة
+    // ====================================================
+    // زرار الوضع (main.js → Helpers.setTheme) بيغيّر data-bs-theme على <html>.
+    // بنعيد قراءة الألوان ونعيد بناء كل رسم على آخر بيانات عنده.
+    if (window.MutationObserver) {
+        var lastTheme = document.documentElement.getAttribute('data-bs-theme');
+        new MutationObserver(function () {
+            var theme = document.documentElement.getAttribute('data-bs-theme');
+            if (theme === lastTheme) return;
+            lastTheme = theme;
+
+            readThemeColors();
+            Object.keys(chartsByName).forEach(function (name) {
+                var chart = chartsByName[name];
+                if (!chart || !chart.lastData) return;
+                chart.destroy();
+                chart.render(chart.lastData);
+            });
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
 
     document.querySelectorAll('.chart-type-option').forEach(function (option) {
         option.addEventListener('click', function () {

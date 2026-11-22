@@ -65,9 +65,9 @@
 
         <form action="{{ route('admin.links.index') }}" method="GET" class="row g-3 align-items-end">
 
-            <div class="col-md-3">
-                <label class="form-label text-muted small mb-1">{{ __('link.fields.branch') }}</label>
-                <select name="branch_id" class="form-select select2">
+            <div class="col-12 col-sm-6 col-lg-3">
+                <label for="link_filter_branch_id" class="form-label text-muted small mb-1">{{ __('link.fields.branch') }}</label>
+                <select id="link_filter_branch_id" name="branch_id" class="form-select select2">
                     <option value="">{{ __('link.filters.all_branches') }}</option>
                     @foreach ($branches as $branch)
                         <option value="{{ $branch->id }}" {{ (int) request('branch_id') === (int) $branch->id ? 'selected' : '' }}>
@@ -77,9 +77,9 @@
                 </select>
             </div>
 
-            <div class="col-md-3">
-                <label class="form-label text-muted small mb-1">{{ __('link.fields.is_active') }}</label>
-                <select name="status" class="form-select select2">
+            <div class="col-12 col-sm-6 col-lg-3">
+                <label for="link_filter_status" class="form-label text-muted small mb-1">{{ __('link.fields.is_active') }}</label>
+                <select id="link_filter_status" name="status" class="form-select select2">
                     <option value="">{{ __('link.filters.all_statuses') }}</option>
                     @foreach (['active', 'inactive', 'expired'] as $statusKey)
                         <option value="{{ $statusKey }}" {{ request('status') === $statusKey ? 'selected' : '' }}>
@@ -89,20 +89,20 @@
                 </select>
             </div>
 
-            <div class="col-md-4">
-                <label class="form-label text-muted small mb-1">{{ __('link.filters.period') }}</label>
+            <div class="col-12 col-sm-6 col-lg-4">
+                <label for="link_filter_date_from" class="form-label text-muted small mb-1">{{ __('link.filters.period') }}</label>
                 <div class="input-group">
-                    <input type="date" name="date_from" class="form-control px-1" value="{{ request('date_from') }}" />
-                    <input type="date" name="date_to" class="form-control px-1" value="{{ request('date_to') }}" />
+                    <input type="date" name="date_from" id="link_filter_date_from" aria-label="{{ __('global.export.from') }}" class="form-control px-1" value="{{ request('date_from') }}" />
+                    <input type="date" name="date_to" id="link_filter_date_to" aria-label="{{ __('global.export.to') }}" class="form-control px-1" value="{{ request('date_to') }}" />
                 </div>
             </div>
 
-            <div class="col-md-2 d-flex gap-1">
+            <div class="col-12 col-sm-6 col-lg-2 d-flex gap-1">
                 <button type="submit" class="btn btn-primary w-100">
                     <i class="fa-solid fa-filter me-1"></i> {{ __('global.search') }}
                 </button>
                 <a href="{{ route('admin.links.index') }}" class="btn btn-outline-secondary"
-                   data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}">
+                   data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}" aria-label="{{ __('global.reset_filter') }}">
                     <i class="fa-solid fa-rotate"></i>
                 </a>
             </div>

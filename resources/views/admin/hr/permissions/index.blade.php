@@ -7,8 +7,8 @@
     <div class="card-body">
         <form action="{{ route('admin.permissions.index') }}" method="GET" class="row g-3 align-items-end">
             <div class="col-md-5">
-                <label class="form-label fw-bold mb-1">فلترة حسب موظف معين لمعاينة رصيد الساعات</label>
-                <select name="employee_id" class="form-select select2" onchange="this.form.submit()">
+                <label for="admin_hr_permissions_f_employee_id" class="form-label fw-bold mb-1">فلترة حسب موظف معين لمعاينة رصيد الساعات</label>
+                <select id="admin_hr_permissions_f_employee_id" name="employee_id" class="form-select select2" onchange="this.form.submit()">
                     <option value="">-- جميع الموظفين --</option>
                     @foreach($employees as $emp)
                         <option value="{{ $emp->id }}" {{ $selectedEmployeeId == $emp->id ? 'selected' : '' }}>
@@ -18,23 +18,23 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label fw-bold mb-1">الشهر</label>
-                <select name="month" class="form-select select2" onchange="this.form.submit()">
+                <label for="admin_hr_permissions_f_month" class="form-label fw-bold mb-1">الشهر</label>
+                <select id="admin_hr_permissions_f_month" name="month" class="form-select select2" onchange="this.form.submit()">
                     @for($m = 1; $m <= 12; $m++)
                         <option value="{{ $m }}" {{ (int) $selectedMonth === $m ? 'selected' : '' }}>{{ __('global.months.' . $m) }}</option>
                     @endfor
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label fw-bold mb-1">السنة</label>
-                <select name="year" class="form-select select2" onchange="this.form.submit()">
+                <label for="admin_hr_permissions_f_year" class="form-label fw-bold mb-1">السنة</label>
+                <select id="admin_hr_permissions_f_year" name="year" class="form-select select2" onchange="this.form.submit()">
                     @for($y = date('Y') + 1; $y >= date('Y') - 3; $y--)
                         <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
                     @endfor
                 </select>
             </div>
             <div class="col-md-2">
-                <a href="{{ route('admin.permissions.index') }}" class="btn btn-label-secondary w-100 d-flex align-items-center justify-content-center" style="height: 38px;">
+                <a href="{{ route('admin.permissions.index') }}" class="btn btn-label-secondary w-100 d-flex align-items-center justify-content-center h-38">
                     <i class="fa-solid fa-rotate-left me-1"></i> إعادة ضبط
                 </a>
             </div>
@@ -76,7 +76,7 @@
 </div>
 
 <div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center border-bottom">
+    <div class="card-header d-flex justify-content-between align-items-center border-bottom flex-wrap gap-2">
         <h5 class="card-title mb-0">
             <i class="fa-solid fa-clock text-primary me-2"></i> {{ __('permission.title') }}
             @if($selectedEmployee)

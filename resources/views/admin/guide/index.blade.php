@@ -107,7 +107,7 @@
         {{-- 1. معادلة احتساب صافي الراتب المستحق بالعربي --}}
         {{-- لوحة التحكم --}}
         <div class="card border-0 shadow-sm mb-4" id="sec-dashboard">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold text-primary">
                     <i class="fa-solid fa-gauge-high me-2"></i> لوحة التحكم والمؤشرات
                 </h5>
@@ -221,7 +221,7 @@
 
         {{-- الموظفون والفروع والمسميات --}}
         <div class="card border-0 shadow-sm mb-4" id="sec-employees">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold text-primary">
                     <i class="fa-solid fa-users me-2"></i> الموظفون والفروع والمسميات الوظيفية
                 </h5>
@@ -330,7 +330,7 @@
 
         {{-- بوابة الموظف --}}
         <div class="card border-0 shadow-sm mb-4" id="sec-portal">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold text-primary">
                     <i class="fa-solid fa-door-open me-2"></i> بوابة الموظف (الخدمة الذاتية)
                 </h5>
@@ -398,7 +398,7 @@
         </div>
 
         <div class="card border-0 shadow-sm mb-4" id="sec-formula">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold text-primary">
                     <i class="fa-solid fa-calculator me-2"></i> 1. معادلة احتساب صافي الراتب المستحق (Net Salary) - الشرح التفصيلي بالعربي
                 </h5>
@@ -407,7 +407,7 @@
             <div class="card-body pt-4">
                 <div class="p-3 border rounded mb-4 text-center" style="background: rgba(115, 103, 240, 0.06); border-radius: 12px;">
                     <div class="fs-6 fw-bold text-primary mb-2">المعادلة الرياضية المعتمدة في النظام:</div>
-                    <div class="fs-5 fw-bold text-dark font-monospace mb-2" dir="ltr">
+                    <div class="fs-5 fw-bold text-heading font-monospace mb-2" dir="ltr">
                         Net Salary = [ Basic Salary + Total Allowances + Approved Rewards ] - [ Approved Penalties + Advances Installments + Unpaid Leaves Deductions + Excess Permission Deductions ]
                     </div>
                     <div class="fs-6 fw-bold text-success font-monospace" dir="rtl">
@@ -415,7 +415,7 @@
                     </div>
                 </div>
 
-                <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-circle-nodes me-2 text-primary"></i> شرح كل جزء من أجزاء المعادلة باللغة العربية:</h6>
+                <h6 class="fw-bold mb-3 text-heading"><i class="fa-solid fa-circle-nodes me-2 text-primary"></i> شرح كل جزء من أجزاء المعادلة باللغة العربية:</h6>
 
                 <div class="row g-3 mb-4">
                     {{-- كفة الاستحقاقات --}}
@@ -426,15 +426,15 @@
                             </div>
                             <div class="card-body p-3">
                                 <div class="mb-3 border-bottom pb-2">
-                                    <strong class="text-dark d-block">1. الراتب الأساسي (Basic Salary):</strong>
+                                    <strong class="text-heading d-block">1. الراتب الأساسي (Basic Salary):</strong>
                                     <small class="text-muted">هو الأجر الأساسي المتفق عليه في عقد العمل والمسجل في شاشة الموظف. وهو الأساس لحساب سعر يوم وساعة العمل.</small>
                                 </div>
                                 <div class="mb-3 border-bottom pb-2">
-                                    <strong class="text-dark d-block">2. إجمالي البدلات التعاقدية (Total Allowances):</strong>
+                                    <strong class="text-heading d-block">2. إجمالي البدلات التعاقدية (Total Allowances):</strong>
                                     <small class="text-muted">مجموع البدلات الثابتة الشهرية (سكن، مواصلات، اتصالات، غذاء، طبيعة عمل) المسجلة في جدول بدلات الموظف وتصرف له شهرياً.</small>
                                 </div>
                                 <div>
-                                    <strong class="text-dark d-block">3. المكافآت والبدلات الاستثنائية (Approved Rewards):</strong>
+                                    <strong class="text-heading d-block">3. المكافآت والبدلات الاستثنائية (Approved Rewards):</strong>
                                     <small class="text-muted">المبالغ الاستثنائية التي تم اعتمادها للموظف خلال نفس شهر المسير (حافز إنجاز، مكافأة تميز، عمولة مبيعات، أجر إضافي Overtime).</small>
                                 </div>
                             </div>
@@ -449,19 +449,19 @@
                             </div>
                             <div class="card-body p-3">
                                 <div class="mb-3 border-bottom pb-2">
-                                    <strong class="text-dark d-block">1. الجزاءات والخصومات الإدارية (Approved Penalties):</strong>
+                                    <strong class="text-heading d-block">1. الجزاءات والخصومات الإدارية (Approved Penalties):</strong>
                                     <small class="text-muted">تشمل: خصم الأيام (عدد الأيام &times; سعر يوم العمل) بالإضافة إلى أي خصومات نقدية مباشرة. <strong>المعتمد فقط</strong> يدخل المسير، و<strong>بالمبلغ المثبَّت وقت التسجيل</strong> — المعلّق والمرفوض لا يُخصمان.</small>
                                 </div>
                                 <div class="mb-3 border-bottom pb-2">
-                                    <strong class="text-dark d-block">2. أقساط السلف والقروض (Advances Installments):</strong>
+                                    <strong class="text-heading d-block">2. أقساط السلف والقروض (Advances Installments):</strong>
                                     <small class="text-muted">القسط الشهري المستحق سداده من السلفة المعتمدة، ولا يتجاوز الرصيد المتبقي الفعلي بذمة الموظف.</small>
                                 </div>
                                 <div class="mb-3 border-bottom pb-2">
-                                    <strong class="text-dark d-block">3. خصم الإجازات بدون راتب (Unpaid Leaves):</strong>
+                                    <strong class="text-heading d-block">3. خصم الإجازات بدون راتب (Unpaid Leaves):</strong>
                                     <small class="text-muted">أيام الإجازات غير المدفوعة المعتمدة الواقعة داخل الشهر &times; سعر يوم العمل. الإجازة التي تمتد بين شهرين <strong>تُوزَّع عليهما</strong> حسب أيام كل شهر — <a href="#sec-leaves">مثال</a>.</small>
                                 </div>
                                 <div>
-                                    <strong class="text-dark d-block">4. خصم ساعات الاستئذان المتجاوزة (Excess Permission Hours):</strong>
+                                    <strong class="text-heading d-block">4. خصم ساعات الاستئذان المتجاوزة (Excess Permission Hours):</strong>
                                     <small class="text-muted">الساعات التي تتعدى الحد الشهري المسموح للموظف &times; سعر ساعة العمل الفعلية.</small>
                                 </div>
                             </div>
@@ -507,7 +507,7 @@
                         <tbody>
                             <tr>
                                 <td>الراتب الأساسي (Basic Salary)</td>
-                                <td class="fw-bold text-dark"><span dir="ltr">6,000.00</span></td>
+                                <td class="fw-bold text-heading"><span dir="ltr">6,000.00</span></td>
                                 <td>المثبت في العقد وملف الموظف</td>
                             </tr>
                             <tr>
@@ -828,7 +828,7 @@
         {{-- 7. الجزاءات وسعر اليوم --}}
         {{-- دورة اعتماد الحركات المالية --}}
         <div class="card border-0 shadow-sm mb-4" id="sec-approval-cycle">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold text-primary">
                     <i class="fa-solid fa-user-check me-2"></i> دورة اعتماد الجزاءات والمكافآت (فصل المهام)
                 </h5>
@@ -844,7 +844,7 @@
 
                 <div class="p-3 border rounded mb-4 text-center" style="background: rgba(115, 103, 240, 0.06); border-radius: 12px;">
                     <div class="fs-6 fw-bold text-primary mb-2">مسار الحركة:</div>
-                    <div class="fs-6 fw-bold text-dark">
+                    <div class="fs-6 fw-bold text-heading">
                         <span class="badge bg-label-warning px-3 py-2">قيد الاعتماد</span>
                         <i class="fa-solid fa-arrow-left mx-2 text-muted"></i>
                         <span class="badge bg-label-success px-3 py-2">معتمد</span>
@@ -856,7 +856,7 @@
                     </div>
                 </div>
 
-                <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-list-check me-2 text-primary"></i> القواعد المطبَّقة:</h6>
+                <h6 class="fw-bold mb-3 text-heading"><i class="fa-solid fa-list-check me-2 text-primary"></i> القواعد المطبَّقة:</h6>
 
                 <div class="table-responsive mb-4">
                     <table class="table table-bordered align-middle">
@@ -977,7 +977,7 @@
                     <div class="col-md-6">
                         <div class="p-3 border rounded">
                             <h6 class="fw-bold text-danger mb-2">معادلة سعر اليوم (Daily Rate Formula)</h6>
-                            <div class="font-monospace fw-bold text-dark fs-6" dir="ltr">Daily Rate = Basic Salary / 30</div>
+                            <div class="font-monospace fw-bold text-heading fs-6" dir="ltr">Daily Rate = Basic Salary / 30</div>
                             <small class="text-muted mt-1 d-block">
                                 يقسم الراتب الأساسي على 30 يوماً شهرياً. عند تطبيق خصم يوم أو يومين، يحسب المبلغ تلقائياً فور اختيار اسم الموظف.
                                 <strong>لو للموظف سعر يوم خاص</strong> في ملفه يُستخدم بدلاً من المعادلة.
@@ -987,7 +987,7 @@
                     <div class="col-md-6">
                         <div class="p-3 border rounded">
                             <h6 class="fw-bold text-info mb-2">معادلة سعر الساعة (Hourly Rate Formula)</h6>
-                            <div class="font-monospace fw-bold text-dark fs-6" dir="ltr">Hourly Rate = Daily Rate / 8 Working Hours</div>
+                            <div class="font-monospace fw-bold text-heading fs-6" dir="ltr">Hourly Rate = Daily Rate / 8 Working Hours</div>
                             <small class="text-muted mt-1 d-block">
                                 يقسم سعر اليوم على 8 ساعات عمل يومية (أو عدد الساعات المسجل للموظف) لاستخدامه في خصم ساعات الاستئذان.
                                 <strong>لو للموظف سعر ساعة خاص</strong> يُستخدم مباشرة، ولو له سعر يوم خاص فقط تُحسب الساعة منه
@@ -1177,7 +1177,7 @@
 
         {{-- مصادر العملاء --}}
         <div class="card border-0 shadow-sm mb-4" id="sec-customer-sources">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold text-primary">
                     <i class="fa-solid fa-share-nodes me-2"></i> مصادر العملاء (Customer Sources)
                 </h5>
@@ -1503,7 +1503,7 @@
 
         {{-- التقارير --}}
         <div class="card border-0 shadow-sm mb-4" id="sec-reports">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold text-primary">
                     <i class="fa-solid fa-chart-pie me-2"></i> التقارير
                 </h5>
@@ -1571,7 +1571,7 @@
         {{-- الأدوار والصلاحيات --}}
         @php($rolePresets = \App\Services\Role\RolePresets::all())
         <div class="card border-0 shadow-sm mb-4" id="sec-roles">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold text-primary">
                     <i class="fa-solid fa-user-shield me-2"></i> الأدوار والصلاحيات حسب التخصص
                 </h5>
@@ -1607,7 +1607,7 @@
                     </table>
                 </div>
 
-                <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-scale-balanced me-2 text-primary"></i> فصل المهام — لا أحد يُنهي حركة مالية وحده:</h6>
+                <h6 class="fw-bold mb-3 text-heading"><i class="fa-solid fa-scale-balanced me-2 text-primary"></i> فصل المهام — لا أحد يُنهي حركة مالية وحده:</h6>
                 <div class="table-responsive mb-4">
                     <table class="table table-bordered align-middle small">
                         <thead>
@@ -1678,7 +1678,7 @@
 
         {{-- البحث والفلترة في الجداول --}}
         <div class="card border-0 shadow-sm mb-4" id="sec-table-filters">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold text-primary">
                     <i class="fa-solid fa-filter me-2"></i> البحث والفلترة في الجداول
                 </h5>
@@ -1749,7 +1749,7 @@
 
         {{-- 12. سجل حركات النظام --}}
         <div class="card border-0 shadow-sm mb-4" id="sec-activity-log">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold text-primary">
                     <i class="fa-solid fa-shield-halved me-2"></i> 12. سجل حركات النظام والتدقيق (Audit Log)
                 </h5>
@@ -1791,7 +1791,7 @@
                     </div>
                 </div>
 
-                <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-eye me-2 text-primary"></i> طريقتان لعرض السجل:</h6>
+                <h6 class="fw-bold mb-3 text-heading"><i class="fa-solid fa-eye me-2 text-primary"></i> طريقتان لعرض السجل:</h6>
 
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
@@ -1866,7 +1866,7 @@
 
         {{-- 13. عزل البيانات بين الفروع --}}
         <div class="card border-0 shadow-sm mb-4" id="sec-branch-isolation">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold text-primary">
                     <i class="fa-solid fa-building-lock me-2"></i> 13. عزل البيانات بين الفروع (Branch Isolation)
                 </h5>
@@ -1881,7 +1881,7 @@
 
                 <div class="p-3 border rounded mb-4" style="background: rgba(115, 103, 240, 0.06); border-radius: 12px;">
                     <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-diagram-project me-1"></i> كيف يحدد النظام فرع المستخدم؟</h6>
-                    <div class="fs-6 fw-bold text-dark font-monospace text-center py-2" dir="rtl">
+                    <div class="fs-6 fw-bold text-heading font-monospace text-center py-2" dir="rtl">
                         حساب المشرف ← الموظف المرتبط به ← الفرع التابع له
                     </div>
                     <p class="small text-muted mb-0 text-center">
@@ -1924,7 +1924,7 @@
                     </div>
                 </div>
 
-                <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-table-list me-2 text-primary"></i> الموديولات المشمولة بالعزل:</h6>
+                <h6 class="fw-bold mb-3 text-heading"><i class="fa-solid fa-table-list me-2 text-primary"></i> الموديولات المشمولة بالعزل:</h6>
                 <div class="d-flex flex-wrap gap-2 mb-2">
                     <span class="badge bg-label-primary">الموظفون</span>
                     <span class="badge bg-label-primary">الرواتب والمستندات والمهارات</span>
@@ -1963,7 +1963,7 @@
 
         {{-- 14. الدخول واستعادة كلمة المرور --}}
         <div class="card border-0 shadow-sm mb-4" id="sec-auth-security">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold text-primary">
                     <i class="fa-solid fa-key me-2"></i> 14. تسجيل الدخول واستعادة كلمة المرور
                 </h5>
@@ -2012,7 +2012,7 @@
 
         {{-- 15. الإشعارات --}}
         <div class="card border-0 shadow-sm mb-4" id="sec-notifications">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="card-title mb-0 fw-bold text-primary">
                     <i class="fa-solid fa-bell me-2"></i> 15. الإشعارات والتنبيهات اللحظية
                 </h5>
@@ -2027,7 +2027,7 @@
                     ويصل <strong>لحظياً</strong> دون إعادة تحميل الصفحة.
                 </p>
 
-                <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-list-check me-2 text-primary"></i> أنواع الإشعارات:</h6>
+                <h6 class="fw-bold mb-3 text-heading"><i class="fa-solid fa-list-check me-2 text-primary"></i> أنواع الإشعارات:</h6>
 
                 <div class="table-responsive mb-4">
                     <table class="table table-bordered align-middle">

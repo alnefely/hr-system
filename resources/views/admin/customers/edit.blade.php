@@ -10,7 +10,7 @@
                     <i class="fa-solid fa-user-pen text-primary me-2"></i> {{ __('customer.edit_title') }}: <span class="text-primary">{{ $customer->name }}</span>
                 </h5>
                 <a href="{{ route('admin.customers.index') }}" class="btn btn-label-secondary waves-effect">
-                    <i class="fa-solid fa-arrow-right me-1"></i> {{ __('global.back') }}
+                    <i class="fa-solid fa-arrow-right icon-back me-1" aria-hidden="true"></i> {{ __('global.back') }}
                 </a>
             </div>
 

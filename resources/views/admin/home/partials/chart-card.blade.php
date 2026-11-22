@@ -7,7 +7,7 @@
     اختياري: $hint، $badgeId (شارة العملة اللي الـ JS بيحدّثها)
 --}}
 <div class="card h-100">
-    <div class="card-header d-flex justify-content-between align-items-center gap-2">
+    <div class="card-header d-flex justify-content-between align-items-center gap-2 flex-wrap">
         <h6 class="card-title mb-0 fw-bold text-truncate">
             <i class="fa-solid {{ $icon }} text-primary me-2"></i>{{ $title }}
             @if (! empty($hint))
@@ -24,7 +24,7 @@
                 <button class="btn btn-sm btn-icon btn-text-secondary rounded-pill dropdown-toggle hide-arrow chart-type-btn"
                         type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
                         data-target="{{ $target }}" aria-expanded="false"
-                        title="{{ __('dashboard.chart_types.change') }}">
+                        title="{{ __('dashboard.chart_types.change') }}" aria-label="{{ __('dashboard.chart_types.change') }}">
                     <i class="fa-solid fa-ellipsis-vertical"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm">

@@ -5,7 +5,7 @@
 <div class="row g-4 mb-4">
     <div class="col-md-4">
         <div class="card h-100 shadow-sm">
-            <div class="card-header border-bottom d-flex align-items-center justify-content-between">
+            <div class="card-header border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <h5 class="card-title mb-0">
                     <i class="fa-solid fa-file-contract text-primary me-2"></i> {{ __('vendor_subscription.details_title') }}
                 </h5>
@@ -23,7 +23,7 @@
                 </span>
             </div>
             <div class="card-body pt-4">
-                <h4 class="fw-bold text-dark mb-1">{{ $vendorSubscription->title }}</h4>
+                <h4 class="fw-bold text-heading mb-1">{{ $vendorSubscription->title }}</h4>
                 <p class="text-muted small mb-4">
                     <i class="fa-solid fa-handshake me-1"></i> {{ $vendorSubscription->vendor?->name }}
                     @if($vendorSubscription->vendor?->company_name)
@@ -123,7 +123,7 @@
                                     <td><span dir="ltr">{{ $payment->transaction_reference ?? '-' }}</span></td>
                                     <td>
                                         @if($payment->attachment)
-                                            <a href="{{ asset('storage/' . $payment->attachment) }}" target="_blank" class="btn btn-sm btn-icon btn-label-secondary" title="معاينة المرفق">
+                                            <a href="{{ asset('storage/' . $payment->attachment) }}" target="_blank" class="btn btn-sm btn-icon btn-label-secondary" title="معاينة المرفق" aria-label="معاينة المرفق">
                                                 <i class="fa-solid fa-paperclip"></i>
                                             </a>
                                         @else

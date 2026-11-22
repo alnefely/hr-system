@@ -14,8 +14,8 @@
             <div class="card-body pt-4">
                 <form action="{{ route('admin.reports.employee-statement') }}" method="GET" class="row g-3 align-items-end">
                     <div class="col-md-4">
-                        <label class="form-label fw-bold mb-1 d-block">اختيار الموظف <span class="text-danger">*</span></label>
-                        <select name="employee_id" class="form-select select2" required style="width: 100%;">
+                        <label for="admin_hr_reports_employe_f_employee_id" class="form-label fw-bold mb-1 d-block">اختيار الموظف <span class="text-danger">*</span></label>
+                        <select id="admin_hr_reports_employe_f_employee_id" name="employee_id" class="form-select select2" required style="width: 100%;">
                             <option value="">-- اختر الموظف لعرض التقرير --</option>
                             @foreach($employees as $emp)
                                 <option value="{{ $emp->id }}" {{ request('employee_id') == $emp->id ? 'selected' : '' }}>
@@ -25,16 +25,16 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label fw-bold mb-1 d-block">من تاريخ</label>
-                        <input type="date" name="from_date" class="form-control" value="{{ $fromDate }}" style="height: 38px;">
+                        <label for="admin_hr_reports_employe_f_from_date" class="form-label fw-bold mb-1 d-block">من تاريخ</label>
+                        <input id="admin_hr_reports_employe_f_from_date" type="date" name="from_date" class="form-control h-38" value="{{ $fromDate }}">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label fw-bold mb-1 d-block">إلى تاريخ</label>
-                        <input type="date" name="to_date" class="form-control" value="{{ $toDate }}" style="height: 38px;">
+                        <label for="admin_hr_reports_employe_f_to_date" class="form-label fw-bold mb-1 d-block">إلى تاريخ</label>
+                        <input id="admin_hr_reports_employe_f_to_date" type="date" name="to_date" class="form-control h-38" value="{{ $toDate }}">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label d-block mb-1">&nbsp;</label>
-                        <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" style="height: 38px;">
+                        <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center h-38">
                             <i class="fa-solid fa-filter me-1"></i> {{ __('global.filter') }}
                         </button>
                     </div>
@@ -53,8 +53,8 @@
                             <i class="fa-solid fa-user-tie me-2"></i> {{ $selectedEmployee->name }}
                         </h4>
                         <p class="mb-0 text-muted">
-                            كود الموظف: <strong class="text-dark">{{ $selectedEmployee->employee_code }}</strong> | 
-                            الفرع: <strong class="text-dark">{{ $selectedEmployee->branch?->name ?? 'غير محدد' }}</strong> | 
+                            كود الموظف: <strong class="text-heading">{{ $selectedEmployee->employee_code }}</strong> | 
+                            الفرع: <strong class="text-heading">{{ $selectedEmployee->branch?->name ?? 'غير محدد' }}</strong> | 
                             الراتب الأساسي: <strong class="text-primary"><span dir="ltr">{{ number_format($selectedEmployee->basic_salary, 2) }}</span> {{ $selectedEmployee->branch?->currency ?? 'EGP' }}</strong> | 
                             أجر الساعة: <strong class="text-info"><span dir="ltr">{{ number_format($stats['hourly_rate'], 2) }}</span> {{ $selectedEmployee->branch?->currency ?? 'EGP' }}</strong>
                         </p>
@@ -115,7 +115,7 @@
             <div class="card h-100 shadow-sm border-0 border-top border-3 border-dark">
                 <div class="card-body">
                     <small class="text-muted d-block mb-1">إجمالي المبالغ الخاضعة للخصم</small>
-                    <h3 class="fw-bold text-dark mb-2"><span dir="ltr">{{ number_format($stats['total_deductions_cost'], 2) }}</span> {{ $selectedEmployee->branch?->currency ?? 'EGP' }}</h3>
+                    <h3 class="fw-bold text-heading mb-2"><span dir="ltr">{{ number_format($stats['total_deductions_cost'], 2) }}</span> {{ $selectedEmployee->branch?->currency ?? 'EGP' }}</h3>
                     <div class="small text-muted border-top pt-2">
                         <span>خصم الجزاءات + الإجازات بدون أجر + الاستئذان</span>
                     </div>
@@ -146,7 +146,7 @@
                         <tbody>
                             @forelse($timeline as $item)
                                 <tr>
-                                    <td><strong class="text-dark">{{ $item['date'] }}</strong></td>
+                                    <td><strong class="text-heading">{{ $item['date'] }}</strong></td>
                                     <td>{{ $item['title'] }}</td>
                                     <td><span class="badge bg-label-secondary">{{ $item['detail'] }}</span></td>
                                     <td>{{ $item['reason'] }}</td>

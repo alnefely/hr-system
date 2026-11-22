@@ -26,7 +26,7 @@
         @endif
 
         @if (admin_can("{$module}_reject"))
-            <button type="button" class="btn btn-sm btn-icon btn-label-danger reject-btn" data-id="{{ $row->id }}" title="{{ __('global.reject') }}">
+            <button type="button" class="btn btn-sm btn-icon btn-label-danger reject-btn" data-id="{{ $row->id }}" title="{{ __('global.reject') }}" aria-label="{{ __('global.reject') }}">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         @endif

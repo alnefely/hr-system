@@ -91,7 +91,7 @@
                         @endif
 
                         <a href="{{ route('admin.payrolls.index') }}" class="btn btn-label-secondary">
-                            <i class="fa-solid fa-arrow-right me-1"></i> {{ __('payroll.actions.back_to_list') }}
+                            <i class="fa-solid fa-arrow-right icon-back me-1" aria-hidden="true"></i> {{ __('payroll.actions.back_to_list') }}
                         </a>
                     </div>
                 </div>
@@ -116,7 +116,7 @@
                     <div class="col-md-3">
                         <div class="border rounded p-3 bg-transparent">
                             <small class="text-muted d-block mb-1">{{ __('payroll.fields.total_basic_salary') }}</small>
-                            <strong class="fs-5 text-dark"><span dir="ltr">{{ number_format($payroll->total_basic_salary, 2) }}</span></strong>
+                            <strong class="fs-5 text-heading"><span dir="ltr">{{ number_format($payroll->total_basic_salary, 2) }}</span></strong>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -154,7 +154,7 @@
 </form>
 
 <div class="card">
-    <div class="card-header border-bottom d-flex align-items-center justify-content-between py-3">
+    <div class="card-header border-bottom d-flex align-items-center justify-content-between py-3 flex-wrap gap-2">
         <h5 class="card-title mb-0 fw-bold"><i class="fa-solid fa-users text-primary me-2"></i> {{ __('payroll.fields.items_count', ['count' => $payroll->items->count()]) }}</h5>
     </div>
 
@@ -187,7 +187,7 @@
                                 <span class="badge bg-label-secondary">{{ $item->employee?->employee_code }}</span>
                             </td>
                             <td>
-                                <a href="{{ route('admin.employees.show', $item->employee_id) }}" class="fw-bold d-block text-dark" target="_blank">
+                                <a href="{{ route('admin.employees.show', $item->employee_id) }}" class="fw-bold d-block text-heading" target="_blank">
                                     {{ $item->employee?->name }}
                                 </a>
                                 <small class="text-muted">{{ $item->employee?->jobTitle?->title ?? '-' }} • {{ $item->employee?->branch?->name }}</small>
@@ -266,7 +266,7 @@
 
 {{-- Timeline Audit Log Card at the bottom of the page --}}
 <div class="card mt-4">
-    <div class="card-header border-bottom d-flex align-items-center justify-content-between">
+    <div class="card-header border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
         <h5 class="card-title mb-0">
             <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> {{ __('payroll.fields.audit_log') }}
         </h5>
@@ -355,12 +355,12 @@
             <ul class="list-unstyled position-relative border-start border-2 ps-4 ms-2 mb-0">
                 @foreach($timelineEvents as $event)
                     <li class="position-relative {{ $loop->last ? 'mb-0' : 'mb-4' }}">
-                        <span class="position-absolute translate-middle-x {{ $event['badge_bg'] }} text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px; right: -29px; top: 0;">
+                        <span class="position-absolute translate-middle-x {{ $event['badge_bg'] }} text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px; inset-inline-start: -29px; top: 0;">
                             <i class="fa-solid {{ $event['icon'] }} fs-7"></i>
                         </span>
                         <div class="p-3 rounded border {{ $event['border_color'] }}">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <h6 class="mb-0 fw-bold {{ $event['text_color'] }}">{{ $event['title'] }}: <span class="text-dark">{{ $event['user'] }}</span></h6>
+                                <h6 class="mb-0 fw-bold {{ $event['text_color'] }}">{{ $event['title'] }}: <span class="text-heading">{{ $event['user'] }}</span></h6>
                                 <small class="text-muted"><i class="fa-solid fa-clock me-1"></i>{{ $event['date']?->format('Y-m-d H:i A') }}</small>
                             </div>
                             @if(isset($event['desc']))
@@ -519,6 +519,7 @@
                                     @foreach($item->allowance_details as $alIdx => $al)
                                         <tr>
                                             <td>
+                                                <input type="hidden" name="allowance_details[{{ $alIdx }}][ref]" value="{{ $alIdx }}" />
                                                 <input type="text" name="allowance_details[{{ $alIdx }}][title]" value="{{ $al['title'] ?? $al['name'] ?? '' }}" class="form-control form-control-sm" {{ ($payroll->status != 'draft' && $payroll->status != 'rejected') ? 'readonly' : 'required' }} />
                                             </td>
                                             <td>
@@ -563,6 +564,7 @@
                                     @foreach($item->deduction_details as $dedIdx => $ded)
                                         <tr>
                                             <td>
+                                                <input type="hidden" name="deduction_details[{{ $dedIdx }}][ref]" value="{{ $dedIdx }}" />
                                                 <input type="text" name="deduction_details[{{ $dedIdx }}][title]" value="{{ $ded['title'] ?? $ded['name'] ?? '' }}" class="form-control form-control-sm" {{ ($payroll->status != 'draft' && $payroll->status != 'rejected') ? 'readonly' : 'required' }} />
                                             </td>
                                             <td>

@@ -27,6 +27,7 @@
     <script src="/admin/vendor/js/helpers.js"></script>
     <script src="/admin/js/config.js"></script>
     @include('layouts.partials.theme-init')
+    @include('layouts.partials.fonts')
     <link rel="stylesheet" href="{{ asset('admin/custom.css') }}" />
     @stack('css')
 </head>

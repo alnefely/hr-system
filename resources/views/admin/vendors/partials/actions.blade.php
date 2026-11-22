@@ -16,6 +16,6 @@
             . ' data-tax="' . e($row->tax_number) . '"'
             . ' data-active="' . ($row->is_active ? '1' : '0') . '"'
             . ' data-notes="' . e($row->notes) . '"'
-            . ' title="' . e(__('global.edit')) . '"><i class="fa-solid fa-pen-to-square"></i></button>'
+            . ' title="' . e(__('global.edit')) . '" aria-label="' . e(__('global.edit')) . '"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>'
         : '',
 ])

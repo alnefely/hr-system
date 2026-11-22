@@ -29,7 +29,7 @@
 
                     @forelse($activeCostsByCurrency as $curr => $totalCost)
                         <span class="badge bg-label-secondary" data-bs-toggle="tooltip" title="إجمالي تكلفة الاشتراكات النشطة بعملة {{ $curr }}">
-                            {{ $curr }}: <strong class="text-dark" dir="ltr">{{ number_format($totalCost, 2) }}</strong>
+                            {{ $curr }}: <strong class="text-heading" dir="ltr">{{ number_format($totalCost, 2) }}</strong>
                         </span>
                     @empty
                         <span class="text-muted small">لا توجد اشتراكات نشطة مسجلة</span>
@@ -90,8 +90,8 @@
     <div class="card-body py-3 border-bottom bg-transparent">
         <form action="{{ route('admin.vendor-subscriptions.index') }}" method="GET" class="row g-3 align-items-end">
             <div class="col-md-3">
-                <label class="form-label text-muted small mb-1">{{ __('vendor_subscription.fields.vendor') }}</label>
-                <select name="vendor_id" class="form-select select2">
+                <label for="admin_vendor_subscriptio_f_vendor_id" class="form-label text-muted small mb-1">{{ __('vendor_subscription.fields.vendor') }}</label>
+                <select id="admin_vendor_subscriptio_f_vendor_id" name="vendor_id" class="form-select select2">
                     <option value="">{{ __('global.all') }}</option>
                     @foreach($vendors as $v)
                         <option value="{{ $v->id }}" {{ request('vendor_id') == $v->id ? 'selected' : '' }}>{{ $v->name }}</option>
@@ -99,8 +99,8 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label text-muted small mb-1">{{ __('vendor_subscription.fields.branch') }}</label>
-                <select name="branch_id" class="form-select select2">
+                <label for="admin_vendor_subscriptio_f_branch_id" class="form-label text-muted small mb-1">{{ __('vendor_subscription.fields.branch') }}</label>
+                <select id="admin_vendor_subscriptio_f_branch_id" name="branch_id" class="form-select select2">
                     <option value="">{{ __('vendor_subscription.fields.all_branches') }}</option>
                     @foreach($branches as $b)
                         <option value="{{ $b->id }}" {{ request('branch_id') == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
@@ -108,8 +108,8 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label text-muted small mb-1">{{ __('vendor_subscription.fields.status') }}</label>
-                <select name="status" class="form-select select2">
+                <label for="admin_vendor_subscriptio_f_status" class="form-label text-muted small mb-1">{{ __('vendor_subscription.fields.status') }}</label>
+                <select id="admin_vendor_subscriptio_f_status" name="status" class="form-select select2">
                     <option value="">{{ __('global.all') }}</option>
                     <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>{{ __('vendor_subscription.statuses.active') }}</option>
                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>{{ __('vendor_subscription.statuses.pending') }}</option>
@@ -118,8 +118,8 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label text-muted small mb-1">{{ __('vendor_subscription.fields.type') }}</label>
-                <select name="type" class="form-select select2">
+                <label for="admin_vendor_subscriptio_f_type" class="form-label text-muted small mb-1">{{ __('vendor_subscription.fields.type') }}</label>
+                <select id="admin_vendor_subscriptio_f_type" name="type" class="form-select select2">
                     <option value="">{{ __('global.all') }}</option>
                     <option value="subscription" {{ request('type') == 'subscription' ? 'selected' : '' }}>{{ __('vendor_subscription.type_enums.subscription') }}</option>
                     <option value="contract" {{ request('type') == 'contract' ? 'selected' : '' }}>{{ __('vendor_subscription.type_enums.contract') }}</option>
@@ -130,7 +130,7 @@
                 <button type="submit" class="btn btn-primary w-100 waves-effect waves-light">
                     <i class="fa-solid fa-filter me-1"></i> {{ __('global.filter') }}
                 </button>
-                <a href="{{ route('admin.vendor-subscriptions.index') }}" class="btn btn-label-secondary waves-effect" data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}">
+                <a href="{{ route('admin.vendor-subscriptions.index') }}" class="btn btn-label-secondary waves-effect" data-bs-toggle="tooltip" title="{{ __('global.reset_filter') }}" aria-label="{{ __('global.reset_filter') }}">
                     <i class="fa-solid fa-rotate-left"></i>
                 </a>
             </div>
