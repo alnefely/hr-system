@@ -165,41 +165,69 @@ div.dt-container div.dt-paging ul.pagination {
     color: var(--bs-secondary-color, #a5a3ae) !important;
 }
 
-/* Arrow position and styling */
+/* Arrow: سهم الثيم (SVG في --bs-select-arrow على .select2-container، وله نسخة للوضع الداكن).
+   القواعد القديمة كانت بتصغّر الـ <b> لـ 0×0 وترسم مثلث بالـ border، فصورة الثيم
+   كانت بتختفي ويفضل شكل غريب. دلوقتي: مربع ثابت في آخر الحقل والسهم جوّاه،
+   وبيلف لما القائمة تتفتح. */
 .select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 36px !important;
     position: absolute !important;
-    top: 1px !important;
-    inset-inline-end: 8px !important;
+    top: 0 !important;
+    height: 100% !important;
+    width: 1.5rem !important;
+    inset-inline-end: 0.625rem !important;
     inset-inline-start: auto !important;
-    width: 20px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
 }
 
 .select2-container--default .select2-selection--single .select2-selection__arrow b {
-    border-color: var(--bs-secondary-color, #6f6b7d) transparent transparent transparent !important;
-    border-style: solid !important;
-    border-width: 5px 4px 0 4px !important;
-    height: 0 !important;
-    width: 0 !important;
-    margin: 0 !important;
     position: static !important;
+    display: block !important;
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    margin: 0 !important;
+    border: 0 !important;
+    background-image: var(--bs-select-arrow) !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: contain !important;
     transition: transform 0.2s ease !important;
 }
 
 .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
-    border-color: transparent transparent var(--bs-secondary-color, #6f6b7d) transparent !important;
-    border-width: 0 4px 5px 4px !important;
+    transform: rotate(180deg);
 }
 
-/* Clear button */
+/* لسه مفيش اختيار (placeholder) ← سهم أفتح، زي الثيم */
+.select2-container--default .select2-selection__rendered:has(> .select2-selection__placeholder) ~ .select2-selection__arrow b {
+    background-image: var(--bs-select-disabled-arrow) !important;
+}
+
+/* Clear (×): في Select2 4.0.13 هو <span> عايم جوّه النص، فكان بيقع في نص الحقل.
+   بقى ثابت جنب السهم مباشرة ومتوسّط رأسياً، والنص بياخد مكانه بس لما يكون ظاهر. */
 .select2-container--default .select2-selection--single .select2-selection__clear {
+    position: absolute !important;
+    top: 50% !important;
+    transform: translateY(-50%);
+    inset-inline-end: 2.375rem !important;
+    inset-inline-start: auto !important;
+    float: none !important;
+    margin: 0 !important;
+    padding: 0 0.25rem !important;
+    line-height: 1 !important;
+    font-size: 1.125rem !important;
+    font-weight: 400 !important;
     color: var(--bs-secondary-color, #a5a3ae) !important;
     cursor: pointer !important;
-    font-weight: bold !important;
-    margin-inline-end: 10px !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__clear:hover {
+    color: var(--bs-danger, #ff4c51) !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered:has(.select2-selection__clear) {
+    padding-inline-end: 3.75rem !important;
 }
 
 /* 3. Search input inside dropdown */

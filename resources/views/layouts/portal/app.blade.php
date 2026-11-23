@@ -28,12 +28,13 @@
     <script src="/admin/js/config.js"></script>
     @include('layouts.partials.theme-init')
     @include('layouts.partials.fonts')
+    {{-- مكتبات الـ vendor قبل custom.css (زي لوحة الإدارة) عشان تعديلاتنا تكسب --}}
+    <link rel="stylesheet" href="/admin/vendor/libs/sweetalert2/sweetalert2.css" />
+    <link rel="stylesheet" href="/admin/vendor/libs/select2/select2.css" />
     <link rel="stylesheet" href="{{ asset('admin/custom.css') }}" />
     <style>
         .portal-stat .icon { width: 2.75rem; height: 2.75rem; display: inline-flex; align-items: center; justify-content: center; border-radius: .5rem; }
     </style>
-    <link rel="stylesheet" href="/admin/vendor/libs/sweetalert2/sweetalert2.css" />
-    <link rel="stylesheet" href="/admin/vendor/libs/select2/select2.css" />
     @stack('css')
 </head>
 <body>
