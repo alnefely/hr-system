@@ -9,7 +9,8 @@
 <div class="btn-group" role="group" aria-label="{{ __('task.views.title') }}">
     @foreach ($views as $name => [$icon, $label])
         @if (\Illuminate\Support\Facades\Route::has($routes . '.' . $name) && ($name !== 'board' || ($canBoard ?? true)))
-            <a href="{{ route($routes . '.' . $name, $query ?? []) }}" class="btn {{ $current === $name ? 'btn-primary' : 'btn-label-primary' }}"
+            {{-- view=list: اختيار صريح للقائمة — من غيره القائمة بتحوّل لآخر عرض محفوظ (RemembersTaskView) --}}
+            <a href="{{ route($routes . '.' . $name, ($query ?? []) + ($name === 'index' ? ['view' => 'list'] : [])) }}" class="btn {{ $current === $name ? 'btn-primary' : 'btn-label-primary' }}"
                @if ($current === $name) aria-current="page" @endif>
                 <i class="fa-solid {{ $icon }}"></i><span class="d-none d-md-inline ms-1">{{ $label }}</span>
             </a>

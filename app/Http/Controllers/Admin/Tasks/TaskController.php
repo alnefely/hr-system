@@ -33,13 +33,33 @@ use Illuminate\Http\Request;
  */
 class TaskController extends Controller
 {
+    use \App\Http\Controllers\Concerns\RemembersTaskView;
+
     public function __construct(
         private TaskService $tasks,
         private TaskFilters $filters,
     ) {}
 
+    protected function taskViewArea(): string
+    {
+        return 'admin';
+    }
+
+    /** اللوحة بصلاحية — من غيرها مانحوّلش ليها حتى لو كانت آخر عرض. */
+    protected function taskViewAllowed(string $view): bool
+    {
+        return $view !== 'board' || admin_can('task_board');
+    }
+
     public function index(Request $request)
     {
+        // دخول من غير معاملات ← آخر عرض اختاره (لوحة / تقويم)
+        if ($redirect = $this->redirectToRememberedTaskView($request)) {
+            return $redirect;
+        }
+
+        $this->rememberTaskView('index');
+
         $filters = TaskFilters::fromRequest($request);
         // "بانتظار مراجعتي": المهام اللي المشرف ده هو مراجعها المسجّل
         $mineToReview = $request->query('review') === 'mine';
@@ -119,6 +139,7 @@ class TaskController extends Controller
     {
         $filters = TaskFilters::fromRequest($request);
         unset($filters['status']);
+        $this->rememberTaskView('board');
 
         return view('admin.tasks.board', [
             'board'     => $boards->board($this->filters->apply(Task::select('tasks.*'), $filters)),
@@ -181,6 +202,7 @@ class TaskController extends Controller
         $filters = TaskFilters::fromRequest($request);
         unset($filters['status']);
         $filters['parent'] = 'all';
+        $this->rememberTaskView('calendar');
 
         return view('admin.tasks.calendar', $boards->calendar(
             $this->filters->apply(Task::select('tasks.*'), $filters),

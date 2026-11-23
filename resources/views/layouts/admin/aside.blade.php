@@ -153,7 +153,8 @@
                 <ul class="menu-sub">
                     @if (admin_can('task_show'))
                         <li class="menu-item {{ request()->is('admin/tasks') || (request()->is('admin/tasks/*') && ! request()->is('admin/tasks/board*') && ! request()->is('admin/tasks/calendar*') && ! request()->is('admin/tasks/reports*') && ! request()->is('admin/tasks/recurrences*')) ? 'active' : '' }}">
-                            <a href="{{ route('admin.tasks.index') }}" class="menu-link"><div>{{ __('task.views.list') }}</div></a>
+                            {{-- view=list: البند ده اختيار صريح للقائمة (مايحوّلش لآخر عرض محفوظ) --}}
+                            <a href="{{ route('admin.tasks.index', ['view' => 'list']) }}" class="menu-link"><div>{{ __('task.views.list') }}</div></a>
                         </li>
                     @endif
                     @if (admin_can('task_board'))

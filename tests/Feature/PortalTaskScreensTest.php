@@ -92,6 +92,33 @@ class PortalTaskScreensTest extends TestCase
             ->assertSee('value="all" selected', false);
     }
 
+    public function test_tasks_page_reopens_last_chosen_view(): void
+    {
+        // فتح اللوحة بيحفظها
+        $this->as($this->staff)->get(route('portal.tasks.board'))
+            ->assertOk()->assertCookie('tasks_view_portal', 'board');
+
+        // دخول "مهامي" من غير معاملات ← آخر عرض
+        $this->as($this->staff)->withCookie('tasks_view_portal', 'board')
+            ->get(route('portal.tasks.index'))->assertRedirect(route('portal.tasks.board'));
+
+        $this->as($this->staff)->withCookie('tasks_view_portal', 'calendar')
+            ->get(route('portal.tasks.index'))->assertRedirect(route('portal.tasks.calendar'));
+
+        // اختيار "قائمة" صريح من المبدّل ← القائمة وبتتحفظ
+        $this->as($this->staff)->withCookie('tasks_view_portal', 'board')
+            ->get(route('portal.tasks.index', ['view' => 'list']))
+            ->assertOk()->assertCookie('tasks_view_portal', 'index');
+
+        // رابط بفلتر (كارت "متأخرة") بيفتح القائمة زي ما هو
+        $this->as($this->staff)->withCookie('tasks_view_portal', 'board')
+            ->get(route('portal.tasks.index', ['status' => 'overdue']))->assertOk();
+
+        // زرار القائمة في المبدّل فيه view=list
+        $this->as($this->staff)->get(route('portal.tasks.board'))
+            ->assertSee(e(route('portal.tasks.index', ['tab' => 'assigned', 'view' => 'list'])), false);
+    }
+
     public function test_employee_creates_task_for_colleague(): void
     {
         $this->as($this->staff)->get(route('portal.tasks.create'))->assertOk()->assertSee('Karim Colleague');

@@ -34,6 +34,8 @@ use Illuminate\Http\Request;
  */
 class TaskController extends PortalController
 {
+    use \App\Http\Controllers\Concerns\RemembersTaskView;
+
     private const TABS = ['assigned', 'review', 'created', 'team', 'watching'];
 
     private const PER_PAGE = 12;
@@ -44,8 +46,20 @@ class TaskController extends PortalController
         private TaskAccess $access,
     ) {}
 
+    protected function taskViewArea(): string
+    {
+        return 'portal';
+    }
+
     public function index(Request $request)
     {
+        // دخول من غير معاملات ← آخر عرض اختاره (لوحة / تقويم)
+        if ($redirect = $this->redirectToRememberedTaskView($request)) {
+            return $redirect;
+        }
+
+        $this->rememberTaskView('index');
+
         $me = $this->employee();
         $hasTeam = $me->subordinates()->exists();
         $tab = in_array($request->query('tab'), self::TABS, true) ? $request->query('tab') : 'assigned';
@@ -79,6 +93,7 @@ class TaskController extends PortalController
     public function board(Request $request, TaskBoardService $boards)
     {
         [$tab, $hasTeam, $filters] = $this->boardContext($request);
+        $this->rememberTaskView('board');
 
         return view('portal.tasks.board', [
             'board'    => $boards->board($this->filters->apply($this->tabQuery($tab, $this->employee()), $filters)),
@@ -92,6 +107,7 @@ class TaskController extends PortalController
     {
         [$tab, $hasTeam, $filters] = $this->boardContext($request);
         $filters['parent'] = 'all';
+        $this->rememberTaskView('calendar');
 
         return view('portal.tasks.calendar', $boards->calendar(
             $this->filters->apply($this->tabQuery($tab, $this->employee()), $filters),
