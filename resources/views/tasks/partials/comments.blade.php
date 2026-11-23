@@ -7,7 +7,7 @@
 @endphp
 <div class="card mb-4" id="comments">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="mb-0 fw-bold"><i class="fa-regular fa-comments me-2 text-primary"></i>{{ __('task.comments.title') }}</h6>
+        <h6 class="mb-0 fw-bold"><i class="fa-regular fa-comments me-2 text-primary"></i>{{ __('task.comments.title') }} <x-tasks.help key="comments" /></h6>
         @if ($task->comments_count > 0)<span class="badge bg-label-secondary">{{ $task->comments_count }}</span>@endif
     </div>
     <div class="card-body">

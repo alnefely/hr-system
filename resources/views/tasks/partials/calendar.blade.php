@@ -30,7 +30,7 @@
     <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2 border-bottom">
         <div class="d-flex align-items-center gap-2">
             <a href="{{ route($calendarRoute, array_merge($query, ['month' => $prev])) }}" class="btn btn-icon btn-label-secondary" aria-label="{{ __('task.views.prev_month') }}"><i class="fa-solid fa-chevron-right icon-back"></i></a>
-            <h5 class="mb-0 fw-bold text-nowrap">{{ $month->translatedFormat('F Y') }}</h5>
+            <h5 class="mb-0 fw-bold text-nowrap">{{ $month->translatedFormat('F Y') }} <x-tasks.help key="calendar" /></h5>
             <a href="{{ route($calendarRoute, array_merge($query, ['month' => $next])) }}" class="btn btn-icon btn-label-secondary" aria-label="{{ __('task.views.next_month') }}"><i class="fa-solid fa-chevron-left icon-back"></i></a>
         </div>
         <a href="{{ route($calendarRoute, $query) }}" class="btn btn-sm btn-label-primary">{{ __('task.views.today') }}</a>

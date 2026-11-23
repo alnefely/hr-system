@@ -478,4 +478,102 @@ return [
         ],
     ],
 
+    /*
+    | Help icons (?) next to each section — <x-tasks.help key="..." />
+    | employee = portal, admin = admin panel, all = both.
+    */
+    'help' => [
+        'status_actions' => [
+            'employee' => 'These buttons change the task status, and you only see the ones for your role: the assignee starts, submits for review or declines; the owner or your manager approves, returns or cancels.',
+            'admin'    => 'Change the task status: start, complete, cancel or reopen. Completing is refused while subtasks are open or the task is waiting on another task, and returning to progress needs a reason.',
+        ],
+        'description' => [
+            'all' => 'What the task requires, as written by its creator.',
+        ],
+        'checklist' => [
+            'employee' => 'Small steps to tick as you work. Ticking the first step moves the task to "In progress", and if progress comes from the steps it updates by itself.',
+            'admin'    => 'The task steps. If progress comes from the steps, progress = finished steps ÷ all steps. Steps can be added or removed at any time.',
+        ],
+        'subtasks' => [
+            'all' => 'Split a big task into smaller ones, each with its own assignee and due date. The parent cannot be completed until every subtask is finished or cancelled, and deleting the parent deletes its subtasks.',
+        ],
+        'dependencies' => [
+            'all' => 'Tasks that must finish (or be cancelled) first. While any of them is open this task cannot start or be submitted; when they close, assignees get a "you can start" notification.',
+        ],
+        'reviews' => [
+            'employee' => 'Your submissions and the review decisions. If the task was returned, the reason is shown here — fix it and submit again.',
+            'admin'    => 'Submissions and decisions: who submitted, who approved or returned it, when, and why. The return rate appears in the reports.',
+        ],
+        'comments' => [
+            'all' => 'Discussion on the task. Pick a colleague under "Mention (@)" to send them a notification; you can reply to a comment or attach files to it.',
+        ],
+        'timeline' => [
+            'all' => 'Everything that happened to the task in order: assignments, status changes, progress, steps, files and time — and who did each.',
+        ],
+        'progress' => [
+            'employee' => 'Manual: drag the slider and add a note about what was done. Automatic: it comes from the steps or subtasks. "Target" = where you should be by today.',
+            'admin'    => 'Actual progress vs. target (time elapsed from start to due date): within 10% = on track, beyond that = ahead of or behind plan.',
+        ],
+        'assignees' => [
+            'employee' => 'The people responsible for the work. If you cannot do the task, click "Decline task" and give a reason; the owner is notified.',
+            'admin'    => 'The people responsible: employees of the same branch or project members. Every new assignee is notified, and declines show their reason.',
+        ],
+        'time' => [
+            'employee' => 'Run the timer while you work (one timer at a time; it stops by itself after :hours hours if you forget it), or log time manually later.',
+            'admin'    => 'Time logged by assignees vs. the estimate. You can log manual time for an assignee or delete a wrong entry. The timer is for employees in the portal.',
+        ],
+        'attachments' => [
+            'all' => 'Task files: up to :count files at a time, up to :size MB each. Only people who can see the task can download them.',
+        ],
+        'details' => [
+            'all' => 'Task details: project, dates, priority, creator, how progress is calculated, and whether it needs review before closing.',
+        ],
+
+        'tabs' => [
+            'employee' => 'Assigned: your tasks. For review: submitted and waiting for your decision. My team: tasks of the people you manage. Created: tasks you made. Watching: tasks you follow without being assigned.',
+        ],
+        'views' => [
+            'all' => 'List: all tasks with filters. Board: a column per status, drag a card to change it. Calendar: tasks on the days of the month by due date. The page reopens on the last view you chose.',
+        ],
+        'board' => [
+            'employee' => 'Drag a card to another column to change its status — same rules as the buttons. Completed tasks show for the last 14 days, and the board updates by itself.',
+            'admin'    => 'A live board that updates instantly. Dragging changes the status with the same rules, and each column shows the first 60 cards (the number above it is the full count).',
+        ],
+        'calendar' => [
+            'all' => 'Tasks on the days of the month by due date. Click a task to open it, and move between months with the arrows.',
+        ],
+        'list' => [
+            'admin' => 'All tasks in the branches you can access. Filters combine, and "Awaiting my review" shows the tasks you review.',
+        ],
+
+        'performance' => [
+            'employee' => 'Your numbers for the period: completed tasks, on-time rate, average cycle time, actual vs. estimated time, and the return rate from reviews.',
+        ],
+        'team_performance' => [
+            'employee' => 'The same metrics for each person you manage, plus the most overdue tasks to follow up.',
+        ],
+        'reports' => [
+            'admin' => 'Task metrics by period and project: on-time rate, cycle time, actual vs. estimate and return rate — per employee, with Excel export.',
+        ],
+        'timesheet' => [
+            'employee' => 'Your logged time week by week: by day and by task. Move between weeks with the buttons.',
+        ],
+        'projects' => [
+            'employee' => 'Projects you have a role in. A manager edits the project and its members and runs all its tasks, a member views and adds tasks, and a viewer only views.',
+            'admin'    => 'A project groups tasks for one goal with a manager and members (possibly from other branches). Its progress comes from its tasks, and deleting it deletes its tasks too.',
+        ],
+        'project_tasks' => [
+            'all' => 'The project tasks. Project progress is calculated from them automatically.',
+        ],
+        'project_members' => [
+            'all' => 'Manager: edits and approves all tasks. Member: views and adds tasks. Viewer: views only.',
+        ],
+        'recurrences' => [
+            'admin' => 'Rules that create a task automatically on schedule (daily, weekly, monthly, yearly) and assign the same people. Pause or resume a rule at any time.',
+        ],
+        'templates' => [
+            'admin' => 'Ready-made sets of tasks with steps and relative dates. Creating a project from a template creates its tasks with dates counted from the project start.',
+        ],
+    ],
+
 ];

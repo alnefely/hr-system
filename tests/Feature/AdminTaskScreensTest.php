@@ -128,7 +128,11 @@ class AdminTaskScreensTest extends TestCase
             ->assertSee('Staff Person')
             ->assertSee(__('task.actions.complete'))
             ->assertSee(__('task.labels_text.timeline'))
-            ->assertSee('started');
+            ->assertSee('started')
+            // أيقونات الشرح: نص المدير مش الموظف
+            ->assertSee(__('task.help.progress.admin'))
+            ->assertDontSee(__('task.help.progress.employee'))
+            ->assertSee(__('task.help.status_actions.admin'));
     }
 
     public function test_status_progress_checklist_and_assignees_actions(): void

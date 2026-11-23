@@ -4,7 +4,7 @@
 @section('content')
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom">
-        <h5 class="card-title mb-0"><i class="fa-solid fa-clone text-primary me-2"></i>{{ __('project.templates') }}</h5>
+        <h5 class="card-title mb-0"><i class="fa-solid fa-clone text-primary me-2"></i>{{ __('project.templates') }} <x-tasks.help key="templates" /></h5>
         <div class="d-flex gap-2">
             <a href="{{ route('admin.projects.index') }}" class="btn btn-label-secondary"><i class="fa-solid fa-arrow-right icon-back me-1"></i>{{ __('project.actions.back') }}</a>
             <a href="{{ route('admin.project-templates.create') }}" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i>{{ __('project.actions.new_template') }}</a>

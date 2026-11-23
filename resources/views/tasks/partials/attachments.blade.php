@@ -2,7 +2,7 @@
 @php $cfg = config('tasks.attachments'); @endphp
 <div class="card mb-4" id="attachments">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="mb-0 fw-bold"><i class="fa-solid fa-paperclip me-2 text-primary"></i>{{ __('task.attachments.title') }}</h6>
+        <h6 class="mb-0 fw-bold"><i class="fa-solid fa-paperclip me-2 text-primary"></i>{{ __('task.attachments.title') }} <x-tasks.help key="attachments" :replace="['count' => config('tasks.attachments.max_files', 5), 'size' => round(config('tasks.attachments.max_kb', 10240) / 1024)]" /></h6>
         @if ($task->attachments->isNotEmpty())<span class="badge bg-label-secondary">{{ $task->attachments->count() }}</span>@endif
     </div>
     <ul class="list-group list-group-flush">

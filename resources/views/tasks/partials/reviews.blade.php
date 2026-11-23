@@ -1,7 +1,7 @@
 {{-- سجل المراجعات: كل تسليم وقراره. بيظهر بس لو المهمة اتسلّمت قبل كده. $task (reviews محمّلة) --}}
 @if ($task->reviews->isNotEmpty())
     <div class="card mb-4" id="reviews">
-        <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-solid fa-clipboard-check me-2 text-primary"></i>{{ __('task.review.title') }}</h6></div>
+        <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-solid fa-clipboard-check me-2 text-primary"></i>{{ __('task.review.title') }} <x-tasks.help key="reviews" /></h6></div>
         <ul class="list-group list-group-flush">
             @foreach ($task->reviews as $review)
                 <li class="list-group-item py-3">

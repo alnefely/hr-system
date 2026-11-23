@@ -52,6 +52,7 @@
                     </a>
                 </li>
             @endforeach
+            <li class="nav-item align-self-center ms-1"><x-tasks.help key="tabs" /></li>
         </ul>
         <div class="d-flex gap-2">
             @include('tasks.partials.view-switcher', ['routes' => 'portal.tasks', 'current' => 'index', 'query' => in_array($tab, ['assigned', 'created', 'team'], true) ? ['tab' => $tab] : []])

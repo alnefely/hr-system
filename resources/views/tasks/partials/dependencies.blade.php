@@ -4,7 +4,7 @@
 --}}
 @if ($task->dependencies->isNotEmpty() || $task->dependents->isNotEmpty() || $dependencyCandidates->isNotEmpty())
     <div class="card mb-4" id="dependencies">
-        <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-solid fa-link me-2 text-primary"></i>{{ __('task.dependencies.title') }}</h6></div>
+        <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-solid fa-link me-2 text-primary"></i>{{ __('task.dependencies.title') }} <x-tasks.help key="dependencies" /></h6></div>
         <div class="card-body">
             <div class="small fw-semibold mb-2">{{ __('task.dependencies.waits_on') }}</div>
             @forelse ($task->dependencies as $dep)

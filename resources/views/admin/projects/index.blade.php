@@ -6,7 +6,7 @@
 
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom">
-        <h5 class="card-title mb-0"><i class="fa-solid fa-diagram-project text-primary me-2"></i>{{ __('project.title') }}</h5>
+        <h5 class="card-title mb-0"><i class="fa-solid fa-diagram-project text-primary me-2"></i>{{ __('project.title') }} <x-tasks.help key="projects" /></h5>
         <div class="d-flex gap-2 flex-wrap">
             @if (admin_can('project_template_manage'))
                 <a href="{{ route('admin.project-templates.index') }}" class="btn btn-label-secondary"><i class="fa-solid fa-clone me-1"></i>{{ __('project.templates') }}</a>

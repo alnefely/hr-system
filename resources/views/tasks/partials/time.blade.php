@@ -12,7 +12,7 @@
     $assigneesForAdmin = ! $isEmployee ? $task->assignments->where('status', 'active') : collect();
 @endphp
 <div class="card mb-4" id="time">
-    <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-regular fa-clock me-2 text-primary"></i>{{ __('task.time.title') }}</h6></div>
+    <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-regular fa-clock me-2 text-primary"></i>{{ __('task.time.title') }} <x-tasks.help key="time" :replace="['hours' => config('tasks.time.max_timer_hours', 12)]" /></h6></div>
     <div class="card-body">
         <div class="d-flex justify-content-between small mb-1">
             <span>{{ __('task.time.spent') }}: <strong>{{ \App\Support\Duration::format($spent) }}</strong></span>

@@ -14,7 +14,7 @@
 
 <div class="card mb-4">
     <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2 border-bottom">
-        <h5 class="mb-0 fw-bold"><i class="fa-solid fa-chart-column text-primary me-2"></i>{{ __('task.reports.title') }}</h5>
+        <h5 class="mb-0 fw-bold"><i class="fa-solid fa-chart-column text-primary me-2"></i>{{ __('task.reports.title') }} <x-tasks.help key="reports" /></h5>
     </div>
     <div class="card-body pt-3">
         @include('tasks.partials.reports.period-filter', ['action' => route('admin.tasks.reports'), 'slotHtml' => $projectSelect])

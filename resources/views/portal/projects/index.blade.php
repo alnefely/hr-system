@@ -6,7 +6,7 @@
 
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h5 class="mb-0 fw-bold"><i class="fa-solid fa-diagram-project text-primary me-2"></i>{{ __('portal.nav.projects') }}</h5>
+        <h5 class="mb-0 fw-bold"><i class="fa-solid fa-diagram-project text-primary me-2"></i>{{ __('portal.nav.projects') }} <x-tasks.help key="projects" /></h5>
         <ul class="nav nav-pills gap-1">
             <li class="nav-item"><a class="nav-link {{ $ongoing ? 'active' : '' }}" href="{{ route('portal.projects.index') }}">{{ __('project.filters.active_only') }}</a></li>
             <li class="nav-item"><a class="nav-link {{ $ongoing ? '' : 'active' }}" href="{{ route('portal.projects.index', ['status' => 'all']) }}">{{ __('project.filters.all_statuses') }}</a></li>

@@ -94,7 +94,7 @@
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center border-bottom">
-        <h6 class="mb-0 fw-bold"><i class="fa-solid fa-list-check text-primary me-2"></i>{{ __('project.fields.tasks') }}</h6>
+        <h6 class="mb-0 fw-bold"><i class="fa-solid fa-list-check text-primary me-2"></i>{{ __('project.fields.tasks') }} <x-tasks.help key="project_tasks" /></h6>
         <a href="{{ route('admin.tasks.index', ['project_id' => $project->id]) }}" class="btn btn-sm btn-label-primary">{{ __('project.actions.all_tasks') }}</a>
     </div>
     <div class="card-body pt-3">

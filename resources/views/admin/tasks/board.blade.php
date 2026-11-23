@@ -13,7 +13,7 @@
                     </span>
                 @endif
             </h5>
-            <small class="text-body-secondary">{{ __('task.views.drag_hint') }}</small>
+            <small class="text-body-secondary">{{ __('task.views.drag_hint') }} <x-tasks.help key="board" /></small>
         </div>
         <div class="d-flex gap-2 flex-wrap">
             @include('tasks.partials.view-switcher', ['routes' => 'admin.tasks', 'current' => 'board', 'query' => $filters])

@@ -12,6 +12,7 @@
             @foreach ($tabs as $key => $icon)
                 <li class="nav-item"><a class="nav-link text-nowrap {{ $tab === $key ? 'active' : '' }}" href="{{ route('portal.tasks.calendar', ['tab' => $key, 'month' => request('month')]) }}"><i class="fa-solid {{ $icon }} me-1"></i>{{ __('task.tabs.' . $key) }}</a></li>
             @endforeach
+            <li class="nav-item align-self-center ms-1"><x-tasks.help key="tabs" /></li>
         </ul>
         @include('tasks.partials.view-switcher', ['routes' => 'portal.tasks', 'current' => 'calendar', 'query' => $query])
     </div>

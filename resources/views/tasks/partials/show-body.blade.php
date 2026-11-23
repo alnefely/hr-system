@@ -106,6 +106,7 @@
                         <i class="fa-solid fa-hand me-1"></i>{{ __('task.actions.decline') }}
                     </button>
                 @endif
+                <span class="align-self-center"><x-tasks.help key="status_actions" /></span>
             </div>
         @endif
     </div>
@@ -117,7 +118,7 @@
         {{-- الوصف --}}
         @if ($task->description)
             <div class="card mb-4">
-                <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-solid fa-align-right me-2 text-primary"></i>{{ __('task.fields.description') }}</h6></div>
+                <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-solid fa-align-right me-2 text-primary"></i>{{ __('task.fields.description') }} <x-tasks.help key="description" /></h6></div>
                 <div class="card-body task-description">{{ $task->description }}</div>
             </div>
         @endif
@@ -125,7 +126,7 @@
         {{-- الخطوات --}}
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold"><i class="fa-regular fa-square-check me-2 text-primary"></i>{{ __('task.fields.checklist') }}</h6>
+                <h6 class="mb-0 fw-bold"><i class="fa-regular fa-square-check me-2 text-primary"></i>{{ __('task.fields.checklist') }} <x-tasks.help key="checklist" /></h6>
                 @if ($task->checklist_count > 0)
                     <span class="small text-body-secondary">{{ __('task.labels_text.steps_done', ['done' => $task->completed_checklist_count, 'total' => $task->checklist_count]) }}</span>
                 @endif
@@ -169,7 +170,7 @@
         @if (! $task->parent_id)
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-sitemap me-2 text-primary"></i>{{ __('task.fields.subtasks') }}</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-sitemap me-2 text-primary"></i>{{ __('task.fields.subtasks') }} <x-tasks.help key="subtasks" /></h6>
                     @if ($abilities['work'] && $isOpen && $subtaskUrl)
                         <a href="{{ $subtaskUrl }}" class="btn btn-sm btn-label-primary"><i class="fa-solid fa-plus me-1"></i>{{ __('task.actions.add_subtask') }}</a>
                     @endif
@@ -199,7 +200,7 @@
 
         {{-- الخط الزمني --}}
         <div class="card">
-            <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>{{ __('task.labels_text.timeline') }}</h6></div>
+            <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>{{ __('task.labels_text.timeline') }} <x-tasks.help key="timeline" /></h6></div>
             <div class="card-body">
                 @if ($task->activities->isEmpty())
                     <p class="text-body-secondary small mb-0">{{ __('task.labels_text.no_activity') }}</p>
@@ -237,7 +238,7 @@
         {{-- نسبة الإنجاز --}}
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold"><i class="fa-solid fa-chart-line me-2 text-primary"></i>{{ __('task.fields.progress') }}</h6>
+                <h6 class="mb-0 fw-bold"><i class="fa-solid fa-chart-line me-2 text-primary"></i>{{ __('task.fields.progress') }} <x-tasks.help key="progress" /></h6>
                 @unless ($manual)
                     <span class="badge bg-label-info">{{ __('task.labels_text.automatic') }}</span>
                 @endunless
@@ -294,7 +295,7 @@
         {{-- المكلّفين --}}
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold"><i class="fa-solid fa-users me-2 text-primary"></i>{{ __('task.fields.assignees') }}</h6>
+                <h6 class="mb-0 fw-bold"><i class="fa-solid fa-users me-2 text-primary"></i>{{ __('task.fields.assignees') }} <x-tasks.help key="assignees" /></h6>
                 @if ($abilities['assign'] && $isOpen && $assignable !== null)
                     <button type="button" class="btn btn-sm btn-label-primary" data-bs-toggle="modal" data-bs-target="#assigneesModal">
                         <i class="fa-solid fa-user-pen me-1"></i>{{ __('task.actions.manage_assignees') }}
@@ -323,7 +324,7 @@
 
         {{-- التفاصيل --}}
         <div class="card">
-            <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-solid fa-circle-info me-2 text-primary"></i>{{ __('task.labels_text.details') }}</h6></div>
+            <div class="card-header"><h6 class="mb-0 fw-bold"><i class="fa-solid fa-circle-info me-2 text-primary"></i>{{ __('task.labels_text.details') }} <x-tasks.help key="details" /></h6></div>
             <ul class="list-group list-group-flush small">
                 <li class="list-group-item d-flex justify-content-between gap-2"><span class="text-body-secondary">{{ __('task.fields.due_at') }}</span><span class="text-end">@include('tasks.partials.due', ['task' => $task])</span></li>
                 @if ($task->starts_at)

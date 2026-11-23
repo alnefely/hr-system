@@ -4,7 +4,7 @@
 @section('content')
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom">
-        <h5 class="card-title mb-0"><i class="fa-solid fa-repeat text-primary me-2"></i>{{ __('task.recurrence.title') }}</h5>
+        <h5 class="card-title mb-0"><i class="fa-solid fa-repeat text-primary me-2"></i>{{ __('task.recurrence.title') }} <x-tasks.help key="recurrences" /></h5>
         <a href="{{ route('admin.tasks.recurrences.create') }}" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i>{{ __('task.recurrence.add_new') }}</a>
     </div>
     <div class="table-responsive">

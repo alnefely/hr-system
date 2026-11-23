@@ -53,7 +53,7 @@
 <div class="row g-4">
     <div class="col-lg-8 order-2 order-lg-1">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-list-check text-primary me-2"></i>{{ __('project.fields.tasks') }}</h6>
+            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-list-check text-primary me-2"></i>{{ __('project.fields.tasks') }} <x-tasks.help key="project_tasks" /></h6>
             <form method="GET" action="{{ route('portal.projects.show', $project->id) }}">
                 <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" aria-label="{{ __('task.fields.status') }}">
                     <option value="open" @selected($statusFilter === 'open')>{{ __('task.filters.open') }}</option>
@@ -89,7 +89,7 @@
     <div class="col-lg-4 order-1 order-lg-2">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold"><i class="fa-solid fa-users text-primary me-2"></i>{{ __('project.fields.members') }}</h6>
+                <h6 class="mb-0 fw-bold"><i class="fa-solid fa-users text-primary me-2"></i>{{ __('project.fields.members') }} <x-tasks.help key="project_members" /></h6>
                 <span class="badge bg-label-secondary">{{ __('project.labels_text.members_count', ['count' => $project->members->count()]) }}</span>
             </div>
             @include('projects.partials.members')

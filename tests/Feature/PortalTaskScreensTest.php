@@ -73,7 +73,8 @@ class PortalTaskScreensTest extends TestCase
             ->assertOk()->assertSee('Design banner')->assertSee(__('task.tabs.team'));
 
         $this->as($this->colleague)->get(route('portal.tasks.index'))
-            ->assertOk()->assertDontSee(__('task.tabs.team'));
+            // لينك التبويب نفسه (اسمه بيظهر في أيقونة شرح التبويبات للكل)
+            ->assertOk()->assertDontSee(e(route('portal.tasks.index', ['tab' => 'team'])), false);
     }
 
     public function test_status_filter_defaults_to_open_and_all_includes_closed(): void
@@ -90,6 +91,23 @@ class PortalTaskScreensTest extends TestCase
         $this->as($this->staff)->get(route('portal.tasks.index', ['status' => 'all']))
             ->assertOk()->assertSee('Still open')->assertSee('Already cancelled')
             ->assertSee('value="all" selected', false);
+    }
+
+    public function test_help_icons_show_employee_text_in_portal(): void
+    {
+        $task = $this->taskFor($this->staff, $this->colleague);
+
+        // شاشة المهمة: شرح الموظف مش المدير، والنصوص المشتركة
+        $this->as($this->staff)->get(route('portal.tasks.show', $task->id))->assertOk()
+            ->assertSee(__('task.help.progress.employee'))
+            ->assertDontSee(__('task.help.progress.admin'))
+            ->assertSee(__('task.help.comments.all'))
+            ->assertSee(__('task.help.time.employee', ['hours' => config('tasks.time.max_timer_hours', 12)]));
+
+        // القائمة: التبويبات ومبدّل العرض
+        $this->as($this->staff)->get(route('portal.tasks.index', ['view' => 'list']))->assertOk()
+            ->assertSee(__('task.help.tabs.employee'))
+            ->assertSee(__('task.help.views.all'));
     }
 
     public function test_tasks_page_reopens_last_chosen_view(): void
