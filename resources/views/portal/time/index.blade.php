@@ -10,7 +10,13 @@
         <h5 class="mb-0 fw-bold"><i class="fa-solid fa-stopwatch text-primary me-2"></i>{{ __('task.time.timesheet') }} <x-tasks.help key="timesheet" /></h5>
         <div class="d-flex flex-wrap align-items-center gap-2">
             <a href="{{ route('portal.time.index', ['week' => $week->copy()->subWeek()->toDateString()]) }}" class="btn btn-icon btn-label-secondary" aria-label="{{ __('task.time.prev_week') }}"><i class="fa-solid fa-chevron-right icon-back"></i></a>
-            <span class="fw-semibold text-nowrap" dir="ltr">{{ $week->format('Y-m-d') }} → {{ $week->copy()->addDays(6)->format('Y-m-d') }}</span>
+            {{-- اختيار أي يوم ← أسبوعه (الكنترولر بيرجّع التاريخ لبداية الأسبوع) --}}
+            <form method="GET" action="{{ route('portal.time.index') }}" class="d-flex align-items-center gap-2 m-0" data-no-confirm>
+                <input type="date" name="week" class="form-control form-control-sm" style="width: auto" dir="ltr"
+                       value="{{ $week->toDateString() }}" onchange="if (this.value) this.form.submit()"
+                       aria-label="{{ __('task.time.pick_week') }}" title="{{ __('task.time.pick_week') }}">
+                <span class="small text-body-secondary text-nowrap" dir="ltr">→ {{ $week->copy()->addDays(6)->format('Y-m-d') }}</span>
+            </form>
             <a href="{{ route('portal.time.index', ['week' => $week->copy()->addWeek()->toDateString()]) }}" class="btn btn-icon btn-label-secondary" aria-label="{{ __('task.time.next_week') }}"><i class="fa-solid fa-chevron-left icon-back"></i></a>
             <a href="{{ route('portal.time.index') }}" class="btn btn-sm btn-label-primary text-nowrap">{{ __('task.time.this_week') }}</a>
         </div>

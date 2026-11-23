@@ -377,6 +377,7 @@ return [
         'prev_week'      => 'Previous week',
         'next_week'      => 'Next week',
         'this_week'      => 'This week',
+        'pick_week'      => 'Pick any day to open its week',
         'by_task'        => 'By task',
         'by_day'         => 'By day',
         'cap_hint'       => 'The timer stops by itself after :hours hours if you forget it.',

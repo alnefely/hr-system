@@ -177,6 +177,25 @@ class TaskTimeTrackingTest extends TestCase
         $this->get(route('portal.time.index'))->assertOk()->assertSee('Write report')->assertSee(Duration::format(15));
     }
 
+    public function test_timesheet_week_can_be_picked_from_a_date(): void
+    {
+        // تسجيل يوم أربع في أسبوع قديم
+        $wednesday = Carbon::parse('2026-10-14');
+        $this->time->addManual($this->task, $this->staff, 45, $wednesday);
+        $this->actingAs($this->staff, 'employee');
+
+        // اختيار يوم من نص الأسبوع ← بيفتح الأسبوع من السبت، وفيه الوقت
+        $this->get(route('portal.time.index', ['week' => '2026-10-15']))
+            ->assertOk()
+            ->assertSee('value="2026-10-10"', false)   // السبت = بداية الأسبوع في الحقل
+            ->assertSee('2026-10-16')                  // آخر الأسبوع (الجمعة)
+            ->assertSee(Duration::format(45));
+
+        // الحقل ظاهر في الأسبوع الحالي
+        $this->get(route('portal.time.index'))->assertOk()
+            ->assertSee('type="date" name="week"', false);
+    }
+
     public function test_admin_task_page_shows_time_and_manual_form(): void
     {
         $this->time->addManual($this->task, $this->staff, 150, today());
