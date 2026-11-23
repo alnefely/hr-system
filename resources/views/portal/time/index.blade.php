@@ -3,37 +3,52 @@
 
 @section('content')
 @php
-    $max = max(1, $byDay->max() ?? 1);
+    $max = max(1, collect($buckets)->max('minutes') ?: 1);
+    // أعمدة كتير (فترة شهر) ← أرقام الأعمدة بتتشال وبتبان في الـ tooltip
+    $dense = count($buckets) > 14;
 @endphp
 <div class="card mb-4">
     <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2 border-bottom">
         <h5 class="mb-0 fw-bold"><i class="fa-solid fa-stopwatch text-primary me-2"></i>{{ __('task.time.timesheet') }} <x-tasks.help key="timesheet" /></h5>
-        <div class="d-flex flex-wrap align-items-center gap-2">
-            <a href="{{ route('portal.time.index', ['week' => $week->copy()->subWeek()->toDateString()]) }}" class="btn btn-icon btn-label-secondary" aria-label="{{ __('task.time.prev_week') }}"><i class="fa-solid fa-chevron-right icon-back"></i></a>
-            {{-- اختيار أي يوم ← أسبوعه (الكنترولر بيرجّع التاريخ لبداية الأسبوع) --}}
-            <form method="GET" action="{{ route('portal.time.index') }}" class="d-flex align-items-center gap-2 m-0" data-no-confirm>
-                <input type="date" name="week" class="form-control form-control-sm" style="width: auto" dir="ltr"
-                       value="{{ $week->toDateString() }}" onchange="if (this.value) this.form.submit()"
-                       aria-label="{{ __('task.time.pick_week') }}" title="{{ __('task.time.pick_week') }}">
-                <span class="small text-body-secondary text-nowrap" dir="ltr">→ {{ $week->copy()->addDays(6)->format('Y-m-d') }}</span>
+        <div class="d-flex flex-wrap align-items-end gap-2">
+            {{-- من / إلى (الافتراضي الأسبوع الحالي) --}}
+            <form method="GET" action="{{ route('portal.time.index') }}" class="d-flex flex-wrap align-items-end gap-2 m-0" data-no-confirm>
+                <div>
+                    <label class="form-label small mb-1" for="time_from">{{ __('task.time.from') }}</label>
+                    <input type="date" id="time_from" name="from" class="form-control form-control-sm" dir="ltr" value="{{ $from->toDateString() }}" required>
+                </div>
+                <div>
+                    <label class="form-label small mb-1" for="time_to">{{ __('task.time.to') }}</label>
+                    <input type="date" id="time_to" name="to" class="form-control form-control-sm" dir="ltr" value="{{ $to->toDateString() }}" required>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary"><i class="fa-solid fa-filter me-1"></i>{{ __('task.time.show') }}</button>
             </form>
-            <a href="{{ route('portal.time.index', ['week' => $week->copy()->addWeek()->toDateString()]) }}" class="btn btn-icon btn-label-secondary" aria-label="{{ __('task.time.next_week') }}"><i class="fa-solid fa-chevron-left icon-back"></i></a>
+            {{-- الأسهم بتنقل فترة بنفس الطول --}}
+            <div class="btn-group">
+                <a href="{{ route('portal.time.index', $prev) }}" class="btn btn-sm btn-icon btn-label-secondary" title="{{ __('task.time.prev_period') }}" aria-label="{{ __('task.time.prev_period') }}"><i class="fa-solid fa-chevron-right icon-back"></i></a>
+                <a href="{{ route('portal.time.index', $next) }}" class="btn btn-sm btn-icon btn-label-secondary" title="{{ __('task.time.next_period') }}" aria-label="{{ __('task.time.next_period') }}"><i class="fa-solid fa-chevron-left icon-back"></i></a>
+            </div>
             <a href="{{ route('portal.time.index') }}" class="btn btn-sm btn-label-primary text-nowrap">{{ __('task.time.this_week') }}</a>
         </div>
     </div>
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="text-body-secondary">{{ __('task.time.total') }}</span>
+            <span class="text-body-secondary">
+                {{ __('task.time.total') }}
+                <span class="small ms-1" dir="ltr">({{ $from->format('Y-m-d') }}{{ $length > 1 ? ' → ' . $to->format('Y-m-d') : '' }})</span>
+            </span>
             <span class="h4 mb-0">{{ \App\Support\Duration::format($total) }}</span>
         </div>
-        {{-- أعمدة الأيام --}}
-        <div class="d-flex align-items-end gap-2" style="height: 9rem">
-            @foreach ($days as $day)
-                @php $m = (int) ($byDay[$day->toDateString()] ?? 0); @endphp
-                <div class="flex-fill d-flex flex-column align-items-center justify-content-end h-100" title="{{ \App\Support\Duration::format($m) }}">
-                    <small class="text-body-secondary mb-1" style="font-size: .7rem">{{ $m ? \App\Support\Duration::format($m) : '' }}</small>
-                    <div class="w-100 rounded-top {{ $day->isToday() ? 'bg-primary' : 'bg-label-primary' }}" style="height: {{ $m ? max(4, round($m / $max * 100)) : 2 }}%; max-width: 3rem"></div>
-                    <small class="mt-1 {{ $day->isToday() ? 'text-primary fw-bold' : 'text-body-secondary' }}">{{ $day->translatedFormat('D') }}</small>
+        {{-- الأعمدة: يوم بيوم لحد شهر، وبعدها شهر بشهر --}}
+        <div class="d-flex align-items-end {{ $dense ? 'gap-1' : 'gap-2' }}" style="height: 9rem">
+            @foreach ($buckets as $bucket)
+                @php $m = $bucket['minutes']; @endphp
+                <div class="flex-fill d-flex flex-column align-items-center justify-content-end h-100" style="min-width: 0" title="{{ $bucket['label'] }}: {{ \App\Support\Duration::format($m) }}">
+                    @unless ($dense)
+                        <small class="text-body-secondary mb-1" style="font-size: .7rem">{{ $m ? \App\Support\Duration::format($m) : '' }}</small>
+                    @endunless
+                    <div class="w-100 rounded-top {{ $bucket['current'] ? 'bg-primary' : 'bg-label-primary' }}" style="height: {{ $m ? max(4, round($m / $max * 100)) : 2 }}%; max-width: 3rem"></div>
+                    <small class="mt-1 text-truncate mw-100 {{ $bucket['current'] ? 'text-primary fw-bold' : 'text-body-secondary' }}" @if ($dense) style="font-size: .65rem" @endif>{{ $bucket['label'] }}</small>
                 </div>
             @endforeach
         </div>
@@ -73,7 +88,8 @@
                         </span>
                         <span class="text-end text-nowrap">
                             <strong>{{ \App\Support\Duration::format($entry->minutes) }}</strong>
-                            <span class="d-block text-body-secondary" dir="ltr">{{ $entry->started_at->format('m-d') }}</span>
+                            {{-- فترة طويلة ممكن تعدّي سنة ← التاريخ كامل --}}
+                            <span class="d-block text-body-secondary" dir="ltr">{{ $entry->started_at->format($length > 31 ? 'Y-m-d' : 'm-d') }}</span>
                         </span>
                     </li>
                 @empty

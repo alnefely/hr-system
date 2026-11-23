@@ -377,7 +377,11 @@ return [
         'prev_week'      => 'Previous week',
         'next_week'      => 'Next week',
         'this_week'      => 'This week',
-        'pick_week'      => 'Pick any day to open its week',
+        'from'           => 'From',
+        'to'             => 'To',
+        'show'           => 'Show',
+        'prev_period'    => 'Previous period',
+        'next_period'    => 'Next period',
         'by_task'        => 'By task',
         'by_day'         => 'By day',
         'cap_hint'       => 'The timer stops by itself after :hours hours if you forget it.',
@@ -557,7 +561,7 @@ return [
             'admin' => 'Task metrics by period and project: on-time rate, cycle time, actual vs. estimate and return rate — per employee, with Excel export.',
         ],
         'timesheet' => [
-            'employee' => 'Your logged time week by week: by day and by task. Move between weeks with the buttons.',
+            'employee' => 'Your logged time in the period you pick with From and To (this week by default): by day and by task. The arrows move one period of the same length back or forward.',
         ],
         'projects' => [
             'employee' => 'Projects you have a role in. A manager edits the project and its members and runs all its tasks, a member views and adds tasks, and a viewer only views.',

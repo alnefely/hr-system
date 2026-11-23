@@ -101,7 +101,7 @@
                         <tbody>
                             <tr><td class="fw-bold"><i class="fa-solid fa-list-check me-1 text-primary"></i> {{ __('portal.nav.tasks') }}</td><td class="small">كل المهام اللي ليك علاقة بيها: المكلّف بيها، اللي أنشأتها، مهام فريقك، واللي مستنية مراجعتك.</td></tr>
                             <tr><td class="fw-bold"><i class="fa-solid fa-diagram-project me-1 text-primary"></i> {{ __('portal.nav.projects') }}</td><td class="small">المشاريع اللي انت مديرها أو عضو فيها، ونسبة إنجاز كل مشروع ومهامه.</td></tr>
-                            <tr><td class="fw-bold"><i class="fa-solid fa-stopwatch me-1 text-primary"></i> {{ __('portal.nav.time') }}</td><td class="small">الوقت اللي سجّلته على المهام أسبوع بأسبوع — حسب اليوم وحسب المهمة.</td></tr>
+                            <tr><td class="fw-bold"><i class="fa-solid fa-stopwatch me-1 text-primary"></i> {{ __('portal.nav.time') }}</td><td class="small">الوقت اللي سجّلته على المهام في أي فترة تختارها (الافتراضي الأسبوع الحالي) — حسب اليوم وحسب المهمة.</td></tr>
                             <tr><td class="fw-bold"><i class="fa-solid fa-chart-column me-1 text-primary"></i> {{ __('portal.nav.performance') }}</td><td class="small">أرقامك: المهام المكتملة، الالتزام بالمواعيد، الوقت الفعلي مقابل المتوقع — ولو عندك فريق، أداء فريقك.</td></tr>
                         </tbody>
                     </table>
@@ -399,7 +399,7 @@
                 </div>
                 <p class="small mb-0">
                     في المهمة بتشوف <strong>{{ __('task.time.estimated') }}</strong> مقابل <strong>{{ __('task.time.spent') }}</strong> والمتبقي أو الزيادة.
-                    وشاشة <strong>«{{ __('portal.nav.time') }}»</strong> بتجمع وقتك أسبوع بأسبوع — حسب اليوم وحسب المهمة.
+                    وشاشة <strong>«{{ __('portal.nav.time') }}»</strong> بتجمع وقتك في الفترة اللي تختارها من «من» و«إلى» (الافتراضي الأسبوع الحالي) — حسب اليوم وحسب المهمة.
                     العدّاد والوقت للمهام المفتوحة بس، وأول ما المهمة تتقفل العدّادات اللي عليها بتقف.
                 </p>
             </div>

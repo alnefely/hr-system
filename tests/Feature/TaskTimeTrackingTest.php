@@ -177,23 +177,37 @@ class TaskTimeTrackingTest extends TestCase
         $this->get(route('portal.time.index'))->assertOk()->assertSee('Write report')->assertSee(Duration::format(15));
     }
 
-    public function test_timesheet_week_can_be_picked_from_a_date(): void
+    public function test_timesheet_period_is_picked_with_from_and_to(): void
     {
-        // تسجيل يوم أربع في أسبوع قديم
-        $wednesday = Carbon::parse('2026-10-14');
-        $this->time->addManual($this->task, $this->staff, 45, $wednesday);
+        $this->time->addManual($this->task, $this->staff, 45, Carbon::parse('2026-10-14'));
+        $this->time->addManual($this->task, $this->staff, 30, Carbon::parse('2026-11-03'));
         $this->actingAs($this->staff, 'employee');
 
-        // اختيار يوم من نص الأسبوع ← بيفتح الأسبوع من السبت، وفيه الوقت
-        $this->get(route('portal.time.index', ['week' => '2026-10-15']))
-            ->assertOk()
-            ->assertSee('value="2026-10-10"', false)   // السبت = بداية الأسبوع في الحقل
-            ->assertSee('2026-10-16')                  // آخر الأسبوع (الجمعة)
-            ->assertSee(Duration::format(45));
-
-        // الحقل ظاهر في الأسبوع الحالي
+        // الافتراضي: الأسبوع الحالي (سبت ← جمعة) في الحقلين
+        $saturday = now()->startOfWeek(Carbon::SATURDAY);
         $this->get(route('portal.time.index'))->assertOk()
-            ->assertSee('type="date" name="week"', false);
+            ->assertSee('name="from" class="form-control form-control-sm" dir="ltr" value="' . $saturday->toDateString() . '"', false)
+            ->assertSee('value="' . $saturday->copy()->addDays(6)->toDateString() . '"', false);
+
+        // فترة مختارة: بتجمع اللي جوّاها بس
+        $this->get(route('portal.time.index', ['from' => '2026-10-01', 'to' => '2026-10-31']))->assertOk()
+            ->assertSee(Duration::format(45))->assertDontSee(Duration::format(75))
+            ->assertSee('value="2026-10-01"', false)->assertSee('value="2026-10-31"', false);
+
+        // معكوسة ← بتتبدّل، وفترة أطول من شهر ← أعمدة بالشهر والإجمالي للكل
+        $this->get(route('portal.time.index', ['from' => '2026-11-30', 'to' => '2026-10-01']))->assertOk()
+            ->assertSee('value="2026-10-01"', false)->assertSee('value="2026-11-30"', false)
+            ->assertSee(Duration::format(75))
+            ->assertSee(Carbon::parse('2026-10-01')->translatedFormat('M y'));
+
+        // الأسهم: نفس الطول لقدام (أسبوع ← الأسبوع اللي بعده)
+        $this->get(route('portal.time.index', ['from' => '2026-10-10', 'to' => '2026-10-16']))->assertOk()
+            ->assertSee(e(route('portal.time.index', ['from' => '2026-10-17', 'to' => '2026-10-23'])), false);
+
+        // اللينكات القديمة بـ ?week لسه شغالة، وتاريخ غلط بيتجاهل
+        $this->get(route('portal.time.index', ['week' => '2026-10-15']))->assertOk()
+            ->assertSee('value="2026-10-10"', false)->assertSee(Duration::format(45));
+        $this->get(route('portal.time.index', ['from' => '2026-02-31', 'to' => 'x']))->assertOk();
     }
 
     public function test_admin_task_page_shows_time_and_manual_form(): void
